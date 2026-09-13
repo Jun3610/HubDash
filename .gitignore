@@ -25,3 +25,14 @@ replay_pid*
 
 # OS
 .DS_Store
+
+# Gradle (root multi-module build: common/, api/)
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr

@@ -22,6 +22,7 @@
 - API 경로 컨벤션: `/api/hub/...`.
 - 스키마 관리는 Flyway. 운영은 `ddl-auto=validate`, 테스트는 `spring.flyway.enabled=false` + `ddl-auto=create-drop` + H2.
 - 이 계획을 시작하기 전에 `main`에 `feature/phase2-scaffolding`이 머지되어 있어야 한다 (`BaseEntity`, `ApiResponse`, `GlobalExceptionHandler`, `ApiKeyAuthFilter`가 이미 존재).
+- 모든 @DataJpaTest는 @Import(JpaAuditingConfig.class)를 함께 선언해야 createdAt/updatedAt이 채워진다 (JpaAuditingConfig는 api 모듈의 평범한 @Configuration이라 @DataJpaTest의 슬라이스에 기본 포함되지 않음).
 
 ---
 
@@ -57,14 +58,17 @@ app.api-key=test-api-key
 package com.junyoung.dashboard.domain.hub.repository;
 
 import com.junyoung.dashboard.domain.hub.entity.HubCategory;
+import com.junyoung.dashboard.global.config.JpaAuditingConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@Import(JpaAuditingConfig.class)
 @ActiveProfiles("test")
 class HubCategoryRepositoryTest {
 
@@ -477,7 +481,8 @@ import com.junyoung.dashboard.domain.hub.service.HubCategoryService;
 import com.junyoung.dashboard.global.exception.GlobalExceptionHandler;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -493,6 +498,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(HubCategoryController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @Import(GlobalExceptionHandler.class)
 class HubCategoryControllerTest {
 
@@ -643,10 +649,12 @@ package com.junyoung.dashboard.domain.hub.repository;
 
 import com.junyoung.dashboard.domain.hub.entity.HubCategory;
 import com.junyoung.dashboard.domain.hub.entity.HubLink;
+import com.junyoung.dashboard.global.config.JpaAuditingConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
@@ -654,6 +662,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@Import(JpaAuditingConfig.class)
 @ActiveProfiles("test")
 class HubLinkRepositoryTest {
 
@@ -1049,7 +1058,8 @@ import com.junyoung.dashboard.domain.hub.service.HubLinkService;
 import com.junyoung.dashboard.global.exception.GlobalExceptionHandler;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -1065,6 +1075,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(HubLinkController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @Import(GlobalExceptionHandler.class)
 class HubLinkControllerTest {
 
@@ -1221,7 +1232,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.junyoung.dashboard.domain.hub.dto.HubCategoryRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
