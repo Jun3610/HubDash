@@ -1,1 +1,2 @@
 rootProject.name = 'hubdash'
+include 'common', 'api'

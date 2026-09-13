@@ -23,18 +23,19 @@
 - 스키마 관리는 Flyway. 운영은 `ddl-auto=validate`, 테스트는 `spring.flyway.enabled=false` + `ddl-auto=create-drop` + H2.
 - 이 계획을 시작하기 전에 `main`에 `feature/phase2-scaffolding`이 머지되어 있어야 한다 (`BaseEntity`, `ApiResponse`, `GlobalExceptionHandler`, `ApiKeyAuthFilter`가 이미 존재).
 - 모든 @DataJpaTest는 @Import(JpaAuditingConfig.class)를 함께 선언해야 createdAt/updatedAt이 채워진다 (JpaAuditingConfig는 api 모듈의 평범한 @Configuration이라 @DataJpaTest의 슬라이스에 기본 포함되지 않음).
+- Gradle 멀티모듈(common/api)은 레포 루트가 아니라 `server/` 하위에 있다 (`server/settings.gradle`, `server/common/`, `server/api/`). 이 계획의 모든 `./gradlew ...` 명령은 레포 루트가 아니라 `server/` 디렉토리 안에서 실행해야 한다.
 
 ---
 
 ### Task 1: HubCategory 엔티티 + Flyway + Repository
 
 **Files:**
-- Create: `common/src/main/java/com/junyoung/dashboard/domain/hub/entity/HubCategory.java`
-- Create: `common/src/main/java/com/junyoung/dashboard/domain/hub/entity/HubLink.java` (이 태스크에서는 컴파일용 최소 버전만, Task 5에서 완성)
-- Create: `api/src/main/resources/db/migration/V1__init.sql`
-- Create: `api/src/main/java/com/junyoung/dashboard/domain/hub/repository/HubCategoryRepository.java`
-- Create: `api/src/test/resources/application-test.properties`
-- Test: `api/src/test/java/com/junyoung/dashboard/domain/hub/repository/HubCategoryRepositoryTest.java`
+- Create: `server/common/src/main/java/com/junyoung/dashboard/domain/hub/entity/HubCategory.java`
+- Create: `server/common/src/main/java/com/junyoung/dashboard/domain/hub/entity/HubLink.java` (이 태스크에서는 컴파일용 최소 버전만, Task 5에서 완성)
+- Create: `server/api/src/main/resources/db/migration/V1__init.sql`
+- Create: `server/api/src/main/java/com/junyoung/dashboard/domain/hub/repository/HubCategoryRepository.java`
+- Create: `server/api/src/test/resources/application-test.properties`
+- Test: `server/api/src/test/java/com/junyoung/dashboard/domain/hub/repository/HubCategoryRepositoryTest.java`
 
 **Interfaces:**
 - Consumes: `BaseEntity` (scaffolding 브랜치, `main`에 이미 머지됨)
@@ -42,7 +43,7 @@
 
 - [ ] **Step 1: 테스트 프로파일 설정 작성**
 
-`api/src/test/resources/application-test.properties`:
+`server/api/src/test/resources/application-test.properties`:
 
 ```properties
 spring.flyway.enabled=false
@@ -177,7 +178,7 @@ public interface HubCategoryRepository extends JpaRepository<HubCategory, Long> 
 
 - [ ] **Step 7: Flyway 마이그레이션 작성**
 
-`api/src/main/resources/db/migration/V1__init.sql`:
+`server/api/src/main/resources/db/migration/V1__init.sql`:
 
 ```sql
 CREATE TABLE hub_category (
@@ -216,9 +217,9 @@ git commit -m "feat: HubCategory 엔티티, Flyway 마이그레이션, Repositor
 ### Task 2: HubCategory DTO
 
 **Files:**
-- Create: `common/src/main/java/com/junyoung/dashboard/domain/hub/dto/HubCategoryRequest.java`
-- Create: `common/src/main/java/com/junyoung/dashboard/domain/hub/dto/HubCategoryResponse.java`
-- Test: `common/src/test/java/com/junyoung/dashboard/domain/hub/dto/HubCategoryResponseTest.java`
+- Create: `server/common/src/main/java/com/junyoung/dashboard/domain/hub/dto/HubCategoryRequest.java`
+- Create: `server/common/src/main/java/com/junyoung/dashboard/domain/hub/dto/HubCategoryResponse.java`
+- Test: `server/common/src/test/java/com/junyoung/dashboard/domain/hub/dto/HubCategoryResponseTest.java`
 
 **Interfaces:**
 - Consumes: `HubCategory`(Task 1)
@@ -313,8 +314,8 @@ git commit -m "feat: HubCategory 요청/응답 DTO 추가"
 ### Task 3: HubCategoryService
 
 **Files:**
-- Create: `api/src/main/java/com/junyoung/dashboard/domain/hub/service/HubCategoryService.java`
-- Test: `api/src/test/java/com/junyoung/dashboard/domain/hub/service/HubCategoryServiceTest.java`
+- Create: `server/api/src/main/java/com/junyoung/dashboard/domain/hub/service/HubCategoryService.java`
+- Test: `server/api/src/test/java/com/junyoung/dashboard/domain/hub/service/HubCategoryServiceTest.java`
 
 **Interfaces:**
 - Consumes: `HubCategoryRepository`(Task 1), `HubCategoryRequest`/`HubCategoryResponse`(Task 2), `EntityNotFoundException`(scaffolding 브랜치)
@@ -462,8 +463,8 @@ git commit -m "feat: HubCategoryService 추가"
 ### Task 4: HubCategoryController
 
 **Files:**
-- Create: `api/src/main/java/com/junyoung/dashboard/domain/hub/controller/HubCategoryController.java`
-- Test: `api/src/test/java/com/junyoung/dashboard/domain/hub/controller/HubCategoryControllerTest.java`
+- Create: `server/api/src/main/java/com/junyoung/dashboard/domain/hub/controller/HubCategoryController.java`
+- Test: `server/api/src/test/java/com/junyoung/dashboard/domain/hub/controller/HubCategoryControllerTest.java`
 
 **Interfaces:**
 - Consumes: `HubCategoryService`(Task 3), `ApiResponse`/`GlobalExceptionHandler`(scaffolding 브랜치)
@@ -634,9 +635,9 @@ git commit -m "feat: HubCategoryController 추가"
 ### Task 5: HubLink 완성 (엔티티/Repository)
 
 **Files:**
-- Modify: `common/src/main/java/com/junyoung/dashboard/domain/hub/entity/HubLink.java` (Task 1의 최소 버전을 완성)
-- Create: `api/src/main/java/com/junyoung/dashboard/domain/hub/repository/HubLinkRepository.java`
-- Test: `api/src/test/java/com/junyoung/dashboard/domain/hub/repository/HubLinkRepositoryTest.java`
+- Modify: `server/common/src/main/java/com/junyoung/dashboard/domain/hub/entity/HubLink.java` (Task 1의 최소 버전을 완성)
+- Create: `server/api/src/main/java/com/junyoung/dashboard/domain/hub/repository/HubLinkRepository.java`
+- Test: `server/api/src/test/java/com/junyoung/dashboard/domain/hub/repository/HubLinkRepositoryTest.java`
 
 **Interfaces:**
 - Consumes: `HubCategory`(Task 1)
@@ -772,9 +773,9 @@ git commit -m "feat: HubLink 엔티티 완성과 Repository 추가"
 ### Task 6: HubLink DTO
 
 **Files:**
-- Create: `common/src/main/java/com/junyoung/dashboard/domain/hub/dto/HubLinkRequest.java`
-- Create: `common/src/main/java/com/junyoung/dashboard/domain/hub/dto/HubLinkResponse.java`
-- Test: `common/src/test/java/com/junyoung/dashboard/domain/hub/dto/HubLinkResponseTest.java`
+- Create: `server/common/src/main/java/com/junyoung/dashboard/domain/hub/dto/HubLinkRequest.java`
+- Create: `server/common/src/main/java/com/junyoung/dashboard/domain/hub/dto/HubLinkResponse.java`
+- Test: `server/common/src/test/java/com/junyoung/dashboard/domain/hub/dto/HubLinkResponseTest.java`
 
 **Interfaces:**
 - Consumes: `HubLink`, `HubCategory`(Task 5)
@@ -878,8 +879,8 @@ git commit -m "feat: HubLink 요청/응답 DTO 추가"
 ### Task 7: HubLinkService
 
 **Files:**
-- Create: `api/src/main/java/com/junyoung/dashboard/domain/hub/service/HubLinkService.java`
-- Test: `api/src/test/java/com/junyoung/dashboard/domain/hub/service/HubLinkServiceTest.java`
+- Create: `server/api/src/main/java/com/junyoung/dashboard/domain/hub/service/HubLinkService.java`
+- Test: `server/api/src/test/java/com/junyoung/dashboard/domain/hub/service/HubLinkServiceTest.java`
 
 **Interfaces:**
 - Consumes: `HubLinkRepository`(Task 5), `HubCategoryRepository`(Task 1), `HubLinkRequest`/`HubLinkResponse`(Task 6), `EntityNotFoundException`(scaffolding 브랜치)
@@ -1039,8 +1040,8 @@ git commit -m "feat: HubLinkService 추가"
 ### Task 8: HubLinkController
 
 **Files:**
-- Create: `api/src/main/java/com/junyoung/dashboard/domain/hub/controller/HubLinkController.java`
-- Test: `api/src/test/java/com/junyoung/dashboard/domain/hub/controller/HubLinkControllerTest.java`
+- Create: `server/api/src/main/java/com/junyoung/dashboard/domain/hub/controller/HubLinkController.java`
+- Test: `server/api/src/test/java/com/junyoung/dashboard/domain/hub/controller/HubLinkControllerTest.java`
 
 **Interfaces:**
 - Consumes: `HubLinkService`(Task 7), `ApiResponse`/`GlobalExceptionHandler`(scaffolding 브랜치)
@@ -1201,15 +1202,15 @@ git commit -m "feat: HubLinkController 추가"
 ### Task 9: 통합 테스트 + 운영 설정 마무리 + PR
 
 **Files:**
-- Create: `api/src/test/java/com/junyoung/dashboard/DashboardApplicationTests.java`
-- Modify: `api/src/main/resources/application.properties` (Postgres 데이터소스 설정 추가)
+- Create: `server/api/src/test/java/com/junyoung/dashboard/DashboardApplicationTests.java`
+- Modify: `server/api/src/main/resources/application.properties` (Postgres 데이터소스 설정 추가)
 
 **Interfaces:**
 - Consumes: Task 1~8에서 만든 hub 도메인 전체 스택
 
 - [ ] **Step 1: application.properties에 데이터소스/JPA 설정 추가**
 
-`api/src/main/resources/application.properties` 전체 내용:
+`server/api/src/main/resources/application.properties` 전체 내용:
 
 ```properties
 spring.application.name=hubdash-api
