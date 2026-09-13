@@ -34,14 +34,17 @@ Notion 워크스페이스의 "초기 기획안" 페이지(Dash Board 하위)에 
 
 원래 계획인 `common/api/batch` 3모듈 중 `batch`는 위 "범위 밖"에 따라 지금 만들지 않는다. 지금 없는 모듈을 미리 만드는 것은 불필요한 선행 구조라 YAGNI에 어긋난다.
 
+레포 루트에는 백엔드 외에도 client, 파이프라인 등 다른 스택 폴더가 추가될 예정이라(2026-09-13 사용자 확인), Gradle 백엔드 전체를 `server/` 하위에 둔다 (레포 루트에 `build.gradle`/`settings.gradle`을 바로 두지 않음):
+
 ```
 HubDash/
-├── settings.gradle        # include 'common', 'api'
-├── common/                # 공유 도메인 (Entity, DTO, BaseEntity)
-└── api/                   # REST API (Controller-Service-Repository) + global 설정
+└── server/                # 백엔드 전체 (Gradle 멀티모듈 루트)
+    ├── settings.gradle        # include 'common', 'api'
+    ├── common/                # 공유 도메인 (Entity, DTO, BaseEntity)
+    └── api/                   # REST API (Controller-Service-Repository) + global 설정
 ```
 
-`server/`(이슈 #1 스캐폴딩)는 이 전환이 끝나면 삭제한다.
+이슈 #1 스캐폴딩(`io.github.junyong.hubdash` 패키지)은 이 전환 과정에서 이미 삭제되고, 같은 `server/` 이름을 새 멀티모듈 백엔드가 이어받았다 (2026-09-13, phase2-scaffolding 브랜치에서 처리).
 
 ### 패키지 구조 (도메인 기반, 루트 `com.junyoung.dashboard`)
 
