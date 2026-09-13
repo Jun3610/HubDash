@@ -10,9 +10,15 @@ Notion 워크스페이스의 "초기 기획안" 페이지(Dash Board 하위)에 
 
 - `server/` 단일 모듈 → Gradle 멀티모듈(`common`, `api`)로 전환, 루트 패키지 `com.junyoung.dashboard`
 - 계층 기반 패키지 → 도메인 기반 패키지로 전환
-- 8개 도메인(hub, study, life, health, pknu, schedule, memo, user)에 정규화된 엔티티 + REST CRUD API
+- 9개 도메인(hub, study, life, health, pknu, schedule, memo, user, reminder)에 정규화된 엔티티 + REST CRUD API
 - 공통 규약(BaseEntity, ApiResponse, GlobalExceptionHandler, API Key 인증) 확립
 - Flyway로 스키마 관리
+
+## 브랜치 전략 (2026-09-13 결정)
+
+공통 스캐폴딩(멀티모듈 + global 공통 요소)을 먼저 별도 브랜치(`feature/phase2-scaffolding`)로 완성해 `main`에 머지한다. 이후 도메인은 각자 독립된 브랜치(`feature/domain-hub`, `feature/domain-study`, ...)에서 `main`을 베이스로 작업하고 도메인 단위로 PR/머지한다. 도메인끼리는 서로 의존하지 않으므로(각자 자기 Entity/Repository/Service/Controller만 건드림) 병렬로 진행 가능.
+
+**Why:** 사용자가 "브랜치도 각각 나눠서 진행하자"고 요청 (2026-09-13). 하나의 거대한 브랜치에 8~9개 도메인을 다 넣으면 리뷰/롤백 단위가 너무 커짐.
 
 ## 범위 밖 (명시적으로 미룸)
 
@@ -20,6 +26,7 @@ Notion 워크스페이스의 "초기 기획안" 페이지(Dash Board 하위)에 
 - **`analytics`(통계/예측 모델)**: 위와 동일한 이유로 이번 phase 범위 밖.
 - **다중 사용자/회원가입**: 개인 포트폴리오용 single-user 대시보드로 확정 (2026-09-12). `user` 도메인은 로그인/가입 플로우 없이 단일 계정 개념만 가진다.
 - **Mac-iOS 클라이언트 동기화 로직**: 클라이언트는 별도 프로젝트. `schedule` 도메인의 `RecurringRule`/동기화(sync) 서브패키지는 이번 phase에서 만들지 않고 `Event` CRUD만 구현한다.
+- **리마인더 실제 발송(이메일/푸시)**: 클라이언트가 아직 미정이라 발송 수단(SMTP, FCM 등)을 정할 수 없음. `reminder` 도메인은 이번 phase에서 저장/조회 CRUD까지만 구현하고, 실제 발송은 클라이언트 결정 후 별도 이슈로 진행 (2026-09-13 사용자 결정).
 
 ## 아키텍처
 
@@ -80,6 +87,7 @@ com.junyoung.dashboard
 | schedule | `Event` | `RecurringRule`은 백로그 (범위 밖 참고) |
 | memo | `Memo` | 자유 메모, 제목/본문/태그 |
 | user | `UserProfile`, `UserSetting` | single-user 고정 1행 |
+| reminder | `Reminder` | 제목, 대상 시각, 대상 도메인/엔티티 참조(선택), 발송 여부. 실제 발송(이메일/푸시)은 클라이언트 결정 후 별도 구현 — 이번엔 저장+조회 CRUD까지만 |
 
 ## 데이터 흐름
 
