@@ -1,10 +1,16 @@
 package com.junyoung.dashboard.global.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class ApiResponse<T> {
 
+    @JsonProperty
     private final boolean success;
+    @JsonProperty
     private final T data;
+    @JsonProperty
     private final String errorCode;
+    @JsonProperty
     private final String message;
 
     private ApiResponse(boolean success, T data, String errorCode, String message) {
