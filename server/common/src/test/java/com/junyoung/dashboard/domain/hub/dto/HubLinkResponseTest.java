@@ -17,5 +17,6 @@ class HubLinkResponseTest {
 
         assertThat(response.title()).isEqualTo("Docker 문서");
         assertThat(response.url()).isEqualTo("https://example.com/docker");
+        assertThat(response.categoryId()).isEqualTo(category.getId());
     }
 }
