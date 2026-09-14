@@ -18,7 +18,10 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
 class HubLinkServiceTest {
@@ -47,7 +50,10 @@ class HubLinkServiceTest {
         HubLinkResponse response = hubLinkService.create(request);
 
         assertThat(response.title()).isEqualTo("Docker 문서");
-        assertThat(response.categoryId()).isEqualTo(category.getId());
+
+        ArgumentCaptor<HubLink> captor = ArgumentCaptor.forClass(HubLink.class);
+        verify(hubLinkRepository).save(captor.capture());
+        assertThat(captor.getValue().getCategory()).isSameAs(category);
     }
 
     @Test
