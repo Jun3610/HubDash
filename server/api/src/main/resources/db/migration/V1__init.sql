@@ -15,3 +15,5 @@ CREATE TABLE hub_link (
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL
 );
+
+CREATE INDEX idx_hub_link_category_id ON hub_link(category_id);
