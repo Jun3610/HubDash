@@ -48,6 +48,7 @@ class HubLinkControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.categoryId").value(1))
                 .andExpect(jsonPath("$.data.title").value("Docker 문서"));
     }
 
@@ -60,6 +61,7 @@ class HubLinkControllerTest {
 
         mockMvc.perform(get("/api/hub/links").param("categoryId", "1"))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].categoryId").value(1))
                 .andExpect(jsonPath("$.data[0].title").value("Docker 문서"));
     }
 }
