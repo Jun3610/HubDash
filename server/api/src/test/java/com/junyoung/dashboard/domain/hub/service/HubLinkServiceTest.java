@@ -1,0 +1,97 @@
+package com.junyoung.dashboard.domain.hub.service;
+
+import com.junyoung.dashboard.domain.hub.dto.HubLinkRequest;
+import com.junyoung.dashboard.domain.hub.dto.HubLinkResponse;
+import com.junyoung.dashboard.domain.hub.entity.HubCategory;
+import com.junyoung.dashboard.domain.hub.entity.HubLink;
+import com.junyoung.dashboard.domain.hub.repository.HubCategoryRepository;
+import com.junyoung.dashboard.domain.hub.repository.HubLinkRepository;
+import com.junyoung.dashboard.global.exception.EntityNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import org.mockito.ArgumentCaptor;
+
+@ExtendWith(MockitoExtension.class)
+class HubLinkServiceTest {
+
+    @Mock
+    private HubLinkRepository hubLinkRepository;
+
+    @Mock
+    private HubCategoryRepository hubCategoryRepository;
+
+    private HubLinkService hubLinkService;
+
+    @BeforeEach
+    void setUp() {
+        hubLinkService = new HubLinkService(hubLinkRepository, hubCategoryRepository);
+    }
+
+    @Test
+    void createsLinkUnderExistingCategory() {
+        HubCategory category = new HubCategory("CI/CD", null);
+        HubLinkRequest request = new HubLinkRequest(1L, "Docker 문서", "https://example.com/docker", null);
+        when(hubCategoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(hubLinkRepository.save(any(HubLink.class)))
+                .thenReturn(new HubLink(category, "Docker 문서", "https://example.com/docker", null));
+
+        HubLinkResponse response = hubLinkService.create(request);
+
+        assertThat(response.title()).isEqualTo("Docker 문서");
+
+        ArgumentCaptor<HubLink> captor = ArgumentCaptor.forClass(HubLink.class);
+        verify(hubLinkRepository).save(captor.capture());
+        assertThat(captor.getValue().getCategory()).isSameAs(category);
+    }
+
+    @Test
+    void throwsWhenCategoryMissing() {
+        HubLinkRequest request = new HubLinkRequest(1L, "Docker 문서", "https://example.com/docker", null);
+        when(hubCategoryRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> hubLinkService.create(request))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    void movesLinkToNewCategoryOnUpdate() {
+        HubCategory categoryA = new HubCategory("A", null);
+        HubCategory categoryB = new HubCategory("B", null);
+        HubLink link = new HubLink(categoryA, "Old 문서", "https://example.com/old", null);
+        HubLinkRequest request = new HubLinkRequest(2L, "New 문서", "https://example.com/new", null);
+
+        when(hubLinkRepository.findById(1L)).thenReturn(Optional.of(link));
+        when(hubCategoryRepository.findById(2L)).thenReturn(Optional.of(categoryB));
+
+        HubLinkResponse response = hubLinkService.update(1L, request);
+
+        assertThat(response.title()).isEqualTo("New 문서");
+        assertThat(link.getCategory()).isSameAs(categoryB);
+        assertThat(link.getCategory()).isNotSameAs(categoryA);
+    }
+
+    @Test
+    void throwsWhenNewCategoryMissingOnUpdate() {
+        HubCategory categoryA = new HubCategory("A", null);
+        HubLink link = new HubLink(categoryA, "Old 문서", "https://example.com/old", null);
+        HubLinkRequest request = new HubLinkRequest(2L, "New 문서", "https://example.com/new", null);
+
+        when(hubLinkRepository.findById(1L)).thenReturn(Optional.of(link));
+        when(hubCategoryRepository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> hubLinkService.update(1L, request))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+}
