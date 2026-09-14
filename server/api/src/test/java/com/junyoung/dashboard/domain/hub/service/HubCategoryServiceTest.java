@@ -16,7 +16,10 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
 class HubCategoryServiceTest {
@@ -41,6 +44,11 @@ class HubCategoryServiceTest {
 
         assertThat(response.name()).isEqualTo("CI/CD");
         assertThat(response.description()).isEqualTo("빌드 파이프라인 문서");
+
+        ArgumentCaptor<HubCategory> captor = ArgumentCaptor.forClass(HubCategory.class);
+        verify(hubCategoryRepository).save(captor.capture());
+        assertThat(captor.getValue().getName()).isEqualTo(request.name());
+        assertThat(captor.getValue().getDescription()).isEqualTo(request.description());
     }
 
     @Test
