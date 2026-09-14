@@ -64,4 +64,34 @@ class HubLinkServiceTest {
         assertThatThrownBy(() -> hubLinkService.create(request))
                 .isInstanceOf(EntityNotFoundException.class);
     }
+
+    @Test
+    void movesLinkToNewCategoryOnUpdate() {
+        HubCategory categoryA = new HubCategory("A", null);
+        HubCategory categoryB = new HubCategory("B", null);
+        HubLink link = new HubLink(categoryA, "Old 문서", "https://example.com/old", null);
+        HubLinkRequest request = new HubLinkRequest(2L, "New 문서", "https://example.com/new", null);
+
+        when(hubLinkRepository.findById(1L)).thenReturn(Optional.of(link));
+        when(hubCategoryRepository.findById(2L)).thenReturn(Optional.of(categoryB));
+
+        HubLinkResponse response = hubLinkService.update(1L, request);
+
+        assertThat(response.title()).isEqualTo("New 문서");
+        assertThat(link.getCategory()).isSameAs(categoryB);
+        assertThat(link.getCategory()).isNotSameAs(categoryA);
+    }
+
+    @Test
+    void throwsWhenNewCategoryMissingOnUpdate() {
+        HubCategory categoryA = new HubCategory("A", null);
+        HubLink link = new HubLink(categoryA, "Old 문서", "https://example.com/old", null);
+        HubLinkRequest request = new HubLinkRequest(2L, "New 문서", "https://example.com/new", null);
+
+        when(hubLinkRepository.findById(1L)).thenReturn(Optional.of(link));
+        when(hubCategoryRepository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> hubLinkService.update(1L, request))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
 }

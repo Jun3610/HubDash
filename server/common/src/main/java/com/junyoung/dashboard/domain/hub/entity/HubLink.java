@@ -42,4 +42,8 @@ public class HubLink extends BaseEntity {
         this.url = url;
         this.description = description;
     }
+
+    public void changeCategory(HubCategory category) {
+        this.category = category;
+    }
 }

@@ -46,7 +46,10 @@ public class HubLinkService {
     @Transactional
     public HubLinkResponse update(Long id, HubLinkRequest request) {
         HubLink link = getOrThrow(id);
+        HubCategory category = hubCategoryRepository.findById(request.categoryId())
+                .orElseThrow(() -> new EntityNotFoundException("hub category " + request.categoryId() + " not found"));
         link.update(request.title(), request.url(), request.description());
+        link.changeCategory(category);
         return HubLinkResponse.from(link);
     }
 
