@@ -47,6 +47,7 @@ class HubLinkServiceTest {
         HubLinkResponse response = hubLinkService.create(request);
 
         assertThat(response.title()).isEqualTo("Docker 문서");
+        assertThat(response.categoryId()).isEqualTo(category.getId());
     }
 
     @Test
