@@ -1,6 +1,6 @@
 package com.junyoung.dashboard.domain.hub.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.junyoung.dashboard.domain.hub.dto.HubCategoryRequest;
 import com.junyoung.dashboard.domain.hub.dto.HubCategoryResponse;
 import com.junyoung.dashboard.domain.hub.service.HubCategoryService;
@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -26,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(HubCategoryController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import({GlobalExceptionHandler.class, HubCategoryControllerTest.TestConfig.class})
+@Import(GlobalExceptionHandler.class)
 class HubCategoryControllerTest {
 
     @Autowired
@@ -37,13 +36,6 @@ class HubCategoryControllerTest {
 
     @MockitoBean
     private HubCategoryService hubCategoryService;
-
-    static class TestConfig {
-        @Bean
-        ObjectMapper objectMapper() {
-            return new ObjectMapper();
-        }
-    }
 
     @Test
     void createsCategory() throws Exception {
