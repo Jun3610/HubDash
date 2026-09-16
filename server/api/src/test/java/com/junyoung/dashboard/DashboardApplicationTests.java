@@ -2,6 +2,9 @@ package com.junyoung.dashboard;
 
 import tools.jackson.databind.ObjectMapper;
 import com.junyoung.dashboard.domain.hub.dto.HubCategoryRequest;
+import com.junyoung.dashboard.domain.life.dto.HabitRequest;
+import com.junyoung.dashboard.domain.life.dto.HabitLogRequest;
+import com.junyoung.dashboard.domain.life.dto.ReadingLogRequest;
 import com.junyoung.dashboard.domain.study.dto.StudyProgressRequest;
 import com.junyoung.dashboard.domain.study.dto.StudyTopicRequest;
 import org.junit.jupiter.api.Test;
@@ -106,5 +109,61 @@ class DashboardApplicationTests {
                         .content(objectMapper.writeValueAsString(moveRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.topicId").value(topicBId));
+    }
+
+    @Test
+    void movesHabitLogBetweenHabitsEndToEnd() throws Exception {
+        HabitRequest habitARequest = new HabitRequest("아침 스트레칭", null);
+        String habitAResponse = mockMvc.perform(post("/api/life/habits")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(habitARequest)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        Long habitAId = objectMapper.readTree(habitAResponse).get("data").get("id").asLong();
+
+        HabitRequest habitBRequest = new HabitRequest("저녁 독서", null);
+        String habitBResponse = mockMvc.perform(post("/api/life/habits")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(habitBRequest)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        Long habitBId = objectMapper.readTree(habitBResponse).get("data").get("id").asLong();
+
+        HabitLogRequest createRequest = new HabitLogRequest(habitAId, LocalDate.of(2026, 9, 16), true, null);
+        String logResponse = mockMvc.perform(post("/api/life/habit-logs")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.habitId").value(habitAId))
+                .andReturn().getResponse().getContentAsString();
+        Long logId = objectMapper.readTree(logResponse).get("data").get("id").asLong();
+
+        HabitLogRequest moveRequest = new HabitLogRequest(habitBId, LocalDate.of(2026, 9, 17), false, "이동됨");
+        mockMvc.perform(put("/api/life/habit-logs/" + logId)
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(moveRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.habitId").value(habitBId));
+    }
+
+    @Test
+    void createsAndFetchesReadingLogEndToEnd() throws Exception {
+        ReadingLogRequest request = new ReadingLogRequest("클린 코드", "로버트 마틴", LocalDate.of(2026, 9, 1), null, 5, null);
+
+        mockMvc.perform(post("/api/life/reading-logs")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.id").exists());
+
+        mockMvc.perform(get("/api/life/reading-logs")
+                        .header("X-API-KEY", "test-api-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].title").value("클린 코드"));
     }
 }
