@@ -80,4 +80,16 @@ class StudyProgressServiceTest {
         assertThat(progress.getTopic()).isNotSameAs(oldTopic);
         assertThat(progress.getMinutes()).isEqualTo(90);
     }
+
+    @Test
+    void throwsWhenNewTopicMissingOnUpdate() {
+        StudyTopic oldTopic = new StudyTopic("토익", null);
+        StudyProgress progress = new StudyProgress(oldTopic, LocalDate.of(2026, 9, 14), 60, null);
+        StudyProgressRequest request = new StudyProgressRequest(2L, LocalDate.of(2026, 9, 15), 90, null);
+        when(studyProgressRepository.findById(10L)).thenReturn(Optional.of(progress));
+        when(studyTopicRepository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> studyProgressService.update(10L, request))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
 }

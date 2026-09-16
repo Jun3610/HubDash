@@ -54,6 +54,17 @@ class StudyProgressControllerTest {
     }
 
     @Test
+    void rejectsNonPositiveMinutes() throws Exception {
+        StudyProgressRequest invalid = new StudyProgressRequest(1L, LocalDate.of(2026, 9, 14), 0, null);
+
+        mockMvc.perform(post("/api/study/progresses")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalid)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
     void listsProgressesByTopic() throws Exception {
         when(studyProgressService.findByTopicId(1L)).thenReturn(List.of(
                 new StudyProgressResponse(1L, 1L, LocalDate.of(2026, 9, 14), 60, null,
