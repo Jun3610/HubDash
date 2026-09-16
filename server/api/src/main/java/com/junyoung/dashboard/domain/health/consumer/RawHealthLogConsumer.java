@@ -2,6 +2,7 @@ package com.junyoung.dashboard.domain.health.consumer;
 
 import com.junyoung.dashboard.domain.health.entity.HealthLog;
 import com.junyoung.dashboard.domain.health.entity.RawHealthLog;
+import com.junyoung.dashboard.domain.health.entity.RawStatus;
 import com.junyoung.dashboard.domain.health.event.RawHealthLogCreatedEvent;
 import com.junyoung.dashboard.domain.health.repository.HealthLogRepository;
 import com.junyoung.dashboard.domain.health.repository.RawHealthLogRepository;
@@ -36,6 +37,12 @@ public class RawHealthLogConsumer {
         RawHealthLog raw = rawHealthLogRepository.findById(event.rawHealthLogId()).orElse(null);
         if (raw == null) {
             log.warn("RawHealthLog {} not found, skipping", event.rawHealthLogId());
+            return;
+        }
+        // Kafka는 at-least-once 전달을 보장한다 — 크래시/리밸런싱으로 같은 이벤트가 재전달될 수 있으므로,
+        // 이미 처리 끝난(PROCESSED/FAILED) 레코드는 중복 처리(HealthLog 중복 생성)하지 않도록 건너뛴다.
+        if (raw.getStatus() != RawStatus.PENDING) {
+            log.info("RawHealthLog {} already in status {}, skipping duplicate delivery", raw.getId(), raw.getStatus());
             return;
         }
 

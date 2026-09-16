@@ -3,6 +3,7 @@ package com.junyoung.dashboard.domain.health.consumer;
 import com.junyoung.dashboard.domain.health.dto.RawHealthLogRequest;
 import com.junyoung.dashboard.domain.health.entity.RawHealthLog;
 import com.junyoung.dashboard.domain.health.entity.RawStatus;
+import com.junyoung.dashboard.domain.health.event.RawHealthLogCreatedEvent;
 import com.junyoung.dashboard.domain.health.repository.HealthLogRepository;
 import com.junyoung.dashboard.domain.health.repository.RawHealthLogRepository;
 import com.junyoung.dashboard.domain.health.service.RawHealthLogService;
@@ -36,6 +37,9 @@ class RawHealthLogConsumerIntegrationTest {
     @Autowired
     private HealthLogRepository healthLogRepository;
 
+    @Autowired
+    private RawHealthLogConsumer rawHealthLogConsumer;
+
     @Test
     void validRawLogIsProcessedAndNormalizedIntoHealthLog() {
         long healthLogCountBefore = healthLogRepository.count();
@@ -65,6 +69,23 @@ class RawHealthLogConsumerIntegrationTest {
         });
 
         assertThat(healthLogRepository.count()).isEqualTo(healthLogCountBefore);
+    }
+
+    @Test
+    void redeliveredEventForAlreadyProcessedRawLogDoesNotDuplicateHealthLog() {
+        var response = rawHealthLogService.create(
+                new RawHealthLogRequest("2026-09-17", null, null, "재전달 케이스"));
+
+        await().atMost(Duration.ofSeconds(10)).untilAsserted(() ->
+                assertThat(rawHealthLogRepository.findById(response.id()).orElseThrow().getStatus())
+                        .isEqualTo(RawStatus.PROCESSED));
+
+        long healthLogCountAfterFirstProcessing = healthLogRepository.count();
+
+        // 이벤트 재전달 시나리오를 시뮬레이션 — 이미 PROCESSED인 레코드에 대해 컨슈머 로직을 한 번 더 직접 호출.
+        rawHealthLogConsumer.consume(new RawHealthLogCreatedEvent(response.id()));
+
+        assertThat(healthLogRepository.count()).isEqualTo(healthLogCountAfterFirstProcessing);
     }
 
     @Test
