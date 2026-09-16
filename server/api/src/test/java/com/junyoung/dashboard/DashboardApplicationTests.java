@@ -2,6 +2,7 @@ package com.junyoung.dashboard;
 
 import tools.jackson.databind.ObjectMapper;
 import com.junyoung.dashboard.domain.hub.dto.HubCategoryRequest;
+import com.junyoung.dashboard.domain.study.dto.StudyTopicRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -45,5 +46,22 @@ class DashboardApplicationTests {
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].name").value("CI/CD"));
+    }
+
+    @Test
+    void createsAndFetchesStudyTopicEndToEnd() throws Exception {
+        StudyTopicRequest request = new StudyTopicRequest("토익", "영어 공부");
+
+        mockMvc.perform(post("/api/study/topics")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.id").exists());
+
+        mockMvc.perform(get("/api/study/topics")
+                        .header("X-API-KEY", "test-api-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].name").value("토익"));
     }
 }
