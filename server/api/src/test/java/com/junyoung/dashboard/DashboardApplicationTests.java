@@ -9,6 +9,7 @@ import com.junyoung.dashboard.domain.hub.dto.HubCategoryRequest;
 import com.junyoung.dashboard.domain.life.dto.HabitRequest;
 import com.junyoung.dashboard.domain.life.dto.HabitLogRequest;
 import com.junyoung.dashboard.domain.life.dto.ReadingLogRequest;
+import com.junyoung.dashboard.domain.memo.dto.MemoRequest;
 import com.junyoung.dashboard.domain.pknu.dto.AssignmentRequest;
 import com.junyoung.dashboard.domain.pknu.dto.CourseRequest;
 import com.junyoung.dashboard.domain.pknu.dto.SemesterRequest;
@@ -361,5 +362,22 @@ class DashboardApplicationTests {
                         .content(objectMapper.writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void createsAndFetchesMemoEndToEnd() throws Exception {
+        MemoRequest request = new MemoRequest("장보기", "우유, 계란, 빵", "일상,장보기");
+
+        mockMvc.perform(post("/api/memo/memos")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.id").exists());
+
+        mockMvc.perform(get("/api/memo/memos")
+                        .header("X-API-KEY", "test-api-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].title").value("장보기"));
     }
 }
