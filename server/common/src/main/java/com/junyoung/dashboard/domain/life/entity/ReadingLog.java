@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "reading_log")
+@Table(name = "life_reading_log")
 public class ReadingLog extends BaseEntity {
 
     @Column(nullable = false, length = 200)

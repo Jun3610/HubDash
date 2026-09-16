@@ -16,7 +16,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "habit")
+@Table(name = "life_habit")
 public class Habit extends BaseEntity {
 
     @Column(nullable = false, length = 100)

@@ -16,7 +16,7 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "habit_log")
+@Table(name = "life_habit_log")
 public class HabitLog extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
