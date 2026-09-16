@@ -15,9 +15,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -65,13 +69,13 @@ class WorkoutLogControllerTest {
 
     @Test
     void listsWorkoutLogs() throws Exception {
-        when(workoutLogService.findAll()).thenReturn(List.of(
+        when(workoutLogService.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(
                 new WorkoutLogResponse(1L, LocalDate.of(2026, 9, 1), "러닝", 30, 300, null,
                         LocalDateTime.now(), LocalDateTime.now())
-        ));
+        )));
 
         mockMvc.perform(get("/api/health/workout-logs"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].type").value("러닝"));
+                .andExpect(jsonPath("$.data.content[0].type").value("러닝"));
     }
 }

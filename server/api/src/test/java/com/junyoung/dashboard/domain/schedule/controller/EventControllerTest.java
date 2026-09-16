@@ -14,9 +14,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -79,14 +83,14 @@ class EventControllerTest {
 
     @Test
     void listsEvents() throws Exception {
-        when(eventService.findAll()).thenReturn(List.of(
+        when(eventService.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(
                 new EventResponse(1L, "발표 준비", LocalDateTime.of(2026, 9, 16, 10, 0),
                         LocalDateTime.of(2026, 9, 16, 11, 0), "회의실 A", null, false,
                         LocalDateTime.now(), LocalDateTime.now())
-        ));
+        )));
 
         mockMvc.perform(get("/api/schedule/events"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].title").value("발표 준비"));
+                .andExpect(jsonPath("$.data.content[0].title").value("발표 준비"));
     }
 }

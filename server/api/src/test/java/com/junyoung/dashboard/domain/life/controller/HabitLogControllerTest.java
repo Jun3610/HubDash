@@ -14,10 +14,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -55,13 +60,13 @@ class HabitLogControllerTest {
 
     @Test
     void listsLogsByHabit() throws Exception {
-        when(habitLogService.findByHabitId(1L)).thenReturn(List.of(
+        when(habitLogService.findByHabitId(eq(1L), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(
                 new HabitLogResponse(1L, 1L, LocalDate.of(2026, 9, 16), true, null,
                         LocalDateTime.now(), LocalDateTime.now())
-        ));
+        )));
 
         mockMvc.perform(get("/api/life/habit-logs").param("habitId", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].habitId").value(1));
+                .andExpect(jsonPath("$.data.content[0].habitId").value(1));
     }
 }

@@ -5,10 +5,10 @@ import com.junyoung.dashboard.domain.reminder.dto.ReminderResponse;
 import com.junyoung.dashboard.domain.reminder.entity.Reminder;
 import com.junyoung.dashboard.domain.reminder.repository.ReminderRepository;
 import com.junyoung.dashboard.global.exception.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -28,10 +28,9 @@ public class ReminderService {
         return ReminderResponse.from(saved);
     }
 
-    public List<ReminderResponse> findAll() {
-        return reminderRepository.findAll().stream()
-                .map(ReminderResponse::from)
-                .toList();
+    public Page<ReminderResponse> findAll(Pageable pageable) {
+        return reminderRepository.findAll(pageable)
+                .map(ReminderResponse::from);
     }
 
     public ReminderResponse findById(Long id) {

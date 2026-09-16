@@ -5,10 +5,10 @@ import com.junyoung.dashboard.domain.pknu.dto.SemesterResponse;
 import com.junyoung.dashboard.domain.pknu.entity.Semester;
 import com.junyoung.dashboard.domain.pknu.repository.SemesterRepository;
 import com.junyoung.dashboard.global.exception.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -27,10 +27,9 @@ public class SemesterService {
         return SemesterResponse.from(saved);
     }
 
-    public List<SemesterResponse> findAll() {
-        return semesterRepository.findAll().stream()
-                .map(SemesterResponse::from)
-                .toList();
+    public Page<SemesterResponse> findAll(Pageable pageable) {
+        return semesterRepository.findAll(pageable)
+                .map(SemesterResponse::from);
     }
 
     public SemesterResponse findById(Long id) {

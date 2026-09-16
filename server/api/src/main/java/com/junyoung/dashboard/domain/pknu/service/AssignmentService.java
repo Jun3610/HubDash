@@ -7,10 +7,10 @@ import com.junyoung.dashboard.domain.pknu.entity.Course;
 import com.junyoung.dashboard.domain.pknu.repository.AssignmentRepository;
 import com.junyoung.dashboard.domain.pknu.repository.CourseRepository;
 import com.junyoung.dashboard.global.exception.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -32,10 +32,9 @@ public class AssignmentService {
         return AssignmentResponse.from(saved);
     }
 
-    public List<AssignmentResponse> findByCourseId(Long courseId) {
-        return assignmentRepository.findByCourseId(courseId).stream()
-                .map(AssignmentResponse::from)
-                .toList();
+    public Page<AssignmentResponse> findByCourseId(Long courseId, Pageable pageable) {
+        return assignmentRepository.findByCourseId(courseId, pageable)
+                .map(AssignmentResponse::from);
     }
 
     public AssignmentResponse findById(Long id) {

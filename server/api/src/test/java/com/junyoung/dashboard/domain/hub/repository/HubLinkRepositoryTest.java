@@ -8,9 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,9 +30,9 @@ class HubLinkRepositoryTest {
         HubCategory category = entityManager.persistAndFlush(new HubCategory("CI/CD", null));
         entityManager.persistAndFlush(new HubLink(category, "Docker 문서", "https://example.com/docker", null));
 
-        List<HubLink> links = hubLinkRepository.findByCategoryId(category.getId());
+        Page<HubLink> links = hubLinkRepository.findByCategoryId(category.getId(), Pageable.unpaged());
 
-        assertThat(links).hasSize(1);
-        assertThat(links.get(0).getTitle()).isEqualTo("Docker 문서");
+        assertThat(links.getContent()).hasSize(1);
+        assertThat(links.getContent().get(0).getTitle()).isEqualTo("Docker 문서");
     }
 }

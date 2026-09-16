@@ -15,9 +15,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -67,13 +71,13 @@ class MealRecordControllerTest {
 
     @Test
     void listsMealRecords() throws Exception {
-        when(mealRecordService.findAll()).thenReturn(List.of(
+        when(mealRecordService.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(
                 new MealRecordResponse(1L, LocalDateTime.of(2026, 9, 1, 8, 0), MealType.BREAKFAST, 500,
                         60.0, 20.0, 15.0, 300.0, null, LocalDateTime.now(), LocalDateTime.now())
-        ));
+        )));
 
         mockMvc.perform(get("/api/health/meal-records"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].mealType").value("BREAKFAST"));
+                .andExpect(jsonPath("$.data.content[0].mealType").value("BREAKFAST"));
     }
 }

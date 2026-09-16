@@ -5,10 +5,10 @@ import com.junyoung.dashboard.domain.health.dto.MealRecordResponse;
 import com.junyoung.dashboard.domain.health.entity.MealRecord;
 import com.junyoung.dashboard.domain.health.repository.MealRecordRepository;
 import com.junyoung.dashboard.global.exception.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -28,10 +28,9 @@ public class MealRecordService {
         return MealRecordResponse.from(saved);
     }
 
-    public List<MealRecordResponse> findAll() {
-        return mealRecordRepository.findAll().stream()
-                .map(MealRecordResponse::from)
-                .toList();
+    public Page<MealRecordResponse> findAll(Pageable pageable) {
+        return mealRecordRepository.findAll(pageable)
+                .map(MealRecordResponse::from);
     }
 
     public MealRecordResponse findById(Long id) {

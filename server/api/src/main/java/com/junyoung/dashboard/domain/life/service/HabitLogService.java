@@ -7,10 +7,10 @@ import com.junyoung.dashboard.domain.life.entity.HabitLog;
 import com.junyoung.dashboard.domain.life.repository.HabitLogRepository;
 import com.junyoung.dashboard.domain.life.repository.HabitRepository;
 import com.junyoung.dashboard.global.exception.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -32,10 +32,9 @@ public class HabitLogService {
         return HabitLogResponse.from(saved);
     }
 
-    public List<HabitLogResponse> findByHabitId(Long habitId) {
-        return habitLogRepository.findByHabitId(habitId).stream()
-                .map(HabitLogResponse::from)
-                .toList();
+    public Page<HabitLogResponse> findByHabitId(Long habitId, Pageable pageable) {
+        return habitLogRepository.findByHabitId(habitId, pageable)
+                .map(HabitLogResponse::from);
     }
 
     public HabitLogResponse findById(Long id) {

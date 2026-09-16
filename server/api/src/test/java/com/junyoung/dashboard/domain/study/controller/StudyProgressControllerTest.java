@@ -14,10 +14,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -66,14 +71,14 @@ class StudyProgressControllerTest {
 
     @Test
     void listsProgressesByTopic() throws Exception {
-        when(studyProgressService.findByTopicId(1L)).thenReturn(List.of(
+        when(studyProgressService.findByTopicId(eq(1L), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(
                 new StudyProgressResponse(1L, 1L, LocalDate.of(2026, 9, 14), 60, null,
                         LocalDateTime.now(), LocalDateTime.now())
-        ));
+        )));
 
         mockMvc.perform(get("/api/study/progresses").param("topicId", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].minutes").value(60))
-                .andExpect(jsonPath("$.data[0].topicId").value(1));
+                .andExpect(jsonPath("$.data.content[0].minutes").value(60))
+                .andExpect(jsonPath("$.data.content[0].topicId").value(1));
     }
 }

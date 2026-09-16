@@ -14,9 +14,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -63,12 +68,12 @@ class CourseControllerTest {
 
     @Test
     void listsCoursesBySemesterId() throws Exception {
-        when(courseService.findBySemesterId(1L)).thenReturn(List.of(
+        when(courseService.findBySemesterId(eq(1L), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(
                 new CourseResponse(1L, 1L, "자료구조", "김교수", 3, LocalDateTime.now(), LocalDateTime.now())
-        ));
+        )));
 
         mockMvc.perform(get("/api/pknu/courses").param("semesterId", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].name").value("자료구조"));
+                .andExpect(jsonPath("$.data.content[0].name").value("자료구조"));
     }
 }

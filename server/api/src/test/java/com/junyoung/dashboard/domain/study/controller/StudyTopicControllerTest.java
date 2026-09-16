@@ -14,9 +14,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -65,12 +69,12 @@ class StudyTopicControllerTest {
 
     @Test
     void listsTopics() throws Exception {
-        when(studyTopicService.findAll()).thenReturn(List.of(
+        when(studyTopicService.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(
                 new StudyTopicResponse(1L, "토익", null, LocalDateTime.now(), LocalDateTime.now())
-        ));
+        )));
 
         mockMvc.perform(get("/api/study/topics"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].name").value("토익"));
+                .andExpect(jsonPath("$.data.content[0].name").value("토익"));
     }
 }

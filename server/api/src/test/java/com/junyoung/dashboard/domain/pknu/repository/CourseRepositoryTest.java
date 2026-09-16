@@ -9,10 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,10 +40,10 @@ class CourseRepositoryTest {
                 new Semester("2026-1학기", LocalDate.of(2026, 3, 1), LocalDate.of(2026, 6, 30)));
         courseRepository.save(new Course(semester, "자료구조", "김교수", 3));
 
-        List<Course> courses = courseRepository.findBySemesterId(semester.getId());
+        Page<Course> courses = courseRepository.findBySemesterId(semester.getId(), Pageable.unpaged());
 
-        assertThat(courses).hasSize(1);
-        assertThat(courses.get(0).getName()).isEqualTo("자료구조");
+        assertThat(courses.getContent()).hasSize(1);
+        assertThat(courses.getContent().get(0).getName()).isEqualTo("자료구조");
     }
 
     @Test

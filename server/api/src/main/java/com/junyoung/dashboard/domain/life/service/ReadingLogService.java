@@ -5,10 +5,10 @@ import com.junyoung.dashboard.domain.life.dto.ReadingLogResponse;
 import com.junyoung.dashboard.domain.life.entity.ReadingLog;
 import com.junyoung.dashboard.domain.life.repository.ReadingLogRepository;
 import com.junyoung.dashboard.global.exception.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -28,10 +28,9 @@ public class ReadingLogService {
         return ReadingLogResponse.from(saved);
     }
 
-    public List<ReadingLogResponse> findAll() {
-        return readingLogRepository.findAll().stream()
-                .map(ReadingLogResponse::from)
-                .toList();
+    public Page<ReadingLogResponse> findAll(Pageable pageable) {
+        return readingLogRepository.findAll(pageable)
+                .map(ReadingLogResponse::from);
     }
 
     public ReadingLogResponse findById(Long id) {

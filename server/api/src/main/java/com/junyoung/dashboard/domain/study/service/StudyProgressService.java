@@ -7,10 +7,10 @@ import com.junyoung.dashboard.domain.study.entity.StudyTopic;
 import com.junyoung.dashboard.domain.study.repository.StudyProgressRepository;
 import com.junyoung.dashboard.domain.study.repository.StudyTopicRepository;
 import com.junyoung.dashboard.global.exception.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -32,10 +32,9 @@ public class StudyProgressService {
         return StudyProgressResponse.from(saved);
     }
 
-    public List<StudyProgressResponse> findByTopicId(Long topicId) {
-        return studyProgressRepository.findByTopicId(topicId).stream()
-                .map(StudyProgressResponse::from)
-                .toList();
+    public Page<StudyProgressResponse> findByTopicId(Long topicId, Pageable pageable) {
+        return studyProgressRepository.findByTopicId(topicId, pageable)
+                .map(StudyProgressResponse::from);
     }
 
     public StudyProgressResponse findById(Long id) {

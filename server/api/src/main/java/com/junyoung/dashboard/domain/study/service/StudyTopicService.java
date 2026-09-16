@@ -5,10 +5,10 @@ import com.junyoung.dashboard.domain.study.dto.StudyTopicResponse;
 import com.junyoung.dashboard.domain.study.entity.StudyTopic;
 import com.junyoung.dashboard.domain.study.repository.StudyTopicRepository;
 import com.junyoung.dashboard.global.exception.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -27,10 +27,9 @@ public class StudyTopicService {
         return StudyTopicResponse.from(saved);
     }
 
-    public List<StudyTopicResponse> findAll() {
-        return studyTopicRepository.findAll().stream()
-                .map(StudyTopicResponse::from)
-                .toList();
+    public Page<StudyTopicResponse> findAll(Pageable pageable) {
+        return studyTopicRepository.findAll(pageable)
+                .map(StudyTopicResponse::from);
     }
 
     public StudyTopicResponse findById(Long id) {
