@@ -9,6 +9,9 @@ import com.junyoung.dashboard.domain.hub.dto.HubCategoryRequest;
 import com.junyoung.dashboard.domain.life.dto.HabitRequest;
 import com.junyoung.dashboard.domain.life.dto.HabitLogRequest;
 import com.junyoung.dashboard.domain.life.dto.ReadingLogRequest;
+import com.junyoung.dashboard.domain.pknu.dto.AssignmentRequest;
+import com.junyoung.dashboard.domain.pknu.dto.CourseRequest;
+import com.junyoung.dashboard.domain.pknu.dto.SemesterRequest;
 import com.junyoung.dashboard.domain.study.dto.StudyProgressRequest;
 import com.junyoung.dashboard.domain.study.dto.StudyTopicRequest;
 import org.junit.jupiter.api.Test;
@@ -222,5 +225,109 @@ class DashboardApplicationTests {
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].type").value("러닝"));
+    }
+
+    @Test
+    void createsAndFetchesSemesterEndToEnd() throws Exception {
+        SemesterRequest request = new SemesterRequest("2026-1학기", LocalDate.of(2026, 3, 1), LocalDate.of(2026, 6, 30));
+
+        mockMvc.perform(post("/api/pknu/semesters")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.id").exists());
+
+        mockMvc.perform(get("/api/pknu/semesters")
+                        .header("X-API-KEY", "test-api-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].name").value("2026-1학기"));
+    }
+
+    @Test
+    void movesCourseBetweenSemestersEndToEnd() throws Exception {
+        SemesterRequest semesterARequest = new SemesterRequest("2026-1학기", LocalDate.of(2026, 3, 1), LocalDate.of(2026, 6, 30));
+        String semesterAResponse = mockMvc.perform(post("/api/pknu/semesters")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(semesterARequest)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        Long semesterAId = objectMapper.readTree(semesterAResponse).get("data").get("id").asLong();
+
+        SemesterRequest semesterBRequest = new SemesterRequest("2026-2학기", LocalDate.of(2026, 9, 1), LocalDate.of(2026, 12, 20));
+        String semesterBResponse = mockMvc.perform(post("/api/pknu/semesters")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(semesterBRequest)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        Long semesterBId = objectMapper.readTree(semesterBResponse).get("data").get("id").asLong();
+
+        CourseRequest createRequest = new CourseRequest(semesterAId, "자료구조", "김교수", 3);
+        String courseResponse = mockMvc.perform(post("/api/pknu/courses")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.semesterId").value(semesterAId))
+                .andReturn().getResponse().getContentAsString();
+        Long courseId = objectMapper.readTree(courseResponse).get("data").get("id").asLong();
+
+        CourseRequest moveRequest = new CourseRequest(semesterBId, "운영체제", "이교수", 4);
+        mockMvc.perform(put("/api/pknu/courses/" + courseId)
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(moveRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.semesterId").value(semesterBId));
+    }
+
+    @Test
+    void movesAssignmentBetweenCoursesEndToEnd() throws Exception {
+        SemesterRequest semesterRequest = new SemesterRequest("2026-1학기", LocalDate.of(2026, 3, 1), LocalDate.of(2026, 6, 30));
+        String semesterResponse = mockMvc.perform(post("/api/pknu/semesters")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(semesterRequest)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        Long semesterId = objectMapper.readTree(semesterResponse).get("data").get("id").asLong();
+
+        CourseRequest courseARequest = new CourseRequest(semesterId, "자료구조", "김교수", 3);
+        String courseAResponse = mockMvc.perform(post("/api/pknu/courses")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(courseARequest)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        Long courseAId = objectMapper.readTree(courseAResponse).get("data").get("id").asLong();
+
+        CourseRequest courseBRequest = new CourseRequest(semesterId, "운영체제", "이교수", 4);
+        String courseBResponse = mockMvc.perform(post("/api/pknu/courses")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(courseBRequest)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        Long courseBId = objectMapper.readTree(courseBResponse).get("data").get("id").asLong();
+
+        AssignmentRequest createRequest = new AssignmentRequest(courseAId, "1주차 과제", LocalDate.of(2026, 3, 10), false, null);
+        String assignmentResponse = mockMvc.perform(post("/api/pknu/assignments")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.courseId").value(courseAId))
+                .andReturn().getResponse().getContentAsString();
+        Long assignmentId = objectMapper.readTree(assignmentResponse).get("data").get("id").asLong();
+
+        AssignmentRequest moveRequest = new AssignmentRequest(courseBId, "2주차 과제", LocalDate.of(2026, 3, 17), true, "이동됨");
+        mockMvc.perform(put("/api/pknu/assignments/" + assignmentId)
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(moveRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.courseId").value(courseBId));
     }
 }
