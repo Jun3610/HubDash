@@ -13,6 +13,7 @@ import com.junyoung.dashboard.domain.memo.dto.MemoRequest;
 import com.junyoung.dashboard.domain.pknu.dto.AssignmentRequest;
 import com.junyoung.dashboard.domain.pknu.dto.CourseRequest;
 import com.junyoung.dashboard.domain.pknu.dto.SemesterRequest;
+import com.junyoung.dashboard.domain.reminder.dto.ReminderRequest;
 import com.junyoung.dashboard.domain.schedule.dto.EventRequest;
 import com.junyoung.dashboard.domain.study.dto.StudyProgressRequest;
 import com.junyoung.dashboard.domain.study.dto.StudyTopicRequest;
@@ -381,6 +382,24 @@ class DashboardApplicationTests {
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].title").value("장보기"));
+    }
+
+    @Test
+    void createsAndFetchesReminderEndToEnd() throws Exception {
+        ReminderRequest request = new ReminderRequest(
+                "과제 마감 임박", LocalDateTime.of(2026, 9, 20, 9, 0), "pknu", 42L, false);
+
+        mockMvc.perform(post("/api/reminder/reminders")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.id").exists());
+
+        mockMvc.perform(get("/api/reminder/reminders")
+                        .header("X-API-KEY", "test-api-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].title").value("과제 마감 임박"));
     }
 
     @Test
