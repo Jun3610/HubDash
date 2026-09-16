@@ -58,4 +58,27 @@ class ReadingLogServiceTest {
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("1");
     }
+
+    @Test
+    void updatesEveryFieldWithoutTransposingParameters() {
+        ReadingLog existing = new ReadingLog(
+                "클린 코드", "로버트 마틴",
+                LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 10),
+                3, "기존 메모");
+        when(readingLogRepository.findById(1L)).thenReturn(Optional.of(existing));
+
+        ReadingLogRequest request = new ReadingLogRequest(
+                "이펙티브 자바", "조슈아 블로크",
+                LocalDate.of(2026, 2, 2), LocalDate.of(2026, 2, 20),
+                5, "새 메모");
+
+        ReadingLogResponse response = readingLogService.update(1L, request);
+
+        assertThat(response.title()).isEqualTo("이펙티브 자바");
+        assertThat(response.author()).isEqualTo("조슈아 블로크");
+        assertThat(response.startedAt()).isEqualTo(LocalDate.of(2026, 2, 2));
+        assertThat(response.finishedAt()).isEqualTo(LocalDate.of(2026, 2, 20));
+        assertThat(response.rating()).isEqualTo(5);
+        assertThat(response.notes()).isEqualTo("새 메모");
+    }
 }
