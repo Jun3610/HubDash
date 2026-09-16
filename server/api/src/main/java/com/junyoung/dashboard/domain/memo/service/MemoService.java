@@ -50,6 +50,6 @@ public class MemoService {
 
     private Memo getOrThrow(Long id) {
         return memoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("memo " + id + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(Memo.class, id));
     }
 }

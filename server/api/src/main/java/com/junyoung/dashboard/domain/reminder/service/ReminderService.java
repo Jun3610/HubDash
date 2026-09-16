@@ -53,6 +53,6 @@ public class ReminderService {
 
     private Reminder getOrThrow(Long id) {
         return reminderRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("reminder " + id + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(Reminder.class, id));
     }
 }

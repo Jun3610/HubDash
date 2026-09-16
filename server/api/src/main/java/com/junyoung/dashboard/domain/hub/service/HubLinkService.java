@@ -27,7 +27,7 @@ public class HubLinkService {
     @Transactional
     public HubLinkResponse create(HubLinkRequest request) {
         HubCategory category = hubCategoryRepository.findById(request.categoryId())
-                .orElseThrow(() -> new EntityNotFoundException("hub category " + request.categoryId() + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(HubCategory.class, request.categoryId()));
         HubLink saved = hubLinkRepository.save(
                 new HubLink(category, request.title(), request.url(), request.description()));
         return HubLinkResponse.from(saved);
@@ -47,7 +47,7 @@ public class HubLinkService {
     public HubLinkResponse update(Long id, HubLinkRequest request) {
         HubLink link = getOrThrow(id);
         HubCategory category = hubCategoryRepository.findById(request.categoryId())
-                .orElseThrow(() -> new EntityNotFoundException("hub category " + request.categoryId() + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(HubCategory.class, request.categoryId()));
         link.update(request.title(), request.url(), request.description());
         link.changeCategory(category);
         return HubLinkResponse.from(link);
@@ -60,6 +60,6 @@ public class HubLinkService {
 
     private HubLink getOrThrow(Long id) {
         return hubLinkRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("hub link " + id + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(HubLink.class, id));
     }
 }

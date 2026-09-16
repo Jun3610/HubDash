@@ -50,6 +50,6 @@ public class HabitService {
 
     private Habit getOrThrow(Long id) {
         return habitRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("habit " + id + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(Habit.class, id));
     }
 }

@@ -51,6 +51,6 @@ public class SemesterService {
 
     private Semester getOrThrow(Long id) {
         return semesterRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("semester " + id + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(Semester.class, id));
     }
 }

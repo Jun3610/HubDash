@@ -53,6 +53,6 @@ public class MealRecordService {
 
     private MealRecord getOrThrow(Long id) {
         return mealRecordRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("meal record " + id + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(MealRecord.class, id));
     }
 }

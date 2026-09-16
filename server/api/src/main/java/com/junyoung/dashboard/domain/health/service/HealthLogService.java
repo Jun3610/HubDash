@@ -51,6 +51,6 @@ public class HealthLogService {
 
     private HealthLog getOrThrow(Long id) {
         return healthLogRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("health log " + id + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(HealthLog.class, id));
     }
 }

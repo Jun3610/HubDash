@@ -57,11 +57,11 @@ public class HabitLogService {
 
     private HabitLog getOrThrow(Long id) {
         return habitLogRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("habit log " + id + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(HabitLog.class, id));
     }
 
     private Habit getHabitOrThrow(Long habitId) {
         return habitRepository.findById(habitId)
-                .orElseThrow(() -> new EntityNotFoundException("habit " + habitId + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(Habit.class, habitId));
     }
 }
