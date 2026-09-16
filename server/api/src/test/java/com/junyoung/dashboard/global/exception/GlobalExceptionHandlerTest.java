@@ -6,12 +6,18 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -39,6 +45,24 @@ class GlobalExceptionHandlerTest {
         public String unexpected() {
             throw new IllegalStateException("something broke");
         }
+
+        @GetMapping("/test/missing-param")
+        public String missingParam(@RequestParam String name) {
+            return name;
+        }
+
+        @GetMapping("/test/type-mismatch/{id}")
+        public String typeMismatch(@PathVariable Long id) {
+            return id.toString();
+        }
+
+        @PostMapping("/test/bad-json")
+        public String badJson(@RequestBody TestBody body) {
+            return body.toString();
+        }
+
+        record TestBody(String value) {
+        }
     }
 
     @Test
@@ -63,6 +87,35 @@ class GlobalExceptionHandlerTest {
         mockMvc.perform(get("/test/unexpected"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.errorCode").value("INTERNAL_SERVER_ERROR"));
+                .andExpect(jsonPath("$.errorCode").value("INTERNAL_SERVER_ERROR"))
+                .andExpect(jsonPath("$.message").value("서버 내부 오류가 발생했습니다"))
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("something broke"))));
+    }
+
+    @Test
+    void returns400WhenRequiredParamIsMissing() throws Exception {
+        mockMvc.perform(get("/test/missing-param"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.errorCode").value("INVALID_REQUEST"))
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("name")));
+    }
+
+    @Test
+    void returns400WhenPathVariableTypeMismatches() throws Exception {
+        mockMvc.perform(get("/test/type-mismatch/not-a-number"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.errorCode").value("INVALID_REQUEST"));
+    }
+
+    @Test
+    void returns400WhenRequestBodyIsMalformed() throws Exception {
+        mockMvc.perform(post("/test/bad-json")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{not-valid-json"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.errorCode").value("INVALID_REQUEST"));
     }
 }
