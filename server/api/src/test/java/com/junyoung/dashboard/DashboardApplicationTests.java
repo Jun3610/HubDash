@@ -1,6 +1,10 @@
 package com.junyoung.dashboard;
 
 import tools.jackson.databind.ObjectMapper;
+import com.junyoung.dashboard.domain.health.dto.HealthLogRequest;
+import com.junyoung.dashboard.domain.health.dto.MealRecordRequest;
+import com.junyoung.dashboard.domain.health.dto.WorkoutLogRequest;
+import com.junyoung.dashboard.domain.health.entity.MealType;
 import com.junyoung.dashboard.domain.hub.dto.HubCategoryRequest;
 import com.junyoung.dashboard.domain.life.dto.HabitRequest;
 import com.junyoung.dashboard.domain.life.dto.HabitLogRequest;
@@ -16,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -165,5 +170,57 @@ class DashboardApplicationTests {
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].title").value("클린 코드"));
+    }
+
+    @Test
+    void createsAndFetchesHealthLogEndToEnd() throws Exception {
+        HealthLogRequest request = new HealthLogRequest(LocalDate.of(2026, 9, 1), 70.5, 7.5, null);
+
+        mockMvc.perform(post("/api/health/logs")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.id").exists());
+
+        mockMvc.perform(get("/api/health/logs")
+                        .header("X-API-KEY", "test-api-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].weightKg").value(70.5));
+    }
+
+    @Test
+    void createsAndFetchesMealRecordEndToEnd() throws Exception {
+        MealRecordRequest request = new MealRecordRequest(
+                LocalDateTime.of(2026, 9, 1, 8, 0), MealType.BREAKFAST, 500, 60.0, 20.0, 15.0, 300.0, null);
+
+        mockMvc.perform(post("/api/health/meal-records")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.id").exists());
+
+        mockMvc.perform(get("/api/health/meal-records")
+                        .header("X-API-KEY", "test-api-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].mealType").value("BREAKFAST"));
+    }
+
+    @Test
+    void createsAndFetchesWorkoutLogEndToEnd() throws Exception {
+        WorkoutLogRequest request = new WorkoutLogRequest(LocalDate.of(2026, 9, 1), "러닝", 30, 300, null);
+
+        mockMvc.perform(post("/api/health/workout-logs")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.id").exists());
+
+        mockMvc.perform(get("/api/health/workout-logs")
+                        .header("X-API-KEY", "test-api-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].type").value("러닝"));
     }
 }
