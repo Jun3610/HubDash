@@ -68,10 +68,23 @@ advance. The exception (see below) is the only case where you pause.
 
 **The flow, in order:**
 
-1. **Issue.** Most work in this repo tracks against an existing issue (check `gh issue list
-   --state open` — as of this skill's writing, issue #4 "Phase 2: 멀티모듈 + 도메인 기반 아키텍처
-   전환" tracks the domain-by-domain rollout). Update its checkbox list as sub-items complete;
-   only open a *new* issue when the work doesn't fit under an existing one.
+1. **Issue.** Default to creating an issue, and err toward more of them rather than fewer — the
+   user has said explicitly (2026-09-16) that issues should be granular and frequent, not just a
+   single umbrella checkbox list. Concretely:
+   - A big umbrella issue can still track a whole initiative (e.g. issue #4 "Phase 2: 멀티모듈 +
+     도메인 기반 아키텍처 전환" tracks the domain-by-domain rollout), but each meaningfully-sized
+     piece of work under it — each domain, each distinct bug, each deferred follow-up from a
+     review — gets its **own issue**, linked back with `관련 이슈: #N` in its body and referenced
+     from the umbrella issue's checklist line (e.g. `- [ ] life 도메인 CRUD — 이슈 #14`).
+   - **Don't let a final-review "follow-up work" list stay only in a PR description or devlog
+     entry.** If a review surfaces something real that isn't being fixed now (a cross-cutting gap,
+     a design decision to make later, a test gap), open an issue for it immediately, in the same
+     session — not "note it and open an issue later," which in practice doesn't happen. Issues
+     #15-#18 (GlobalExceptionHandler 400-vs-500, missing Flyway-exercising test, EntityNotFound
+     message factory, pagination convention) were follow-ups mentioned in PR #12/#13 but only
+     actually filed as issues after the user pointed out issues weren't being created often enough
+     — don't repeat that gap.
+   - Update the relevant checkbox(es) as sub-items complete.
 2. **Branch.** Name it `feature/<short-description>-<issue-number>` (e.g. `feature/domain-hub-4`,
    `feature/domain-study-4`) — the issue number in the branch name lets anyone trace which issue
    a branch belongs to at a glance, without opening GitHub. This was an explicit user request
