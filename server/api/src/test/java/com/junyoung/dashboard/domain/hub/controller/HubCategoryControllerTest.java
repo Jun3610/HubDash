@@ -14,9 +14,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -65,12 +69,12 @@ class HubCategoryControllerTest {
 
     @Test
     void listsCategories() throws Exception {
-        when(hubCategoryService.findAll()).thenReturn(List.of(
+        when(hubCategoryService.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(
                 new HubCategoryResponse(1L, "CI/CD", null, LocalDateTime.now(), LocalDateTime.now())
-        ));
+        )));
 
         mockMvc.perform(get("/api/hub/categories"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].name").value("CI/CD"));
+                .andExpect(jsonPath("$.data.content[0].name").value("CI/CD"));
     }
 }

@@ -5,10 +5,10 @@ import com.junyoung.dashboard.domain.health.dto.HealthLogResponse;
 import com.junyoung.dashboard.domain.health.entity.HealthLog;
 import com.junyoung.dashboard.domain.health.repository.HealthLogRepository;
 import com.junyoung.dashboard.global.exception.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -27,10 +27,9 @@ public class HealthLogService {
         return HealthLogResponse.from(saved);
     }
 
-    public List<HealthLogResponse> findAll() {
-        return healthLogRepository.findAll().stream()
-                .map(HealthLogResponse::from)
-                .toList();
+    public Page<HealthLogResponse> findAll(Pageable pageable) {
+        return healthLogRepository.findAll(pageable)
+                .map(HealthLogResponse::from);
     }
 
     public HealthLogResponse findById(Long id) {

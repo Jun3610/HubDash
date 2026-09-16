@@ -5,10 +5,10 @@ import com.junyoung.dashboard.domain.memo.dto.MemoResponse;
 import com.junyoung.dashboard.domain.memo.entity.Memo;
 import com.junyoung.dashboard.domain.memo.repository.MemoRepository;
 import com.junyoung.dashboard.global.exception.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -26,10 +26,9 @@ public class MemoService {
         return MemoResponse.from(saved);
     }
 
-    public List<MemoResponse> findAll() {
-        return memoRepository.findAll().stream()
-                .map(MemoResponse::from)
-                .toList();
+    public Page<MemoResponse> findAll(Pageable pageable) {
+        return memoRepository.findAll(pageable)
+                .map(MemoResponse::from);
     }
 
     public MemoResponse findById(Long id) {

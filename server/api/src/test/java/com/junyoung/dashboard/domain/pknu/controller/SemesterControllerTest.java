@@ -15,9 +15,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -65,13 +69,13 @@ class SemesterControllerTest {
 
     @Test
     void listsSemesters() throws Exception {
-        when(semesterService.findAll()).thenReturn(List.of(
+        when(semesterService.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(
                 new SemesterResponse(1L, "2026-1학기", LocalDate.of(2026, 3, 1), LocalDate.of(2026, 6, 30),
                         LocalDateTime.now(), LocalDateTime.now())
-        ));
+        )));
 
         mockMvc.perform(get("/api/pknu/semesters"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].name").value("2026-1학기"));
+                .andExpect(jsonPath("$.data.content[0].name").value("2026-1학기"));
     }
 }

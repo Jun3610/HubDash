@@ -4,7 +4,10 @@ import com.junyoung.dashboard.domain.pknu.dto.CourseRequest;
 import com.junyoung.dashboard.domain.pknu.dto.CourseResponse;
 import com.junyoung.dashboard.domain.pknu.service.CourseService;
 import com.junyoung.dashboard.global.common.ApiResponse;
+import com.junyoung.dashboard.global.common.PageResponse;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,8 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/pknu/courses")
@@ -36,8 +37,9 @@ public class CourseController {
     }
 
     @GetMapping
-    public ApiResponse<List<CourseResponse>> findBySemesterId(@RequestParam Long semesterId) {
-        return ApiResponse.success(courseService.findBySemesterId(semesterId));
+    public ApiResponse<PageResponse<CourseResponse>> findBySemesterId(
+            @RequestParam Long semesterId, @PageableDefault(size = 20) Pageable pageable) {
+        return ApiResponse.success(PageResponse.of(courseService.findBySemesterId(semesterId, pageable)));
     }
 
     @GetMapping("/{id}")

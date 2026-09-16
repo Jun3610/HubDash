@@ -5,10 +5,10 @@ import com.junyoung.dashboard.domain.health.dto.WorkoutLogResponse;
 import com.junyoung.dashboard.domain.health.entity.WorkoutLog;
 import com.junyoung.dashboard.domain.health.repository.WorkoutLogRepository;
 import com.junyoung.dashboard.global.exception.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -28,10 +28,9 @@ public class WorkoutLogService {
         return WorkoutLogResponse.from(saved);
     }
 
-    public List<WorkoutLogResponse> findAll() {
-        return workoutLogRepository.findAll().stream()
-                .map(WorkoutLogResponse::from)
-                .toList();
+    public Page<WorkoutLogResponse> findAll(Pageable pageable) {
+        return workoutLogRepository.findAll(pageable)
+                .map(WorkoutLogResponse::from);
     }
 
     public WorkoutLogResponse findById(Long id) {

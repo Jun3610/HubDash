@@ -4,7 +4,10 @@ import com.junyoung.dashboard.domain.health.dto.WorkoutLogRequest;
 import com.junyoung.dashboard.domain.health.dto.WorkoutLogResponse;
 import com.junyoung.dashboard.domain.health.service.WorkoutLogService;
 import com.junyoung.dashboard.global.common.ApiResponse;
+import com.junyoung.dashboard.global.common.PageResponse;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,8 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/health/workout-logs")
@@ -35,8 +36,8 @@ public class WorkoutLogController {
     }
 
     @GetMapping
-    public ApiResponse<List<WorkoutLogResponse>> findAll() {
-        return ApiResponse.success(workoutLogService.findAll());
+    public ApiResponse<PageResponse<WorkoutLogResponse>> findAll(@PageableDefault(size = 20) Pageable pageable) {
+        return ApiResponse.success(PageResponse.of(workoutLogService.findAll(pageable)));
     }
 
     @GetMapping("/{id}")

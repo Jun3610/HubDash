@@ -8,10 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,9 +32,9 @@ class StudyProgressRepositoryTest {
         StudyTopic topic = entityManager.persistAndFlush(new StudyTopic("토익", null));
         entityManager.persistAndFlush(new StudyProgress(topic, LocalDate.of(2026, 9, 14), 60, "RC 문제풀이"));
 
-        List<StudyProgress> progresses = studyProgressRepository.findByTopicId(topic.getId());
+        Page<StudyProgress> progresses = studyProgressRepository.findByTopicId(topic.getId(), Pageable.unpaged());
 
-        assertThat(progresses).hasSize(1);
-        assertThat(progresses.get(0).getMinutes()).isEqualTo(60);
+        assertThat(progresses.getContent()).hasSize(1);
+        assertThat(progresses.getContent().get(0).getMinutes()).isEqualTo(60);
     }
 }

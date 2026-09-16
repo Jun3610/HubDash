@@ -4,7 +4,10 @@ import com.junyoung.dashboard.domain.health.dto.HealthLogRequest;
 import com.junyoung.dashboard.domain.health.dto.HealthLogResponse;
 import com.junyoung.dashboard.domain.health.service.HealthLogService;
 import com.junyoung.dashboard.global.common.ApiResponse;
+import com.junyoung.dashboard.global.common.PageResponse;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,8 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/health/logs")
@@ -35,8 +36,8 @@ public class HealthLogController {
     }
 
     @GetMapping
-    public ApiResponse<List<HealthLogResponse>> findAll() {
-        return ApiResponse.success(healthLogService.findAll());
+    public ApiResponse<PageResponse<HealthLogResponse>> findAll(@PageableDefault(size = 20) Pageable pageable) {
+        return ApiResponse.success(PageResponse.of(healthLogService.findAll(pageable)));
     }
 
     @GetMapping("/{id}")

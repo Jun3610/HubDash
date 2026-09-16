@@ -5,10 +5,10 @@ import com.junyoung.dashboard.domain.hub.dto.HubCategoryResponse;
 import com.junyoung.dashboard.domain.hub.entity.HubCategory;
 import com.junyoung.dashboard.domain.hub.repository.HubCategoryRepository;
 import com.junyoung.dashboard.global.exception.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -27,10 +27,9 @@ public class HubCategoryService {
         return HubCategoryResponse.from(saved);
     }
 
-    public List<HubCategoryResponse> findAll() {
-        return hubCategoryRepository.findAll().stream()
-                .map(HubCategoryResponse::from)
-                .toList();
+    public Page<HubCategoryResponse> findAll(Pageable pageable) {
+        return hubCategoryRepository.findAll(pageable)
+                .map(HubCategoryResponse::from);
     }
 
     public HubCategoryResponse findById(Long id) {

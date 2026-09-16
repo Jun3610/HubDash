@@ -65,7 +65,7 @@ class DashboardApplicationTests {
         mockMvc.perform(get("/api/hub/categories")
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].name").value("CI/CD"));
+                .andExpect(jsonPath("$.data.content[0].name").value("CI/CD"));
     }
 
     @Test
@@ -82,7 +82,7 @@ class DashboardApplicationTests {
         mockMvc.perform(get("/api/study/topics")
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].name").value("토익"));
+                .andExpect(jsonPath("$.data.content[0].name").value("토익"));
     }
 
     @Test
@@ -177,7 +177,7 @@ class DashboardApplicationTests {
         mockMvc.perform(get("/api/life/reading-logs")
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].title").value("클린 코드"));
+                .andExpect(jsonPath("$.data.content[0].title").value("클린 코드"));
     }
 
     @Test
@@ -194,7 +194,7 @@ class DashboardApplicationTests {
         mockMvc.perform(get("/api/health/logs")
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].weightKg").value(70.5));
+                .andExpect(jsonPath("$.data.content[0].weightKg").value(70.5));
     }
 
     @Test
@@ -212,7 +212,7 @@ class DashboardApplicationTests {
         mockMvc.perform(get("/api/health/meal-records")
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].mealType").value("BREAKFAST"));
+                .andExpect(jsonPath("$.data.content[0].mealType").value("BREAKFAST"));
     }
 
     @Test
@@ -229,7 +229,7 @@ class DashboardApplicationTests {
         mockMvc.perform(get("/api/health/workout-logs")
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].type").value("러닝"));
+                .andExpect(jsonPath("$.data.content[0].type").value("러닝"));
     }
 
     @Test
@@ -246,7 +246,7 @@ class DashboardApplicationTests {
         mockMvc.perform(get("/api/pknu/semesters")
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].name").value("2026-1학기"));
+                .andExpect(jsonPath("$.data.content[0].name").value("2026-1학기"));
     }
 
     @Test
@@ -351,7 +351,7 @@ class DashboardApplicationTests {
         mockMvc.perform(get("/api/schedule/events")
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].title").value("발표 준비"));
+                .andExpect(jsonPath("$.data.content[0].title").value("발표 준비"));
     }
 
     @Test
@@ -381,7 +381,7 @@ class DashboardApplicationTests {
         mockMvc.perform(get("/api/memo/memos")
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].title").value("장보기"));
+                .andExpect(jsonPath("$.data.content[0].title").value("장보기"));
     }
 
     @Test
@@ -399,7 +399,7 @@ class DashboardApplicationTests {
         mockMvc.perform(get("/api/reminder/reminders")
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].title").value("과제 마감 임박"));
+                .andExpect(jsonPath("$.data.content[0].title").value("과제 마감 임박"));
     }
 
     @Test

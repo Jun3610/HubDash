@@ -8,10 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,9 +37,9 @@ class AssignmentRepositoryTest {
         Course course = courseRepository.save(new Course(semester, "자료구조", "김교수", 3));
         assignmentRepository.save(new Assignment(course, "1주차 과제", LocalDate.of(2026, 3, 10), false, null));
 
-        List<Assignment> assignments = assignmentRepository.findByCourseId(course.getId());
+        Page<Assignment> assignments = assignmentRepository.findByCourseId(course.getId(), Pageable.unpaged());
 
-        assertThat(assignments).hasSize(1);
-        assertThat(assignments.get(0).getTitle()).isEqualTo("1주차 과제");
+        assertThat(assignments.getContent()).hasSize(1);
+        assertThat(assignments.getContent().get(0).getTitle()).isEqualTo("1주차 과제");
     }
 }
