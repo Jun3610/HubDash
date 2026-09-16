@@ -22,6 +22,8 @@
 10. Kafka Consumer 테스트는 `@EmbeddedKafka`로 실제 publish→consume 흐름 검증.
 11. Consumer에서 예외를 던지면 무한 재시도될 수 있음 — "검증 실패=비즈니스 실패"이지 "일시적 장애"가 아니므로, 예외를 던지지 말고 FAILED 상태로 명시적 기록 후 정상 ack.
 12. **`FlywayMigrationIntegrationTest`가 마이그레이션 개수(9)와 테이블 목록을 하드코딩하고 있음** — V10 추가 시 이 테스트를 반드시 같이 갱신해야 함 (개수 10, `health_raw_log` 테이블 추가).
+13. **(실제로 겪음) `org.springframework.kafka:spring-kafka`만 추가하면 Boot 자동설정이 전혀 동작하지 않는다.** Spring Boot 4.x는 Kafka 자동설정을 `spring-boot-autoconfigure`에서 분리해 별도 모듈(`spring-boot-kafka`, BOM에 등록됨)로 옮겼다 — `org.springframework.boot:spring-boot-starter-kafka`를 추가해야 `KafkaTemplate` 빈 등이 실제로 생성된다. (이미 겪은 webmvc/jpa test-autoconfigure 패키지 분리와 같은 패턴.)
+14. 테스트 프로파일에서 `KafkaTemplate` 빈은 그대로 두되(안 그러면 이걸 주입받는 Service의 전체 컨텍스트 테스트가 깨짐) `spring.kafka.listener.auto-startup=false`로 리스너 컨테이너만 꺼서 존재하지 않는 브로커에 반복 연결하지 않게 한다. `@EmbeddedKafka`를 쓰는 테스트는 이 프로퍼티를 `true`로, `bootstrap-servers`를 임베디드 브로커 주소로 오버라이드한다.
 
 ## Global Constraints
 
