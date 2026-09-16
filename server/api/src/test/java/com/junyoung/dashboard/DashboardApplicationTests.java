@@ -16,6 +16,8 @@ import com.junyoung.dashboard.domain.pknu.dto.SemesterRequest;
 import com.junyoung.dashboard.domain.schedule.dto.EventRequest;
 import com.junyoung.dashboard.domain.study.dto.StudyProgressRequest;
 import com.junyoung.dashboard.domain.study.dto.StudyTopicRequest;
+import com.junyoung.dashboard.domain.user.dto.UserProfileRequest;
+import com.junyoung.dashboard.domain.user.dto.UserSettingRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -379,5 +381,50 @@ class DashboardApplicationTests {
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].title").value("장보기"));
+    }
+
+    @Test
+    void getsOrCreatesDefaultUserProfileThenPersistsUpdate() throws Exception {
+        mockMvc.perform(get("/api/user/profile")
+                        .header("X-API-KEY", "test-api-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.displayName").value("사용자"));
+
+        UserProfileRequest request = new UserProfileRequest("박준영", "junp3610@example.com", "백엔드 개발자");
+        mockMvc.perform(put("/api/user/profile")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.displayName").value("박준영"));
+
+        mockMvc.perform(get("/api/user/profile")
+                        .header("X-API-KEY", "test-api-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.displayName").value("박준영"))
+                .andExpect(jsonPath("$.data.email").value("junp3610@example.com"));
+    }
+
+    @Test
+    void getsOrCreatesDefaultUserSettingThenPersistsUpdate() throws Exception {
+        mockMvc.perform(get("/api/user/settings")
+                        .header("X-API-KEY", "test-api-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.theme").value("LIGHT"))
+                .andExpect(jsonPath("$.data.language").value("ko"));
+
+        UserSettingRequest request = new UserSettingRequest("DARK", "en", false);
+        mockMvc.perform(put("/api/user/settings")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.theme").value("DARK"));
+
+        mockMvc.perform(get("/api/user/settings")
+                        .header("X-API-KEY", "test-api-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.theme").value("DARK"))
+                .andExpect(jsonPath("$.data.notificationEnabled").value(false));
     }
 }
