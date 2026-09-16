@@ -12,6 +12,7 @@ import com.junyoung.dashboard.domain.life.dto.ReadingLogRequest;
 import com.junyoung.dashboard.domain.pknu.dto.AssignmentRequest;
 import com.junyoung.dashboard.domain.pknu.dto.CourseRequest;
 import com.junyoung.dashboard.domain.pknu.dto.SemesterRequest;
+import com.junyoung.dashboard.domain.schedule.dto.EventRequest;
 import com.junyoung.dashboard.domain.study.dto.StudyProgressRequest;
 import com.junyoung.dashboard.domain.study.dto.StudyTopicRequest;
 import org.junit.jupiter.api.Test;
@@ -329,5 +330,36 @@ class DashboardApplicationTests {
                         .content(objectMapper.writeValueAsString(moveRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.courseId").value(courseBId));
+    }
+
+    @Test
+    void createsAndFetchesEventEndToEnd() throws Exception {
+        EventRequest request = new EventRequest("발표 준비", LocalDateTime.of(2026, 9, 16, 10, 0),
+                LocalDateTime.of(2026, 9, 16, 11, 0), "회의실 A", null, false);
+
+        mockMvc.perform(post("/api/schedule/events")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.id").exists());
+
+        mockMvc.perform(get("/api/schedule/events")
+                        .header("X-API-KEY", "test-api-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].title").value("발표 준비"));
+    }
+
+    @Test
+    void rejectsEventWithEndAtBeforeStartAtEndToEnd() throws Exception {
+        EventRequest invalid = new EventRequest("잘못된 일정", LocalDateTime.of(2026, 9, 16, 11, 0),
+                LocalDateTime.of(2026, 9, 16, 10, 0), null, null, false);
+
+        mockMvc.perform(post("/api/schedule/events")
+                        .header("X-API-KEY", "test-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalid)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
     }
 }
