@@ -57,11 +57,11 @@ public class CourseService {
 
     private Course getOrThrow(Long id) {
         return courseRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("course " + id + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(Course.class, id));
     }
 
     private Semester getSemesterOrThrow(Long semesterId) {
         return semesterRepository.findById(semesterId)
-                .orElseThrow(() -> new EntityNotFoundException("semester " + semesterId + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(Semester.class, semesterId));
     }
 }

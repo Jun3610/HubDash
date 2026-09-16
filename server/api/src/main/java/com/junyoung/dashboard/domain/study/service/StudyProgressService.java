@@ -57,11 +57,11 @@ public class StudyProgressService {
 
     private StudyProgress getOrThrow(Long id) {
         return studyProgressRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("study progress " + id + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(StudyProgress.class, id));
     }
 
     private StudyTopic getTopicOrThrow(Long topicId) {
         return studyTopicRepository.findById(topicId)
-                .orElseThrow(() -> new EntityNotFoundException("study topic " + topicId + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(StudyTopic.class, topicId));
     }
 }

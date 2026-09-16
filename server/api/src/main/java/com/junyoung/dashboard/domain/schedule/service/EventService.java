@@ -53,6 +53,6 @@ public class EventService {
 
     private Event getOrThrow(Long id) {
         return eventRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("event " + id + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(Event.class, id));
     }
 }

@@ -51,6 +51,6 @@ public class HubCategoryService {
 
     private HubCategory getOrThrow(Long id) {
         return hubCategoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("hub category " + id + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(HubCategory.class, id));
     }
 }

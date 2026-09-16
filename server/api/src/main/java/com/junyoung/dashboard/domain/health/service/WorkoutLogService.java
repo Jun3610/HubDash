@@ -53,6 +53,6 @@ public class WorkoutLogService {
 
     private WorkoutLog getOrThrow(Long id) {
         return workoutLogRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("workout log " + id + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(WorkoutLog.class, id));
     }
 }

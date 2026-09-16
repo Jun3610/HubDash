@@ -53,6 +53,6 @@ public class ReadingLogService {
 
     private ReadingLog getOrThrow(Long id) {
         return readingLogRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("reading log " + id + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(ReadingLog.class, id));
     }
 }

@@ -51,6 +51,6 @@ public class StudyTopicService {
 
     private StudyTopic getOrThrow(Long id) {
         return studyTopicRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("study topic " + id + " not found"));
+                .orElseThrow(() -> EntityNotFoundException.of(StudyTopic.class, id));
     }
 }
