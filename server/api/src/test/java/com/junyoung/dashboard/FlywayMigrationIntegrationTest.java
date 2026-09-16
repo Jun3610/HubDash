@@ -15,8 +15,9 @@ import java.sql.Statement;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// 다른 테스트와 달리 test 프로파일(H2, flyway 비활성)을 쓰지 않고 실제 Postgres 컨테이너에 V1~V9을 적용한다 — Docker 필요.
-@SpringBootTest
+// 다른 테스트와 달리 test 프로파일(H2, flyway 비활성)을 쓰지 않고 실제 Postgres 컨테이너에 V1~V10을 적용한다 — Docker 필요.
+// spring.autoconfigure.exclude로 Kafka 자동설정을 꺼서 존재하지 않는 브로커에 연결 시도하지 않게 한다 (이 테스트의 관심사가 아님).
+@SpringBootTest(properties = "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration")
 @Testcontainers
 class FlywayMigrationIntegrationTest {
 
@@ -40,7 +41,7 @@ class FlywayMigrationIntegrationTest {
                         .as("migration V%s applied successfully", resultSet.getString("version"))
                         .isTrue();
             }
-            assertThat(count).isEqualTo(9);
+            assertThat(count).isEqualTo(10);
         }
     }
 
@@ -50,7 +51,7 @@ class FlywayMigrationIntegrationTest {
                 "hub_category", "hub_link",
                 "study_topic", "study_progress",
                 "life_habit", "life_habit_log", "life_reading_log",
-                "health_log", "health_meal_record", "health_workout_log",
+                "health_log", "health_meal_record", "health_workout_log", "health_raw_log",
                 "pknu_semester", "pknu_course", "pknu_assignment",
                 "schedule_event",
                 "memo",
