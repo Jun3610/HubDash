@@ -15,6 +15,7 @@ public class KafkaTopicConfig {
     public static final String HUB_RAW_LINK_TOPIC = "hub-raw-link";
     public static final String STUDY_RAW_PROGRESS_TOPIC = "study-raw-progress";
     public static final String LIFE_RAW_HABIT_LOG_TOPIC = "life-raw-habit-log";
+    public static final String PKNU_RAW_ASSIGNMENT_TOPIC = "pknu-raw-assignment";
 
     @Bean
     public NewTopic healthRawLogTopic() {
@@ -67,6 +68,14 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic lifeRawHabitLogTopic() {
         return TopicBuilder.name(LIFE_RAW_HABIT_LOG_TOPIC)
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic pknuRawAssignmentTopic() {
+        return TopicBuilder.name(PKNU_RAW_ASSIGNMENT_TOPIC)
                 .partitions(1)
                 .replicas(1)
                 .build();
