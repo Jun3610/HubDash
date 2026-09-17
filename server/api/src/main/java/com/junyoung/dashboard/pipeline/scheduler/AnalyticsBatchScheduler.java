@@ -1,6 +1,7 @@
 package com.junyoung.dashboard.pipeline.scheduler;
 
 import com.junyoung.dashboard.analytics.life.LifeHabitWeeklyStatBatchService;
+import com.junyoung.dashboard.analytics.study.StudyTopicWeeklyStatBatchService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -12,9 +13,12 @@ public class AnalyticsBatchScheduler {
     private static final Logger log = LoggerFactory.getLogger(AnalyticsBatchScheduler.class);
 
     private final LifeHabitWeeklyStatBatchService lifeHabitWeeklyStatBatchService;
+    private final StudyTopicWeeklyStatBatchService studyTopicWeeklyStatBatchService;
 
-    public AnalyticsBatchScheduler(LifeHabitWeeklyStatBatchService lifeHabitWeeklyStatBatchService) {
+    public AnalyticsBatchScheduler(LifeHabitWeeklyStatBatchService lifeHabitWeeklyStatBatchService,
+                                    StudyTopicWeeklyStatBatchService studyTopicWeeklyStatBatchService) {
         this.lifeHabitWeeklyStatBatchService = lifeHabitWeeklyStatBatchService;
+        this.studyTopicWeeklyStatBatchService = studyTopicWeeklyStatBatchService;
     }
 
     // 매주 월요일 00:10에 방금 끝난 주(지난주)를 집계한다.
@@ -24,6 +28,15 @@ public class AnalyticsBatchScheduler {
             lifeHabitWeeklyStatBatchService.run(null);
         } catch (Exception e) {
             log.error("lifeHabitWeeklyStatJob 스케줄 실행 실패", e);
+        }
+    }
+
+    @Scheduled(cron = "0 10 0 * * MON")
+    public void runStudyTopicWeeklyStat() {
+        try {
+            studyTopicWeeklyStatBatchService.run(null);
+        } catch (Exception e) {
+            log.error("studyTopicWeeklyStatJob 스케줄 실행 실패", e);
         }
     }
 }
