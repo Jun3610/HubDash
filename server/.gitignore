@@ -38,3 +38,8 @@ out/
 
 ### understand-anything ###
 .ua/
+
+### env / secrets ###
+.env
+.env.*
+!.env.example
