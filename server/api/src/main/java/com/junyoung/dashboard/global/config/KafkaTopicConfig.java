@@ -13,6 +13,7 @@ public class KafkaTopicConfig {
     public static final String MEMO_RAW_TOPIC = "memo-raw";
     public static final String REMINDER_RAW_TOPIC = "reminder-raw";
     public static final String HUB_RAW_LINK_TOPIC = "hub-raw-link";
+    public static final String STUDY_RAW_PROGRESS_TOPIC = "study-raw-progress";
 
     @Bean
     public NewTopic healthRawLogTopic() {
@@ -49,6 +50,14 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic hubRawLinkTopic() {
         return TopicBuilder.name(HUB_RAW_LINK_TOPIC)
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic studyRawProgressTopic() {
+        return TopicBuilder.name(STUDY_RAW_PROGRESS_TOPIC)
                 .partitions(1)
                 .replicas(1)
                 .build();
