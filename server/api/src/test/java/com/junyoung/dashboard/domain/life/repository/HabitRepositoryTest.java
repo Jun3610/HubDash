@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
@@ -44,9 +45,12 @@ class HabitRepositoryTest {
         entityManager.clear();
 
         Habit reloaded = habitRepository.findById(habit.getId()).orElseThrow();
+        Long habitId = reloaded.getId();
         habitRepository.delete(reloaded);
         entityManager.flush();
 
-        assertThat(habitLogRepository.count()).isZero();
+        // 전역 count()는 같은 H2 인스턴스를 공유하는 다른 테스트(예: RawHabitLogConsumerIntegrationTest)가
+        // 커밋한 다른 Habit의 HabitLog까지 집계해 깨질 수 있다 — 이 habitId로 범위를 좁혀서 검증한다.
+        assertThat(habitLogRepository.findByHabitId(habitId, Pageable.unpaged()).getTotalElements()).isZero();
     }
 }

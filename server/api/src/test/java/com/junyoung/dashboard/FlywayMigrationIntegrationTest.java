@@ -41,7 +41,7 @@ class FlywayMigrationIntegrationTest {
                         .as("migration V%s applied successfully", resultSet.getString("version"))
                         .isTrue();
             }
-            assertThat(count).isEqualTo(15);
+            assertThat(count).isEqualTo(16);
         }
     }
 
@@ -50,7 +50,7 @@ class FlywayMigrationIntegrationTest {
         String[] expectedTables = {
                 "hub_category", "hub_link", "hub_raw_link",
                 "study_topic", "study_progress", "study_raw_progress",
-                "life_habit", "life_habit_log", "life_reading_log",
+                "life_habit", "life_habit_log", "life_reading_log", "life_raw_habit_log",
                 "health_log", "health_meal_record", "health_workout_log", "health_raw_log",
                 "pknu_semester", "pknu_course", "pknu_assignment",
                 "schedule_event", "schedule_raw_event",
