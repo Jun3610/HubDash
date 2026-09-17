@@ -107,11 +107,44 @@ uncommitted changes — still warrant a pause and confirmation, exactly as gener
 requires. The autonomy this skill grants is for the *normal* issue → branch → PR → merge cycle,
 not for destructive operations that fall outside it.
 
+## Rule 3: Verify with real docker before reporting, and treat any bug found the same way
+
+**Why:** the user asked explicitly (2026-09-17) — after implementing a feature, actually spin up
+`docker compose` (Postgres/Kafka) and `bootRun`, exercise it for real (curl etc.), and report the
+test results, not just "unit tests pass." This project has repeatedly hit bugs that only show up
+against a real environment (Kafka trusted-packages, Spring Batch's JobRepository silently defaulting
+to in-memory instead of Postgres, line-ending/schema quirks) — `./gradlew test` alone would have
+missed those.
+
+**Do this for every implementation task, not just Kafka pilots:**
+
+1. Run the full relevant test suite first (`./gradlew :api:test` etc.) and report pass/fail counts.
+2. `docker compose up` (Postgres/Kafka as needed) + `./gradlew :api:bootRun`, then actually drive the
+   new feature with curl (or equivalent) — the golden path AND at least one failure path. Query the
+   real database directly (e.g. `docker exec ... psql`) when the thing being verified is persistence
+   or state that an HTTP response alone can't prove (job execution history, idempotency across
+   restarts, etc.) — an HTTP 200 is not proof that the underlying row actually landed correctly.
+3. Report the test results and the real-environment verification results back to the user as a
+   distinct step — don't fold "tests pass" and "verified in docker" into one vague "done."
+4. **If real-environment verification turns up an error, it gets the exact same treatment as any
+   other bug** — [[hubdash-workflow]] Rule 2's issue → branch → PR → merge flow, not a quiet patch
+   on the side. If the bug is being fixed within the same branch/PR that's already open for the
+   feature that surfaced it, that's fine (no need to spin up a separate issue for something found
+   and fixed in the same unit of work) — but a bug that's deferred rather than fixed now still gets
+   its own issue immediately, per Rule 2's "don't let a follow-up list stay only in a PR description"
+   guidance.
+
+**How to apply:** treat "ran `./gradlew test`" and "verified in real docker" as two separate boxes
+to check before calling a feature done — see the self-check list below.
+
 ## Quick self-check before calling something "done"
 
 - [ ] Is there a commit (or several) with the devlog-style body for what I just did?
 - [ ] Does `server/devlog/YYYY-MM-DD.md` reflect this work, for the date it actually happened?
 - [ ] If this closes out a piece of work tracked by an issue: is the checkbox updated, is there a
       PR, and — once it's green — has it been merged?
+- [ ] Did I run the test suite AND verify in a real `docker compose` + `bootRun` environment (not
+      just unit tests), and report both results? If real-environment verification found a bug, did
+      it go through the same issue → branch → PR → merge treatment as any other work?
 
 If any box is unchecked, the task isn't finished yet, even if the code itself is correct.
