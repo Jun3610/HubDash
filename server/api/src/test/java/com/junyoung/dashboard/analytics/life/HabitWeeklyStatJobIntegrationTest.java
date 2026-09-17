@@ -6,14 +6,17 @@ import com.junyoung.dashboard.domain.life.entity.HabitWeeklyStat;
 import com.junyoung.dashboard.domain.life.repository.HabitLogRepository;
 import com.junyoung.dashboard.domain.life.repository.HabitRepository;
 import com.junyoung.dashboard.domain.life.repository.HabitWeeklyStatRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.BatchStatus;
+import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -23,6 +26,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 // life(HabitLog) 파일럿 주간 집계 배치 — 실제 JobLauncher로 Job을 구동해 reader/processor/writer 전체 흐름을 검증한다.
+// 컨텍스트에 Job 빈이 여러 개(도메인별 주간 집계) 존재하므로 @SpringBatchTest의 자동 단일 Job 주입에 의존하지 않고
+// 이 테스트가 검증할 Job을 명시적으로 지정한다.
 @SpringBootTest
 @SpringBatchTest
 @ActiveProfiles("test")
@@ -32,7 +37,16 @@ class HabitWeeklyStatJobIntegrationTest {
     private JobLauncherTestUtils jobLauncherTestUtils;
 
     @Autowired
+    @Qualifier(HabitWeeklyStatJobConfig.JOB_NAME)
+    private Job lifeHabitWeeklyStatJob;
+
+    @Autowired
     private HabitRepository habitRepository;
+
+    @BeforeEach
+    void setJob() {
+        jobLauncherTestUtils.setJob(lifeHabitWeeklyStatJob);
+    }
 
     @Autowired
     private HabitLogRepository habitLogRepository;
