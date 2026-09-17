@@ -9,10 +9,19 @@ import org.springframework.kafka.config.TopicBuilder;
 public class KafkaTopicConfig {
 
     public static final String HEALTH_RAW_LOG_TOPIC = "health-raw-log";
+    public static final String SCHEDULE_RAW_EVENT_TOPIC = "schedule-raw-event";
 
     @Bean
     public NewTopic healthRawLogTopic() {
         return TopicBuilder.name(HEALTH_RAW_LOG_TOPIC)
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic scheduleRawEventTopic() {
+        return TopicBuilder.name(SCHEDULE_RAW_EVENT_TOPIC)
                 .partitions(1)
                 .replicas(1)
                 .build();
