@@ -15,7 +15,7 @@ import java.sql.Statement;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// 다른 테스트와 달리 test 프로파일(H2, flyway 비활성)을 쓰지 않고 실제 Postgres 컨테이너에 V1~V13을 적용한다 — Docker 필요.
+// 다른 테스트와 달리 test 프로파일(H2, flyway 비활성)을 쓰지 않고 실제 Postgres 컨테이너에 V1~V14를 적용한다 — Docker 필요.
 // 리스너 자동 시작을 꺼서 존재하지 않는 Kafka 브로커에 연결 시도하지 않게 한다 (이 테스트의 관심사가 아님).
 @SpringBootTest(properties = "spring.kafka.listener.auto-startup=false")
 @Testcontainers
@@ -41,14 +41,14 @@ class FlywayMigrationIntegrationTest {
                         .as("migration V%s applied successfully", resultSet.getString("version"))
                         .isTrue();
             }
-            assertThat(count).isEqualTo(13);
+            assertThat(count).isEqualTo(14);
         }
     }
 
     @Test
     void allDomainTablesExist() throws Exception {
         String[] expectedTables = {
-                "hub_category", "hub_link",
+                "hub_category", "hub_link", "hub_raw_link",
                 "study_topic", "study_progress",
                 "life_habit", "life_habit_log", "life_reading_log",
                 "health_log", "health_meal_record", "health_workout_log", "health_raw_log",
