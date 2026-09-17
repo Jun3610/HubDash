@@ -41,7 +41,7 @@ class FlywayMigrationIntegrationTest {
                         .as("migration V%s applied successfully", resultSet.getString("version"))
                         .isTrue();
             }
-            assertThat(count).isEqualTo(17);
+            assertThat(count).isEqualTo(19);
         }
     }
 
@@ -50,13 +50,14 @@ class FlywayMigrationIntegrationTest {
         String[] expectedTables = {
                 "hub_category", "hub_link", "hub_raw_link",
                 "study_topic", "study_progress", "study_raw_progress",
-                "life_habit", "life_habit_log", "life_reading_log", "life_raw_habit_log",
+                "life_habit", "life_habit_log", "life_reading_log", "life_raw_habit_log", "life_habit_weekly_stat",
                 "health_log", "health_meal_record", "health_workout_log", "health_raw_log",
                 "pknu_semester", "pknu_course", "pknu_assignment", "pknu_raw_assignment",
                 "schedule_event", "schedule_raw_event",
                 "memo", "memo_raw",
                 "user_profile", "user_setting",
-                "reminder", "reminder_raw"
+                "reminder", "reminder_raw",
+                "batch_job_instance", "batch_job_execution", "batch_step_execution"
         };
 
         try (Connection connection = dataSource.getConnection()) {
