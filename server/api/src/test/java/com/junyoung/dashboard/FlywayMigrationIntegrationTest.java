@@ -41,7 +41,7 @@ class FlywayMigrationIntegrationTest {
                         .as("migration V%s applied successfully", resultSet.getString("version"))
                         .isTrue();
             }
-            assertThat(count).isEqualTo(16);
+            assertThat(count).isEqualTo(17);
         }
     }
 
@@ -52,7 +52,7 @@ class FlywayMigrationIntegrationTest {
                 "study_topic", "study_progress", "study_raw_progress",
                 "life_habit", "life_habit_log", "life_reading_log", "life_raw_habit_log",
                 "health_log", "health_meal_record", "health_workout_log", "health_raw_log",
-                "pknu_semester", "pknu_course", "pknu_assignment",
+                "pknu_semester", "pknu_course", "pknu_assignment", "pknu_raw_assignment",
                 "schedule_event", "schedule_raw_event",
                 "memo", "memo_raw",
                 "user_profile", "user_setting",

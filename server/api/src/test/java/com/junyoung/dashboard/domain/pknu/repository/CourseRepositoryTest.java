@@ -54,10 +54,13 @@ class CourseRepositoryTest {
         entityManager.persistAndFlush(new Assignment(course, "1주차 과제", LocalDate.of(2026, 3, 10), false, null));
         entityManager.clear();
 
-        Course reloaded = courseRepository.findById(course.getId()).orElseThrow();
+        Long courseId = course.getId();
+        Course reloaded = courseRepository.findById(courseId).orElseThrow();
         courseRepository.delete(reloaded);
         entityManager.flush();
 
-        assertThat(assignmentRepository.count()).isZero();
+        // 다른 @SpringBootTest(Kafka 통합 테스트 등)가 같은 공유 DB에 커밋한 무관한 Assignment 행이
+        // 있을 수 있으므로, 전역 count() 대신 이 courseId로 좁혀서 검증한다.
+        assertThat(assignmentRepository.findByCourseId(courseId, Pageable.unpaged()).getContent()).isEmpty();
     }
 }
