@@ -1,6 +1,7 @@
 package com.junyoung.dashboard.domain.health.controller;
 
-import com.junyoung.dashboard.analytics.health.MealWeeklyStatBatchService;
+import com.junyoung.dashboard.analytics.health.MealWeeklyStatJobConfig;
+import com.junyoung.dashboard.pipeline.launcher.WeeklyStatJobRunner;
 import com.junyoung.dashboard.domain.health.dto.MealWeeklyStatBatchRunRequest;
 import com.junyoung.dashboard.domain.health.dto.MealWeeklyStatBatchRunResponse;
 import com.junyoung.dashboard.domain.health.dto.MealWeeklyStatResponse;
@@ -25,12 +26,12 @@ import java.time.LocalDate;
 public class MealWeeklyStatController {
 
     private final MealWeeklyStatService mealWeeklyStatService;
-    private final MealWeeklyStatBatchService batchService;
+    private final WeeklyStatJobRunner jobRunner;
 
     public MealWeeklyStatController(MealWeeklyStatService mealWeeklyStatService,
-                                          MealWeeklyStatBatchService batchService) {
+                                          WeeklyStatJobRunner jobRunner) {
         this.mealWeeklyStatService = mealWeeklyStatService;
-        this.batchService = batchService;
+        this.jobRunner = jobRunner;
     }
 
     @GetMapping
@@ -44,7 +45,7 @@ public class MealWeeklyStatController {
     public ApiResponse<MealWeeklyStatBatchRunResponse> runBatch(
             @RequestBody(required = false) MealWeeklyStatBatchRunRequest request) throws Exception {
         LocalDate weekStart = request != null ? request.weekStart() : null;
-        JobExecution execution = batchService.run(weekStart);
+        JobExecution execution = jobRunner.run(MealWeeklyStatJobConfig.JOB_NAME, weekStart);
         LocalDate resolvedWeekStart = LocalDate.parse(execution.getJobParameters().getString("weekStart"));
         return ApiResponse.success(new MealWeeklyStatBatchRunResponse(
                 execution.getId(), execution.getStatus().toString(), resolvedWeekStart));
