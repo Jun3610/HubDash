@@ -77,6 +77,8 @@ public class GlobalExceptionHandler {
         HttpStatus status = switch (ex.getReason()) {
             case NOT_CONFIGURED -> HttpStatus.SERVICE_UNAVAILABLE;
             case RATE_LIMITED -> HttpStatus.TOO_MANY_REQUESTS;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case INVALID_REQUEST -> HttpStatus.BAD_REQUEST;
             case AUTH_FAILED, IP_NOT_ALLOWED, UPSTREAM_ERROR -> HttpStatus.BAD_GATEWAY;
         };
         log.warn("FatSecret 호출 실패 ({}): {}", ex.getReason(), ex.getMessage());

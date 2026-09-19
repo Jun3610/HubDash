@@ -280,4 +280,58 @@ class FatSecretClientTest {
                 .isInstanceOfSatisfying(FatSecretException.class,
                         e -> assertThat(e.getReason()).isEqualTo(Reason.UPSTREAM_ERROR));
     }
+
+    // 실제 호출로 확인된 응답: 존재하지 않는 food_id → code 106, 숫자가 아닌 food_id → code 105
+    @Test
+    void invalidFoodIdErrorIsMappedToNotFound() {
+        server.expect(requestTo(startsWith(API_URL)))
+                .andRespond(withSuccess("""
+                        { "error": {"code": 106, "message": "Invalid ID: please check your food_id" }}
+                        """, MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> client.getFood("1"))
+                .isInstanceOfSatisfying(FatSecretException.class,
+                        e -> assertThat(e.getReason()).isEqualTo(Reason.NOT_FOUND));
+    }
+
+    @Test
+    void nonNumericFoodIdErrorIsMappedToInvalidRequest() {
+        server.expect(requestTo(startsWith(API_URL)))
+                .andRespond(withSuccess("""
+                        { "error": {"code": 105, "message": "Invalid long value: please check your food_id" }}
+                        """, MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> client.getFood("abc"))
+                .isInstanceOfSatisfying(FatSecretException.class,
+                        e -> assertThat(e.getReason()).isEqualTo(Reason.INVALID_REQUEST));
+    }
+
+    // 실제 호출로 확인: 범위 밖 페이지는 total_results가 "-2"로 온다.
+    @Test
+    void negativeTotalResultsFromOutOfRangePageIsClampedToZero() {
+        server.expect(requestTo(startsWith(API_URL)))
+                .andRespond(withSuccess("""
+                        {"foods":{"max_results":"20","page_number":"99999","total_results":"-2"}}
+                        """, MediaType.APPLICATION_JSON));
+
+        FoodSearchResponse result = client.searchFoods("banana", 99999, 20);
+
+        assertThat(result.items()).isEmpty();
+        assertThat(result.totalResults()).isZero();
+    }
+
+    @Test
+    void brandFoodKeepsBrandName() {
+        server.expect(requestTo(startsWith(API_URL)))
+                .andRespond(withSuccess("""
+                        {"foods":{"food":{"brand_name":"Coca-Cola","food_description":"Per 1 can - Calories: 140kcal",
+                          "food_id":"3650710","food_name":"Coca-Cola Classic (12 oz)","food_type":"Brand",
+                          "food_url":"https://foods.fatsecret.com/x"},"max_results":"1","page_number":"0","total_results":"9"}}
+                        """, MediaType.APPLICATION_JSON));
+
+        var item = client.searchFoods("coca cola", 0, 1).items().get(0);
+
+        assertThat(item.brandName()).isEqualTo("Coca-Cola");
+        assertThat(item.type()).isEqualTo("Brand");
+    }
 }

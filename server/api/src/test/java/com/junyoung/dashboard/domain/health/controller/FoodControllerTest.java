@@ -135,4 +135,24 @@ class FoodControllerTest {
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.errorCode").value("FATSECRET_AUTH_FAILED"));
     }
+
+    @Test
+    void unknownFoodIs404() throws Exception {
+        when(fatSecretClient.getFood("1"))
+                .thenThrow(new FatSecretException(Reason.NOT_FOUND, "식품 없음"));
+
+        mockMvc.perform(get("/api/health/foods/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorCode").value("FATSECRET_NOT_FOUND"));
+    }
+
+    @Test
+    void nonNumericFoodIdIs400() throws Exception {
+        when(fatSecretClient.getFood("abc"))
+                .thenThrow(new FatSecretException(Reason.INVALID_REQUEST, "값 오류"));
+
+        mockMvc.perform(get("/api/health/foods/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("FATSECRET_INVALID_REQUEST"));
+    }
 }

@@ -29,6 +29,9 @@ public class FatSecretClient {
 
     private static final int CODE_INVALID_TOKEN = 13;
     private static final int CODE_IP_NOT_ALLOWED = 21;
+    // 실제 호출로 확인: food_id=abc → 105(Invalid long value), 존재하지 않는 숫자 ID → 106(Invalid ID)
+    private static final int CODE_INVALID_VALUE = 105;
+    private static final int CODE_INVALID_ID = 106;
 
     private final FatSecretProperties properties;
     private final FatSecretTokenProvider tokenProvider;
@@ -59,7 +62,7 @@ public class FatSecretClient {
                     text(food, "food_id"), text(food, "food_name"), text(food, "brand_name"),
                     text(food, "food_type"), text(food, "food_description")));
         }
-        return new FoodSearchResponse(items, page, size, longValue(foods, "total_results", items.size()));
+        return new FoodSearchResponse(items, page, size, Math.max(0, longValue(foods, "total_results", items.size())));
     }
 
     public FoodDetailResponse getFood(String foodId) {
@@ -138,6 +141,12 @@ public class FatSecretClient {
         if (code == CODE_IP_NOT_ALLOWED) {
             return new FatSecretException(Reason.IP_NOT_ALLOWED,
                     "FatSecret에 이 서버의 IP가 허용되어 있지 않습니다(FatSecret 계정에서 IP 등록 필요): " + message);
+        }
+        if (code == CODE_INVALID_ID) {
+            return new FatSecretException(Reason.NOT_FOUND, "FatSecret에 해당 식품이 없습니다: " + message);
+        }
+        if (code == CODE_INVALID_VALUE) {
+            return new FatSecretException(Reason.INVALID_REQUEST, "FatSecret이 요청 값을 거부했습니다: " + message);
         }
         if (code == CODE_INVALID_TOKEN) {
             return new FatSecretException(Reason.AUTH_FAILED, "FatSecret 토큰이 계속 거부됩니다: " + message);

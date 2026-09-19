@@ -7,6 +7,8 @@ public class FatSecretException extends RuntimeException {
         AUTH_FAILED,
         IP_NOT_ALLOWED,
         RATE_LIMITED,
+        NOT_FOUND,
+        INVALID_REQUEST,
         UPSTREAM_ERROR
     }
 
