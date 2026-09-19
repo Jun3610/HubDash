@@ -1,0 +1,22 @@
+# 빌드 산출물/캐시 — 이미지 빌드는 컨테이너 안에서 새로 한다
+**/build
+**/.gradle
+.gradle
+*.class
+
+# 시크릿과 로컬 설정은 이미지에 절대 들어가면 안 된다
+.env
+.env.*
+
+# 이미지에 필요 없는 것들
+.git
+.gitignore
+.idea
+.vscode
+devlog
+docs
+k8s
+Jenkinsfile
+Dockerfile
+docker-compose.yml
+*.md
