@@ -56,10 +56,11 @@ public class HabitWeeklyStatJobConfig {
                                          ItemProcessor<Long, HabitWeeklyStat> habitWeeklyStatProcessor,
                                          ItemWriter<HabitWeeklyStat> habitWeeklyStatWriter) {
         return new StepBuilder("lifeHabitWeeklyStatStep", jobRepository)
-                .<Long, HabitWeeklyStat>chunk(CHUNK_SIZE, transactionManager)
+                .<Long, HabitWeeklyStat>chunk(CHUNK_SIZE)
                 .reader(habitIdReader)
                 .processor(habitWeeklyStatProcessor)
                 .writer(habitWeeklyStatWriter)
+                .transactionManager(transactionManager)
                 .build();
     }
 

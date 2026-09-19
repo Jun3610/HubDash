@@ -52,10 +52,11 @@ public class HealthLogWeeklyStatJobConfig {
                                          ItemProcessor<LocalDate, HealthLogWeeklyStat> healthLogWeeklyStatProcessor,
                                          ItemWriter<HealthLogWeeklyStat> healthLogWeeklyStatWriter) {
         return new StepBuilder("healthLogWeeklyStatStep", jobRepository)
-                .<LocalDate, HealthLogWeeklyStat>chunk(CHUNK_SIZE, transactionManager)
+                .<LocalDate, HealthLogWeeklyStat>chunk(CHUNK_SIZE)
                 .reader(healthWeekReader)
                 .processor(healthLogWeeklyStatProcessor)
                 .writer(healthLogWeeklyStatWriter)
+                .transactionManager(transactionManager)
                 .build();
     }
 

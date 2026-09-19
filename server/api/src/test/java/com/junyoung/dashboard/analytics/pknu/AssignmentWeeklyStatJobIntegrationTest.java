@@ -15,7 +15,7 @@ import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,7 +27,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// pknu(Assignment) 주간 과제 완료율 집계 — life 파일럿(이슈 #54)과 같은 방식으로 실제 JobLauncher로 검증한다.
+// pknu(Assignment) 주간 과제 완료율 집계 — life 파일럿(이슈 #54)과 같은 방식으로 실제 JobOperator로 검증한다.
 // 컨텍스트에 Job 빈이 여러 개 존재하므로 이 테스트가 검증할 Job을 명시적으로 지정한다.
 @SpringBootTest
 @SpringBatchTest
@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AssignmentWeeklyStatJobIntegrationTest {
 
     @Autowired
-    private JobLauncherTestUtils jobLauncherTestUtils;
+    private JobOperatorTestUtils jobOperatorTestUtils;
 
     @Autowired
     @Qualifier(AssignmentWeeklyStatJobConfig.JOB_NAME)
@@ -43,7 +43,7 @@ class AssignmentWeeklyStatJobIntegrationTest {
 
     @BeforeEach
     void setJob() {
-        jobLauncherTestUtils.setJob(assignmentWeeklyStatJob);
+        jobOperatorTestUtils.setJob(assignmentWeeklyStatJob);
     }
 
     @Autowired
@@ -70,7 +70,7 @@ class AssignmentWeeklyStatJobIntegrationTest {
         assignmentRepository.save(new Assignment(course, "지난주", weekStart.minusDays(1), true, null));
         assignmentRepository.save(new Assignment(course, "다음주", weekStart.plusDays(7), true, null));
 
-        JobExecution execution = jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        JobExecution execution = jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         assertThat(execution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
         AssignmentWeeklyStat stat = assignmentWeeklyStatRepository
@@ -85,7 +85,7 @@ class AssignmentWeeklyStatJobIntegrationTest {
         LocalDate weekStart = LocalDate.of(2026, 8, 3);
 
         Assignment first = assignmentRepository.save(new Assignment(course, "과제1", weekStart, false, null));
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         AssignmentWeeklyStat firstRun = assignmentWeeklyStatRepository
                 .findByCourseIdAndWeekStart(course.getId(), weekStart).orElseThrow();
@@ -95,7 +95,7 @@ class AssignmentWeeklyStatJobIntegrationTest {
         first.update(course, first.getTitle(), first.getDueDate(), true, null);
         assignmentRepository.save(first);
         assignmentRepository.save(new Assignment(course, "과제2", weekStart.plusDays(1), false, null));
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 2L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 2L));
 
         AssignmentWeeklyStat secondRun = assignmentWeeklyStatRepository
                 .findByCourseIdAndWeekStart(course.getId(), weekStart).orElseThrow();
@@ -110,7 +110,7 @@ class AssignmentWeeklyStatJobIntegrationTest {
         LocalDate weekStart = LocalDate.of(2026, 7, 6);
         assignmentRepository.save(new Assignment(course, "지난주 마감", weekStart.minusWeeks(1), true, null));
 
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         Optional<AssignmentWeeklyStat> stat =
                 assignmentWeeklyStatRepository.findByCourseIdAndWeekStart(course.getId(), weekStart);

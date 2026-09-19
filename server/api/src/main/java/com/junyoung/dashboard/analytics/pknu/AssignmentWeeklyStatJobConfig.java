@@ -56,10 +56,11 @@ public class AssignmentWeeklyStatJobConfig {
                                           ItemProcessor<Long, AssignmentWeeklyStat> assignmentWeeklyStatProcessor,
                                           ItemWriter<AssignmentWeeklyStat> assignmentWeeklyStatWriter) {
         return new StepBuilder("assignmentWeeklyStatStep", jobRepository)
-                .<Long, AssignmentWeeklyStat>chunk(CHUNK_SIZE, transactionManager)
+                .<Long, AssignmentWeeklyStat>chunk(CHUNK_SIZE)
                 .reader(courseIdReader)
                 .processor(assignmentWeeklyStatProcessor)
                 .writer(assignmentWeeklyStatWriter)
+                .transactionManager(transactionManager)
                 .build();
     }
 

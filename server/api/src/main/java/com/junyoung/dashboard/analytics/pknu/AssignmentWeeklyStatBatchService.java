@@ -4,7 +4,7 @@ import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
-import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -15,12 +15,12 @@ import java.time.temporal.TemporalAdjusters;
 @Service
 public class AssignmentWeeklyStatBatchService {
 
-    private final JobLauncher jobLauncher;
+    private final JobOperator jobOperator;
     private final Job assignmentWeeklyStatJob;
 
-    public AssignmentWeeklyStatBatchService(JobLauncher jobLauncher,
+    public AssignmentWeeklyStatBatchService(JobOperator jobOperator,
                                             @Qualifier(AssignmentWeeklyStatJobConfig.JOB_NAME) Job assignmentWeeklyStatJob) {
-        this.jobLauncher = jobLauncher;
+        this.jobOperator = jobOperator;
         this.assignmentWeeklyStatJob = assignmentWeeklyStatJob;
     }
 
@@ -30,7 +30,7 @@ public class AssignmentWeeklyStatBatchService {
                 .addString("weekStart", targetWeekStart.toString())
                 .addLong("run.id", System.currentTimeMillis())
                 .toJobParameters();
-        return jobLauncher.run(assignmentWeeklyStatJob, params);
+        return jobOperator.start(assignmentWeeklyStatJob, params);
     }
 
     private LocalDate previousWeekMonday() {

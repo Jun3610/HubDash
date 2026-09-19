@@ -4,7 +4,7 @@ import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
-import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -15,12 +15,12 @@ import java.time.temporal.TemporalAdjusters;
 @Service
 public class LifeHabitWeeklyStatBatchService {
 
-    private final JobLauncher jobLauncher;
+    private final JobOperator jobOperator;
     private final Job lifeHabitWeeklyStatJob;
 
-    public LifeHabitWeeklyStatBatchService(JobLauncher jobLauncher,
+    public LifeHabitWeeklyStatBatchService(JobOperator jobOperator,
                                             @Qualifier(HabitWeeklyStatJobConfig.JOB_NAME) Job lifeHabitWeeklyStatJob) {
-        this.jobLauncher = jobLauncher;
+        this.jobOperator = jobOperator;
         this.lifeHabitWeeklyStatJob = lifeHabitWeeklyStatJob;
     }
 
@@ -30,7 +30,7 @@ public class LifeHabitWeeklyStatBatchService {
                 .addString("weekStart", targetWeekStart.toString())
                 .addLong("run.id", System.currentTimeMillis())
                 .toJobParameters();
-        return jobLauncher.run(lifeHabitWeeklyStatJob, params);
+        return jobOperator.start(lifeHabitWeeklyStatJob, params);
     }
 
     // 스케줄러가 "방금 끝난 주"를 집계하도록 기본값을 지난주 월요일로 둔다.
