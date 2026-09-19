@@ -1,0 +1,120 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hubdash-config
+  namespace: hubdash
+data:
+  DB_HOST: postgres
+  DB_NAME: hubdash
+  DB_USER: hubdash
+  KAFKA_BOOTSTRAP: kafka-0.kafka.hubdash.svc.cluster.local:9092
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hubdash-api
+  namespace: hubdash
+spec:
+  # replica 1 + Recreate: 앱 내부 스케줄러(AnalyticsBatchScheduler)가 주간 집계 배치를 돌리므로 여러 인스턴스가
+  # 같은 주를 동시에 집계하면 유니크 제약 충돌 위험이 있다. 배포 중 신·구 파드가 겹치지 않게 Recreate를 쓴다.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: hubdash-api
+  template:
+    metadata:
+      labels:
+        app: hubdash-api
+    spec:
+      # 클러스터가 한꺼번에 뜰 때(서버 재부팅 등) 앱이 DB보다 먼저 떠서 Flyway가 실패하고 CrashLoopBackOff로
+      # 재시작을 반복하는 것을 막는다. 헤드리스 Service는 파드가 Ready가 되기 전에는 DNS가 풀리지 않는다(UnknownHostException).
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16
+          command: ["sh", "-c", "until pg_isready -h postgres -p 5432 -U hubdash; do echo 'postgres 대기 중'; sleep 2; done"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+      containers:
+        - name: hubdash-api
+          # 이미지 이름/태그는 kustomization.yaml의 images에서 바꾼다(Jenkins가 빌드 번호로 교체).
+          image: hubdash-api
+          ports:
+            - containerPort: 8080
+              name: http
+          envFrom:
+            - configMapRef:
+                name: hubdash-config
+          env:
+            # 시크릿(prod 프로파일은 기본값이 없어 이 값들이 없으면 기동이 실패한다)
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: hubdash-secrets
+                  key: API_KEY
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: hubdash-secrets
+                  key: DB_PASSWORD
+          # actuator가 없어 HTTP 헬스 엔드포인트가 없다 — 포트가 열렸는지(TCP)로 판단한다.
+          # DB가 아직 준비되지 않으면 Flyway가 실패해 파드가 재시작되므로, 시작이 느릴 수 있어 startupProbe로 넉넉히 기다린다.
+          startupProbe:
+            tcpSocket:
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            periodSeconds: 20
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              memory: 768Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hubdash-api
+  namespace: hubdash
+spec:
+  selector:
+    app: hubdash-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+# k3s 기본 Ingress 컨트롤러는 Traefik. 호스트 이름은 실제 도메인으로 바꾼다. TLS는 도메인/인증서 방식이
+# 정해지면 tls 섹션을 추가한다(cert-manager 등).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hubdash-api
+  namespace: hubdash
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: hubdash.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: hubdash-api
+                port:
+                  name: http
