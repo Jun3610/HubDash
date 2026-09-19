@@ -1,5 +1,6 @@
 package com.junyoung.dashboard.domain.health.controller;
 
+import com.junyoung.dashboard.domain.health.dto.DailyMealSummaryResponse;
 import com.junyoung.dashboard.domain.health.dto.MealRecordRequest;
 import com.junyoung.dashboard.domain.health.dto.MealRecordResponse;
 import com.junyoung.dashboard.domain.health.service.MealRecordService;
@@ -15,9 +16,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/health/meal-records")
@@ -38,6 +43,13 @@ public class MealRecordController {
     @GetMapping
     public ApiResponse<PageResponse<MealRecordResponse>> findAll(@PageableDefault(size = 20) Pageable pageable) {
         return ApiResponse.success(PageResponse.of(mealRecordService.findAll(pageable)));
+    }
+
+    // 하루 총 칼로리/탄단지와 끼니별(아침/점심/저녁/간식) 합계
+    @GetMapping("/daily-summary")
+    public ApiResponse<DailyMealSummaryResponse> dailySummary(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ApiResponse.success(mealRecordService.dailySummary(date));
     }
 
     @GetMapping("/{id}")

@@ -2,6 +2,7 @@ package com.junyoung.dashboard;
 
 import tools.jackson.databind.ObjectMapper;
 import com.junyoung.dashboard.domain.health.dto.HealthLogRequest;
+import com.junyoung.dashboard.domain.health.dto.MealItemRequest;
 import com.junyoung.dashboard.domain.health.dto.MealRecordRequest;
 import com.junyoung.dashboard.domain.health.dto.WorkoutLogRequest;
 import com.junyoung.dashboard.domain.health.entity.MealType;
@@ -198,21 +199,45 @@ class DashboardApplicationTests {
     }
 
     @Test
-    void createsAndFetchesMealRecordEndToEnd() throws Exception {
-        MealRecordRequest request = new MealRecordRequest(
-                LocalDateTime.of(2026, 9, 1, 8, 0), MealType.BREAKFAST, 500, 60.0, 20.0, 15.0, 300.0, null);
+    void mealItemsRollUpIntoMealTotalsAndDailySummaryEndToEnd() throws Exception {
+        // 다른 테스트와 데이터가 섞이지 않도록 이 테스트만 쓰는 먼 과거 날짜를 쓴다.
+        MealRecordRequest breakfast = new MealRecordRequest(
+                LocalDateTime.of(2001, 1, 1, 8, 0), MealType.BREAKFAST, null);
 
-        mockMvc.perform(post("/api/health/meal-records")
+        String mealJson = mockMvc.perform(post("/api/health/meal-records")
                         .header("X-API-KEY", "test-api-key")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(breakfast)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.id").exists());
+                .andExpect(jsonPath("$.data.id").exists())
+                .andReturn().getResponse().getContentAsString();
+        long mealId = objectMapper.readTree(mealJson).get("data").get("id").asLong();
 
-        mockMvc.perform(get("/api/health/meal-records")
+        for (MealItemRequest item : new MealItemRequest[]{
+                new MealItemRequest(mealId, "밥", 300, 66.0, 5.0, 1.0, null),
+                new MealItemRequest(mealId, "계란", 150, 1.0, 12.0, 10.0, null)}) {
+            mockMvc.perform(post("/api/health/meal-items")
+                            .header("X-API-KEY", "test-api-key")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(item)))
+                    .andExpect(status().isCreated());
+        }
+
+        mockMvc.perform(get("/api/health/meal-records/" + mealId)
                         .header("X-API-KEY", "test-api-key"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.content[0].mealType").value("BREAKFAST"));
+                .andExpect(jsonPath("$.data.items.length()").value(2))
+                .andExpect(jsonPath("$.data.totals.calories").value(450))
+                .andExpect(jsonPath("$.data.totals.proteinG").value(17.0));
+
+        mockMvc.perform(get("/api/health/meal-records/daily-summary")
+                        .param("date", "2001-01-01")
+                        .header("X-API-KEY", "test-api-key"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totals.calories").value(450))
+                .andExpect(jsonPath("$.data.meals[0].mealType").value("BREAKFAST"))
+                .andExpect(jsonPath("$.data.meals[0].itemCount").value(2))
+                .andExpect(jsonPath("$.data.meals[1].totals.calories").value(0));
     }
 
     @Test
