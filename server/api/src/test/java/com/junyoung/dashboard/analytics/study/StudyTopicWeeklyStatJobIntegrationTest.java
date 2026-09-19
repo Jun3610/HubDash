@@ -13,7 +13,7 @@ import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,7 +25,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// study(StudyProgress) 주간 학습 시간 집계 — life(HabitLog) 파일럿(이슈 #54)과 같은 방식으로 실제 JobLauncher로 검증한다.
+// study(StudyProgress) 주간 학습 시간 집계 — life(HabitLog) 파일럿(이슈 #54)과 같은 방식으로 실제 JobOperator로 검증한다.
 // 컨텍스트에 Job 빈이 여러 개 존재하므로 이 테스트가 검증할 Job을 명시적으로 지정한다.
 @SpringBootTest
 @SpringBatchTest
@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class StudyTopicWeeklyStatJobIntegrationTest {
 
     @Autowired
-    private JobLauncherTestUtils jobLauncherTestUtils;
+    private JobOperatorTestUtils jobOperatorTestUtils;
 
     @Autowired
     @Qualifier(StudyTopicWeeklyStatJobConfig.JOB_NAME)
@@ -41,7 +41,7 @@ class StudyTopicWeeklyStatJobIntegrationTest {
 
     @BeforeEach
     void setJob() {
-        jobLauncherTestUtils.setJob(studyTopicWeeklyStatJob);
+        jobOperatorTestUtils.setJob(studyTopicWeeklyStatJob);
     }
 
     @Autowired
@@ -65,7 +65,7 @@ class StudyTopicWeeklyStatJobIntegrationTest {
         studyProgressRepository.save(new StudyProgress(topic, weekStart.minusDays(1), 100, null));
         studyProgressRepository.save(new StudyProgress(topic, weekStart.plusDays(7), 100, null));
 
-        JobExecution execution = jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        JobExecution execution = jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         assertThat(execution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
         StudyTopicWeeklyStat stat = studyTopicWeeklyStatRepository.findByTopicIdAndWeekStart(topic.getId(), weekStart)
@@ -80,14 +80,14 @@ class StudyTopicWeeklyStatJobIntegrationTest {
         LocalDate weekStart = LocalDate.of(2026, 8, 3);
 
         studyProgressRepository.save(new StudyProgress(topic, weekStart, 40, null));
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         StudyTopicWeeklyStat firstRun = studyTopicWeeklyStatRepository.findByTopicIdAndWeekStart(topic.getId(), weekStart)
                 .orElseThrow();
         Long statId = firstRun.getId();
 
         studyProgressRepository.save(new StudyProgress(topic, weekStart.plusDays(1), 10, null));
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 2L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 2L));
 
         StudyTopicWeeklyStat secondRun = studyTopicWeeklyStatRepository.findByTopicIdAndWeekStart(topic.getId(), weekStart)
                 .orElseThrow();
@@ -102,7 +102,7 @@ class StudyTopicWeeklyStatJobIntegrationTest {
         LocalDate weekStart = LocalDate.of(2026, 7, 6);
         studyProgressRepository.save(new StudyProgress(topic, weekStart.minusWeeks(1), 30, null));
 
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         Optional<StudyTopicWeeklyStat> stat =
                 studyTopicWeeklyStatRepository.findByTopicIdAndWeekStart(topic.getId(), weekStart);

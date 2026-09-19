@@ -55,10 +55,11 @@ public class StudyTopicWeeklyStatJobConfig {
                                           ItemProcessor<Long, StudyTopicWeeklyStat> studyTopicWeeklyStatProcessor,
                                           ItemWriter<StudyTopicWeeklyStat> studyTopicWeeklyStatWriter) {
         return new StepBuilder("studyTopicWeeklyStatStep", jobRepository)
-                .<Long, StudyTopicWeeklyStat>chunk(CHUNK_SIZE, transactionManager)
+                .<Long, StudyTopicWeeklyStat>chunk(CHUNK_SIZE)
                 .reader(topicIdReader)
                 .processor(studyTopicWeeklyStatProcessor)
                 .writer(studyTopicWeeklyStatWriter)
+                .transactionManager(transactionManager)
                 .build();
     }
 

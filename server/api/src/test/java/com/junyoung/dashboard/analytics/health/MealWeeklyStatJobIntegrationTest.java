@@ -14,7 +14,7 @@ import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.within;
 class MealWeeklyStatJobIntegrationTest {
 
     @Autowired
-    private JobLauncherTestUtils jobLauncherTestUtils;
+    private JobOperatorTestUtils jobOperatorTestUtils;
 
     @Autowired
     @Qualifier(MealWeeklyStatJobConfig.JOB_NAME)
@@ -43,7 +43,7 @@ class MealWeeklyStatJobIntegrationTest {
 
     @BeforeEach
     void setJob() {
-        jobLauncherTestUtils.setJob(mealWeeklyStatJob);
+        jobOperatorTestUtils.setJob(mealWeeklyStatJob);
     }
 
     @Autowired
@@ -66,7 +66,7 @@ class MealWeeklyStatJobIntegrationTest {
         // 금: 끼니만 만들고 음식은 안 적음 — "기록한 날"이 아니므로 평균에 0으로 들어가면 안 됨
         addMeal(weekStart.plusDays(4).atTime(8, 0), MealType.BREAKFAST);
 
-        JobExecution execution = jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        JobExecution execution = jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         assertThat(execution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
         MealWeeklyStat stat = mealWeeklyStatRepository.findByWeekStart(weekStart).orElseThrow();
@@ -85,7 +85,7 @@ class MealWeeklyStatJobIntegrationTest {
         addMeal(weekStart.plusDays(6).atTime(23, 59, 59), MealType.SNACK, item("일요일 끝 포함", 700, null, null, null));
         addMeal(weekStart.plusDays(7).atStartOfDay(), MealType.BREAKFAST, item("다음 월요일 제외", 9000, null, null, null));
 
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         MealWeeklyStat stat = mealWeeklyStatRepository.findByWeekStart(weekStart).orElseThrow();
         assertThat(stat.getDayCount()).isEqualTo(2);
@@ -98,7 +98,7 @@ class MealWeeklyStatJobIntegrationTest {
         addMeal(weekStart.atTime(12, 0), MealType.LUNCH,
                 item("라면", 520, 83.0, 11.0, 16.0), item("김치", 15, null, null, null));
 
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         MealWeeklyStat stat = mealWeeklyStatRepository.findByWeekStart(weekStart).orElseThrow();
         assertThat(stat.getDayCount()).isEqualTo(1);
@@ -110,11 +110,11 @@ class MealWeeklyStatJobIntegrationTest {
     void rerunningSameWeekUpdatesExistingStatInsteadOfCreatingDuplicate() throws Exception {
         LocalDate weekStart = LocalDate.of(2026, 6, 1);
         addMeal(weekStart.atTime(8, 0), MealType.BREAKFAST, item("밥", 400, 60.0, 10.0, 5.0));
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
         Long statId = mealWeeklyStatRepository.findByWeekStart(weekStart).orElseThrow().getId();
 
         addMeal(weekStart.plusDays(1).atTime(8, 0), MealType.BREAKFAST, item("죽", 200, 30.0, 5.0, 2.0));
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 2L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 2L));
 
         MealWeeklyStat secondRun = mealWeeklyStatRepository.findByWeekStart(weekStart).orElseThrow();
         assertThat(secondRun.getId()).isEqualTo(statId);
@@ -128,7 +128,7 @@ class MealWeeklyStatJobIntegrationTest {
         addMeal(weekStart.atTime(8, 0), MealType.BREAKFAST); // 음식 없는 끼니만 존재
         addMeal(weekStart.minusWeeks(1).atTime(8, 0), MealType.BREAKFAST, item("지난주 밥", 400, null, null, null));
 
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         Optional<MealWeeklyStat> stat = mealWeeklyStatRepository.findByWeekStart(weekStart);
         assertThat(stat).isEmpty();

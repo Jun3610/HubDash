@@ -62,10 +62,11 @@ public class MealWeeklyStatJobConfig {
                                     ItemProcessor<LocalDate, MealWeeklyStat> mealWeeklyStatProcessor,
                                     ItemWriter<MealWeeklyStat> mealWeeklyStatWriter) {
         return new StepBuilder("mealWeeklyStatStep", jobRepository)
-                .<LocalDate, MealWeeklyStat>chunk(CHUNK_SIZE, transactionManager)
+                .<LocalDate, MealWeeklyStat>chunk(CHUNK_SIZE)
                 .reader(mealWeekReader)
                 .processor(mealWeeklyStatProcessor)
                 .writer(mealWeeklyStatWriter)
+                .transactionManager(transactionManager)
                 .build();
     }
 

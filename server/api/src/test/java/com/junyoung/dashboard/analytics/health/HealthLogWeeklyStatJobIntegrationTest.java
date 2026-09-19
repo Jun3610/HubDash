@@ -11,7 +11,7 @@ import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,7 +24,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
-// health(HealthLog) 주간 체중/수면 평균 집계 — life 파일럿(이슈 #54)과 같은 방식으로 실제 JobLauncher로 검증한다.
+// health(HealthLog) 주간 체중/수면 평균 집계 — life 파일럿(이슈 #54)과 같은 방식으로 실제 JobOperator로 검증한다.
 // HealthLog는 전역 테이블이라 테스트끼리 데이터가 섞이지 않도록 테스트마다 서로 다른 주를 사용한다.
 @SpringBootTest
 @SpringBatchTest
@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.within;
 class HealthLogWeeklyStatJobIntegrationTest {
 
     @Autowired
-    private JobLauncherTestUtils jobLauncherTestUtils;
+    private JobOperatorTestUtils jobOperatorTestUtils;
 
     @Autowired
     @Qualifier(HealthLogWeeklyStatJobConfig.JOB_NAME)
@@ -40,7 +40,7 @@ class HealthLogWeeklyStatJobIntegrationTest {
 
     @BeforeEach
     void setJob() {
-        jobLauncherTestUtils.setJob(healthLogWeeklyStatJob);
+        jobOperatorTestUtils.setJob(healthLogWeeklyStatJob);
     }
 
     @Autowired
@@ -59,7 +59,7 @@ class HealthLogWeeklyStatJobIntegrationTest {
         healthLogRepository.save(new HealthLog(weekStart.minusDays(1), 100.0, 1.0, null));
         healthLogRepository.save(new HealthLog(weekStart.plusDays(7), 100.0, 1.0, null));
 
-        JobExecution execution = jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        JobExecution execution = jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         assertThat(execution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
         HealthLogWeeklyStat stat = healthLogWeeklyStatRepository.findByWeekStart(weekStart).orElseThrow();
@@ -76,7 +76,7 @@ class HealthLogWeeklyStatJobIntegrationTest {
         healthLogRepository.save(new HealthLog(weekStart, 68.0, null, null));
         healthLogRepository.save(new HealthLog(weekStart.plusDays(1), null, null, "체중 미측정"));
 
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         HealthLogWeeklyStat stat = healthLogWeeklyStatRepository.findByWeekStart(weekStart).orElseThrow();
         assertThat(stat.getLogCount()).isEqualTo(2);
@@ -89,12 +89,12 @@ class HealthLogWeeklyStatJobIntegrationTest {
         LocalDate weekStart = LocalDate.of(2026, 7, 6);
 
         healthLogRepository.save(new HealthLog(weekStart, 70.0, 7.0, null));
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         Long statId = healthLogWeeklyStatRepository.findByWeekStart(weekStart).orElseThrow().getId();
 
         healthLogRepository.save(new HealthLog(weekStart.plusDays(1), 72.0, 5.0, null));
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 2L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 2L));
 
         HealthLogWeeklyStat secondRun = healthLogWeeklyStatRepository.findByWeekStart(weekStart).orElseThrow();
         assertThat(secondRun.getId()).isEqualTo(statId);
@@ -108,7 +108,7 @@ class HealthLogWeeklyStatJobIntegrationTest {
         LocalDate weekStart = LocalDate.of(2026, 6, 1);
         healthLogRepository.save(new HealthLog(weekStart.minusWeeks(1), 70.0, 7.0, null));
 
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         Optional<HealthLogWeeklyStat> stat = healthLogWeeklyStatRepository.findByWeekStart(weekStart);
         assertThat(stat).isEmpty();

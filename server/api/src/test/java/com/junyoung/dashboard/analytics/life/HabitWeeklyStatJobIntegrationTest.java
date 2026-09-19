@@ -13,7 +13,7 @@ import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
-import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.test.JobOperatorTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,7 +25,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// life(HabitLog) 파일럿 주간 집계 배치 — 실제 JobLauncher로 Job을 구동해 reader/processor/writer 전체 흐름을 검증한다.
+// life(HabitLog) 파일럿 주간 집계 배치 — 실제 JobOperator로 Job을 구동해 reader/processor/writer 전체 흐름을 검증한다.
 // 컨텍스트에 Job 빈이 여러 개(도메인별 주간 집계) 존재하므로 @SpringBatchTest의 자동 단일 Job 주입에 의존하지 않고
 // 이 테스트가 검증할 Job을 명시적으로 지정한다.
 @SpringBootTest
@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class HabitWeeklyStatJobIntegrationTest {
 
     @Autowired
-    private JobLauncherTestUtils jobLauncherTestUtils;
+    private JobOperatorTestUtils jobOperatorTestUtils;
 
     @Autowired
     @Qualifier(HabitWeeklyStatJobConfig.JOB_NAME)
@@ -45,7 +45,7 @@ class HabitWeeklyStatJobIntegrationTest {
 
     @BeforeEach
     void setJob() {
-        jobLauncherTestUtils.setJob(lifeHabitWeeklyStatJob);
+        jobOperatorTestUtils.setJob(lifeHabitWeeklyStatJob);
     }
 
     @Autowired
@@ -66,7 +66,7 @@ class HabitWeeklyStatJobIntegrationTest {
         habitLogRepository.save(new HabitLog(habit, weekStart.minusDays(1), true, null));
         habitLogRepository.save(new HabitLog(habit, weekStart.plusDays(7), true, null));
 
-        JobExecution execution = jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        JobExecution execution = jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         assertThat(execution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
         HabitWeeklyStat stat = habitWeeklyStatRepository.findByHabitIdAndWeekStart(habit.getId(), weekStart)
@@ -81,7 +81,7 @@ class HabitWeeklyStatJobIntegrationTest {
         LocalDate weekStart = LocalDate.of(2026, 8, 3);
 
         habitLogRepository.save(new HabitLog(habit, weekStart, true, null));
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         HabitWeeklyStat firstRun = habitWeeklyStatRepository.findByHabitIdAndWeekStart(habit.getId(), weekStart)
                 .orElseThrow();
@@ -90,7 +90,7 @@ class HabitWeeklyStatJobIntegrationTest {
 
         // 같은 주에 로그가 하나 더 생긴 뒤 재실행(run.id만 다름) — 새 행이 아니라 기존 행이 갱신돼야 한다.
         habitLogRepository.save(new HabitLog(habit, weekStart.plusDays(1), false, null));
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 2L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 2L));
 
         HabitWeeklyStat secondRun = habitWeeklyStatRepository.findByHabitIdAndWeekStart(habit.getId(), weekStart)
                 .orElseThrow();
@@ -106,7 +106,7 @@ class HabitWeeklyStatJobIntegrationTest {
         // 이 주가 아닌 다른 주에만 로그가 있음.
         habitLogRepository.save(new HabitLog(habit, weekStart.minusWeeks(1), true, null));
 
-        jobLauncherTestUtils.launchJob(weekParams(weekStart, 1L));
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         Optional<HabitWeeklyStat> stat = habitWeeklyStatRepository.findByHabitIdAndWeekStart(habit.getId(), weekStart);
         assertThat(stat).isEmpty();
