@@ -2,6 +2,7 @@ package com.junyoung.dashboard.pipeline.scheduler;
 
 import com.junyoung.dashboard.analytics.health.HealthLogWeeklyStatBatchService;
 import com.junyoung.dashboard.analytics.life.LifeHabitWeeklyStatBatchService;
+import com.junyoung.dashboard.analytics.pknu.AssignmentWeeklyStatBatchService;
 import com.junyoung.dashboard.analytics.study.StudyTopicWeeklyStatBatchService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,13 +17,16 @@ public class AnalyticsBatchScheduler {
     private final LifeHabitWeeklyStatBatchService lifeHabitWeeklyStatBatchService;
     private final StudyTopicWeeklyStatBatchService studyTopicWeeklyStatBatchService;
     private final HealthLogWeeklyStatBatchService healthLogWeeklyStatBatchService;
+    private final AssignmentWeeklyStatBatchService assignmentWeeklyStatBatchService;
 
     public AnalyticsBatchScheduler(LifeHabitWeeklyStatBatchService lifeHabitWeeklyStatBatchService,
                                     StudyTopicWeeklyStatBatchService studyTopicWeeklyStatBatchService,
-                                    HealthLogWeeklyStatBatchService healthLogWeeklyStatBatchService) {
+                                    HealthLogWeeklyStatBatchService healthLogWeeklyStatBatchService,
+                                    AssignmentWeeklyStatBatchService assignmentWeeklyStatBatchService) {
         this.lifeHabitWeeklyStatBatchService = lifeHabitWeeklyStatBatchService;
         this.studyTopicWeeklyStatBatchService = studyTopicWeeklyStatBatchService;
         this.healthLogWeeklyStatBatchService = healthLogWeeklyStatBatchService;
+        this.assignmentWeeklyStatBatchService = assignmentWeeklyStatBatchService;
     }
 
     // 매주 월요일 00:10에 방금 끝난 주(지난주)를 집계한다.
@@ -50,6 +54,15 @@ public class AnalyticsBatchScheduler {
             healthLogWeeklyStatBatchService.run(null);
         } catch (Exception e) {
             log.error("healthLogWeeklyStatJob 스케줄 실행 실패", e);
+        }
+    }
+
+    @Scheduled(cron = "0 10 0 * * MON")
+    public void runAssignmentWeeklyStat() {
+        try {
+            assignmentWeeklyStatBatchService.run(null);
+        } catch (Exception e) {
+            log.error("assignmentWeeklyStatJob 스케줄 실행 실패", e);
         }
     }
 }
