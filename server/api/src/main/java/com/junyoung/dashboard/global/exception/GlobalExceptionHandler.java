@@ -1,5 +1,6 @@
 package com.junyoung.dashboard.global.exception;
 
+import com.junyoung.dashboard.domain.health.external.fatsecret.FatSecretException;
 import com.junyoung.dashboard.global.common.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -61,6 +63,25 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleNotReadable(HttpMessageNotReadableException ex) {
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error("INVALID_REQUEST", "요청 본문을 읽을 수 없습니다"));
+    }
+
+    // @RequestParam/@PathVariable에 직접 붙인 제약(@Min/@NotBlank 등) 위반.
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMethodValidation(HandlerMethodValidationException ex) {
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error("INVALID_REQUEST", "요청 파라미터가 올바르지 않습니다"));
+    }
+
+    @ExceptionHandler(FatSecretException.class)
+    public ResponseEntity<ApiResponse<Void>> handleFatSecret(FatSecretException ex) {
+        HttpStatus status = switch (ex.getReason()) {
+            case NOT_CONFIGURED -> HttpStatus.SERVICE_UNAVAILABLE;
+            case RATE_LIMITED -> HttpStatus.TOO_MANY_REQUESTS;
+            case AUTH_FAILED, IP_NOT_ALLOWED, UPSTREAM_ERROR -> HttpStatus.BAD_GATEWAY;
+        };
+        log.warn("FatSecret 호출 실패 ({}): {}", ex.getReason(), ex.getMessage());
+        return ResponseEntity.status(status)
+                .body(ApiResponse.error("FATSECRET_" + ex.getReason(), ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
