@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - postgres.yaml
+  - postgres-backup.yaml
   - kafka.yaml
   - app.yaml
 # 이미지는 여기서 교체한다: kustomize edit set image hubdash-api=<레지스트리>/hubdash-api:<태그>
