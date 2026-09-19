@@ -1,0 +1,77 @@
+# Postgres — 개인 서버 규모라 클러스터 안 StatefulSet 1개로 운영한다. 관리형 DB로 옮기려면 이 파일을 kustomization에서
+# 빼고 app의 DB_HOST(configMap)만 바꾸면 된다.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: hubdash
+spec:
+  clusterIP: None
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: hubdash
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              value: hubdash
+            - name: POSTGRES_USER
+              value: hubdash
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: hubdash-secrets
+                  key: DB_PASSWORD
+            # 볼륨 루트에 lost+found가 있으면 initdb가 실패하므로 한 단계 아래를 데이터 디렉터리로 쓴다.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U hubdash -d hubdash"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U hubdash -d hubdash"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi

@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - postgres.yaml
+  - kafka.yaml
+  - app.yaml
+# 이미지는 여기서 교체한다: kustomize edit set image hubdash-api=<레지스트리>/hubdash-api:<태그>
+# (secret은 저장소에 두지 않는다 — secret.example.yaml과 README 참고)
+images:
+  - name: hubdash-api
+    newName: hubdash-api
+    newTag: latest
