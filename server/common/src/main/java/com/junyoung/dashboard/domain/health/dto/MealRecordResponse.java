@@ -4,17 +4,15 @@ import com.junyoung.dashboard.domain.health.entity.MealRecord;
 import com.junyoung.dashboard.domain.health.entity.MealType;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record MealRecordResponse(
         Long id,
         LocalDateTime consumedAt,
         MealType mealType,
-        Integer calories,
-        Double carbsG,
-        Double proteinG,
-        Double fatG,
-        Double sodiumMg,
         String notes,
+        List<MealItemResponse> items,
+        MealTotals totals,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -23,12 +21,9 @@ public record MealRecordResponse(
                 record.getId(),
                 record.getConsumedAt(),
                 record.getMealType(),
-                record.getCalories(),
-                record.getCarbsG(),
-                record.getProteinG(),
-                record.getFatG(),
-                record.getSodiumMg(),
                 record.getNotes(),
+                record.getItems().stream().map(MealItemResponse::from).toList(),
+                MealTotals.of(record.getItems()),
                 record.getCreatedAt(),
                 record.getUpdatedAt()
         );
