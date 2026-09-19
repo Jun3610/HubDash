@@ -1,6 +1,7 @@
 package com.junyoung.dashboard.domain.study.controller;
 
-import com.junyoung.dashboard.analytics.study.StudyTopicWeeklyStatBatchService;
+import com.junyoung.dashboard.analytics.study.StudyTopicWeeklyStatJobConfig;
+import com.junyoung.dashboard.pipeline.launcher.WeeklyStatJobRunner;
 import com.junyoung.dashboard.domain.study.dto.StudyTopicWeeklyStatBatchRunRequest;
 import com.junyoung.dashboard.domain.study.dto.StudyTopicWeeklyStatBatchRunResponse;
 import com.junyoung.dashboard.domain.study.dto.StudyTopicWeeklyStatResponse;
@@ -26,12 +27,12 @@ import java.time.LocalDate;
 public class StudyTopicWeeklyStatController {
 
     private final StudyTopicWeeklyStatService studyTopicWeeklyStatService;
-    private final StudyTopicWeeklyStatBatchService batchService;
+    private final WeeklyStatJobRunner jobRunner;
 
     public StudyTopicWeeklyStatController(StudyTopicWeeklyStatService studyTopicWeeklyStatService,
-                                           StudyTopicWeeklyStatBatchService batchService) {
+                                           WeeklyStatJobRunner jobRunner) {
         this.studyTopicWeeklyStatService = studyTopicWeeklyStatService;
-        this.batchService = batchService;
+        this.jobRunner = jobRunner;
     }
 
     @GetMapping
@@ -45,7 +46,7 @@ public class StudyTopicWeeklyStatController {
     public ApiResponse<StudyTopicWeeklyStatBatchRunResponse> runBatch(
             @RequestBody(required = false) StudyTopicWeeklyStatBatchRunRequest request) throws Exception {
         LocalDate weekStart = request != null ? request.weekStart() : null;
-        JobExecution execution = batchService.run(weekStart);
+        JobExecution execution = jobRunner.run(StudyTopicWeeklyStatJobConfig.JOB_NAME, weekStart);
         LocalDate resolvedWeekStart = LocalDate.parse(execution.getJobParameters().getString("weekStart"));
         return ApiResponse.success(new StudyTopicWeeklyStatBatchRunResponse(
                 execution.getId(), execution.getStatus().toString(), resolvedWeekStart));

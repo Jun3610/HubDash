@@ -1,6 +1,7 @@
 package com.junyoung.dashboard.domain.pknu.controller;
 
-import com.junyoung.dashboard.analytics.pknu.AssignmentWeeklyStatBatchService;
+import com.junyoung.dashboard.analytics.pknu.AssignmentWeeklyStatJobConfig;
+import com.junyoung.dashboard.pipeline.launcher.WeeklyStatJobRunner;
 import com.junyoung.dashboard.domain.pknu.dto.AssignmentWeeklyStatBatchRunRequest;
 import com.junyoung.dashboard.domain.pknu.dto.AssignmentWeeklyStatBatchRunResponse;
 import com.junyoung.dashboard.domain.pknu.dto.AssignmentWeeklyStatResponse;
@@ -26,12 +27,12 @@ import java.time.LocalDate;
 public class AssignmentWeeklyStatController {
 
     private final AssignmentWeeklyStatService assignmentWeeklyStatService;
-    private final AssignmentWeeklyStatBatchService batchService;
+    private final WeeklyStatJobRunner jobRunner;
 
     public AssignmentWeeklyStatController(AssignmentWeeklyStatService assignmentWeeklyStatService,
-                                           AssignmentWeeklyStatBatchService batchService) {
+                                           WeeklyStatJobRunner jobRunner) {
         this.assignmentWeeklyStatService = assignmentWeeklyStatService;
-        this.batchService = batchService;
+        this.jobRunner = jobRunner;
     }
 
     @GetMapping
@@ -45,7 +46,7 @@ public class AssignmentWeeklyStatController {
     public ApiResponse<AssignmentWeeklyStatBatchRunResponse> runBatch(
             @RequestBody(required = false) AssignmentWeeklyStatBatchRunRequest request) throws Exception {
         LocalDate weekStart = request != null ? request.weekStart() : null;
-        JobExecution execution = batchService.run(weekStart);
+        JobExecution execution = jobRunner.run(AssignmentWeeklyStatJobConfig.JOB_NAME, weekStart);
         LocalDate resolvedWeekStart = LocalDate.parse(execution.getJobParameters().getString("weekStart"));
         return ApiResponse.success(new AssignmentWeeklyStatBatchRunResponse(
                 execution.getId(), execution.getStatus().toString(), resolvedWeekStart));
