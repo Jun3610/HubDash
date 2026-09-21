@@ -1,0 +1,128 @@
+// HubDash CI/CD — 테스트 → 이미지 빌드 → GHCR push → k3s 배포 → 롤아웃 확인(실패 시 롤백)
+// Jenkins 이미지(ci/jenkins/Dockerfile)가 JDK 17, docker CLI, kubectl을 제공한다는 전제다. 설정 방법은 ci/README.md.
+//
+// 필요한 Jenkins 자격증명
+//   ghcr-credentials : Username with password (GitHub 사용자명 + write:packages 권한의 PAT)
+//   k3s-kubeconfig   : Secret file (k3s의 kubeconfig)
+
+// main 브랜치에서만 push/배포한다. 멀티브랜치 잡은 BRANCH_NAME, 일반 Pipeline-from-SCM 잡은 GIT_BRANCH를 채운다.
+def isMainBranch() {
+    return (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '') in ['main', 'origin/main']
+}
+
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'IMAGE_REPO', defaultValue: 'ghcr.io/jun3610/hubdash-api',
+               description: '푸시할 이미지 저장소(GHCR 소유자 이름은 소문자여야 한다)')
+    }
+
+    triggers {
+        githubPush() // GitHub 웹훅(/github-webhook/)으로 push 시 실행
+    }
+
+    options {
+        timestamps()
+        disableConcurrentBuilds() // 같은 클러스터에 동시에 배포하지 않는다
+        timeout(time: 40, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+    }
+
+    environment {
+        NAMESPACE = 'hubdash'
+    }
+
+    stages {
+        stage('Prepare') {
+            steps {
+                script {
+                    env.SHORT_SHA = env.GIT_COMMIT.take(7)
+                    env.IMAGE_TAG = "${env.BUILD_NUMBER}-${env.SHORT_SHA}"
+                }
+                echo "이미지: ${params.IMAGE_REPO}:${env.IMAGE_TAG}"
+            }
+        }
+
+        stage('Test') {
+            steps {
+                // Testcontainers(Flyway 마이그레이션 검증)가 docker 소켓을 쓴다.
+                dir('server') {
+                    sh './gradlew --no-daemon test'
+                }
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true,
+                          testResults: 'server/api/build/test-results/test/*.xml, server/common/build/test-results/test/*.xml'
+                }
+            }
+        }
+
+        stage('Build image') {
+            steps {
+                dir('server') {
+                    sh "docker build -t ${params.IMAGE_REPO}:${env.IMAGE_TAG} -t ${params.IMAGE_REPO}:latest ."
+                }
+            }
+        }
+
+        stage('Push image') {
+            when { expression { isMainBranch() } }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'ghcr-credentials',
+                                                  usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_TOKEN')]) {
+                    // 토큰이 빌드 로그에 남지 않도록 작은따옴표로 셸이 치환하게 한다.
+                    sh '''
+                        REGISTRY_HOST="${IMAGE_REPO%%/*}"
+                        echo "$REGISTRY_TOKEN" | docker login "$REGISTRY_HOST" -u "$REGISTRY_USER" --password-stdin
+                    '''
+                }
+                sh "docker push ${params.IMAGE_REPO}:${env.IMAGE_TAG}"
+                sh "docker push ${params.IMAGE_REPO}:latest"
+            }
+            post {
+                always {
+                    sh 'docker logout "${IMAGE_REPO%%/*}" || true'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            when { expression { isMainBranch() } }
+            steps {
+                withCredentials([file(credentialsId: 'k3s-kubeconfig', variable: 'KUBECONFIG')]) {
+                    sh '''
+                        set -e
+                        # 시크릿은 저장소에 없으므로 사전에 클러스터에 있어야 한다(k8s/README.md). 없으면 파드가 기동하지 못한다.
+                        kubectl -n "$NAMESPACE" get secret hubdash-secrets >/dev/null \
+                          || { echo "hubdash-secrets 시크릿이 없습니다 — k8s/README.md의 1) 단계를 먼저 하세요"; exit 1; }
+
+                        # 저장소의 kustomization은 건드리지 않고 복사본에서 이미지를 교체한다.
+                        rm -rf "$WORKSPACE/k8s-deploy" && cp -r server/k8s "$WORKSPACE/k8s-deploy"
+                        sed -i "s|newName: .*|newName: ${IMAGE_REPO}|; s|newTag: .*|newTag: \\"${IMAGE_TAG}\\"|" "$WORKSPACE/k8s-deploy/kustomization.yaml"
+
+                        kubectl apply -k "$WORKSPACE/k8s-deploy"
+                        # 새 클러스터에서는 postgres/kafka 이미지를 처음 받느라 5분 가까이 걸릴 수 있어 넉넉히 기다린다.
+                        kubectl -n "$NAMESPACE" rollout status deployment/hubdash-api --timeout=600s
+                    '''
+                }
+            }
+            post {
+                failure {
+                    // 롤아웃이 실패하면 직전 리비전으로 되돌린다.
+                    withCredentials([file(credentialsId: 'k3s-kubeconfig', variable: 'KUBECONFIG')]) {
+                        sh 'kubectl -n "$NAMESPACE" rollout undo deployment/hubdash-api || true'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // 빌드마다 쌓이는 dangling 이미지 정리(태그된 이미지는 유지)
+            sh 'docker image prune -f || true'
+        }
+    }
+}

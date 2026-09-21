@@ -38,7 +38,7 @@ kubectl -n hubdash get pods
 - **DB/Kafka는 클러스터 안 StatefulSet**: 관리형으로 옮기려면 `postgres.yaml`/`kafka.yaml`을 `kustomization.yaml`에서 빼고 `hubdash-config`의 `DB_HOST`/`KAFKA_BOOTSTRAP`만 바꾸면 됩니다.
 - **헬스체크는 TCP**: 앱에 actuator가 없어 HTTP 헬스 엔드포인트가 없습니다.
 - **Kafka advertised 주소는 파드 DNS(`kafka-0.kafka...`)로 고정**하고 헤드리스 Service에 `publishNotReadyAddresses`를 켰습니다. Service를 거쳐 자기 자신에 접속하는 구조는 준비 전에 엔드포인트가 없어 쿼럼이 형성되지 못합니다.
-- **앱 파드의 `wait-for-postgres` initContainer**: 서버 재부팅처럼 모든 파드가 동시에 뜰 때 앱이 DB보다 먼저 떠서 Flyway가 실패하고 CrashLoopBackOff로 재시작하는 것을 막습니다.
+- **앱 파드의 `wait-for-dependencies` initContainer**: 앱은 시작할 때 DB(Flyway)와 Kafka(컨슈머 생성)에 바로 연결하므로, 서버 재부팅이나 새 클러스터의 첫 이미지 풀처럼 서비스마다 준비 시점이 다를 때 앱이 먼저 떠서 실패·재시작하는 것을 막습니다(Postgres는 `pg_isready`, Kafka는 포트 접속으로 대기).
 
 ## 백업/복원
 
