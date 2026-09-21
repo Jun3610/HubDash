@@ -28,6 +28,9 @@ spec:
       labels:
         app: hubdash-api
     spec:
+      # GHCR 패키지를 비공개로 두는 경우에만 필요하다(ci/README.md). 시크릿이 없어도 공개 이미지는 익명으로 받아 정상 동작한다.
+      imagePullSecrets:
+        - name: ghcr-pull
       # 클러스터가 한꺼번에 뜰 때(서버 재부팅 등) 앱이 DB보다 먼저 떠서 Flyway가 실패하고 CrashLoopBackOff로
       # 재시작을 반복하는 것을 막는다. 헤드리스 Service는 파드가 Ready가 되기 전에는 DNS가 풀리지 않는다(UnknownHostException).
       initContainers:
