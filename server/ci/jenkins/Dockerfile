@@ -17,6 +17,11 @@ ARG KUBECTL_VERSION=v1.34.1
 RUN curl -fsSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/$(dpkg --print-architecture)/kubectl" \
     && chmod +x /usr/local/bin/kubectl
 
+# docker 소켓을 마운트해 쓰므로(호스트 도커 데몬에 컨테이너를 띄우는 구조) Testcontainers가 띄운 컨테이너의 게시 포트는
+# 이 컨테이너가 아니라 호스트에서 열린다. 기본 추정(브리지 게이트웨이 172.17.0.1)이 맞지 않는 환경(Docker Desktop 등)에서
+# Ryuk에 접속하지 못해 테스트가 실패하므로 호스트 이름을 고정한다. 리눅스에서는 실행 시 --add-host=host.docker.internal:host-gateway가 필요하다.
+ENV TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal
+
 USER jenkins
 # workflow-aggregator=Pipeline, github=웹훅 트리거(githubPush), credentials-binding=withCredentials
 RUN jenkins-plugin-cli --plugins workflow-aggregator git github credentials-binding timestamper junit

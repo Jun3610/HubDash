@@ -103,7 +103,8 @@ pipeline {
                         sed -i "s|newName: .*|newName: ${IMAGE_REPO}|; s|newTag: .*|newTag: \\"${IMAGE_TAG}\\"|" "$WORKSPACE/k8s-deploy/kustomization.yaml"
 
                         kubectl apply -k "$WORKSPACE/k8s-deploy"
-                        kubectl -n "$NAMESPACE" rollout status deployment/hubdash-api --timeout=300s
+                        # 새 클러스터에서는 postgres/kafka 이미지를 처음 받느라 5분 가까이 걸릴 수 있어 넉넉히 기다린다.
+                        kubectl -n "$NAMESPACE" rollout status deployment/hubdash-api --timeout=600s
                     '''
                 }
             }
