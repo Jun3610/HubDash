@@ -1,30 +1,76 @@
+# 로컬 실행용 — `docker compose up -d --build` 한 번으로 DB, Kafka, 앱이 모두 뜬다.
+# 앱을 컨테이너 대신 IDE/bootRun으로 개발할 때는 `docker compose up -d db kafka`만 띄우면 된다.
+#
+# 모든 포트는 내 컴퓨터(127.0.0.1)에서만 열어, 같은 네트워크의 다른 기기가 접근하지 못하게 한다.
 services:
   db:
     image: postgres:16
     container_name: hubdash-db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_NAME:-hubdash}
       POSTGRES_USER: ${DB_USER:-hubdash}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-hubdash}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
     volumes:
       - hubdash-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-hubdash} -d ${DB_NAME:-hubdash}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   kafka:
     image: apache/kafka:3.9.0
     container_name: hubdash-kafka
+    restart: unless-stopped
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      # 리스너가 둘이다: PLAINTEXT(localhost:9092)는 호스트에서 bootRun으로 붙을 때, INTERNAL(kafka:19092)은
+      # 같은 compose 네트워크의 앱 컨테이너가 붙을 때 쓴다. 컨테이너 안에서 localhost는 자기 자신이라 하나로는 둘 다 못 한다.
+      KAFKA_LISTENERS: PLAINTEXT://:9092,INTERNAL://:19092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://kafka:19092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
     ports:
-      - "9092:9092"
+      - "127.0.0.1:9092:9092"
+    volumes:
+      # 컨테이너를 다시 만들어도 컨슈머 오프셋이 남아, 이미 처리한 raw 이벤트를 처음부터 다시 읽지 않는다.
+      - hubdash-kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+
+  app:
+    build: .
+    image: hubdash-api:local
+    container_name: hubdash-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:-hubdash}
+      DB_USER: ${DB_USER:-hubdash}
+      DB_PASSWORD: ${DB_PASSWORD:-hubdash}
+      KAFKA_BOOTSTRAP: kafka:19092
+      # 이미지는 prod 프로파일이라 API_KEY/DB_PASSWORD에 기본값이 없다. 로컬용 기본값은 여기서만 준다 —
+      # 127.0.0.1로만 열려 있으므로 이 컴퓨터 밖에서는 접근할 수 없다. 바꾸려면 server/.env에 API_KEY=...를 적는다.
+      API_KEY: ${API_KEY:-dev-local-key}
+    ports:
+      - "127.0.0.1:8080:8080"
 
 volumes:
   hubdash-db-data:
+  hubdash-kafka-data:
