@@ -1,0 +1,117 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.required {
+  color: var(--accent);
+  margin-left: 2px;
+}
+.hint {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.error {
+  font-size: 11.5px;
+  color: var(--red);
+}
+.control {
+  height: 30px;
+  width: 100%;
+  padding: 0 10px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  min-width: 0;
+}
+.control::placeholder {
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+.control:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.control[aria-invalid='true'] {
+  border-color: var(--error-border);
+}
+textarea.control {
+  height: auto;
+  min-height: 72px;
+  padding: 7px 10px;
+  resize: vertical;
+  line-height: 1.5;
+}
+select.control {
+  padding-right: 24px;
+}
+.monoControl {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-strong);
+}
+.check input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent-strong);
+  cursor: pointer;
+}
+.switch {
+  position: relative;
+  width: 30px;
+  height: 18px;
+  border-radius: 9px;
+  border: 0;
+  padding: 0;
+  background: var(--border);
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text);
+  transition: transform 0.15s;
+}
+.switch[aria-checked='true'] {
+  background: var(--accent-strong);
+}
+.switch[aria-checked='true']::after {
+  transform: translateX(12px);
+}
+.formError {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  font-size: 12px;
+  color: var(--text-body);
+}
+.formError code {
+  font-family: var(--font-mono);
+  color: var(--red);
+  font-size: 11.5px;
+}

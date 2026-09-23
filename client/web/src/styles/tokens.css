@@ -1,0 +1,158 @@
+/* 디자인 토큰. 컴포넌트에서는 hex를 직접 쓰지 않고 이 변수만 쓴다.
+   원본: client/hubdash-design/PROMPT.md 3장, screens/Guide.dc.html */
+
+:root {
+  /* 본문 (노션 다크) */
+  --bg: #191919;
+  --surface: #1e1e1e;
+  --header: #202020;
+  --subtle: #252525;
+  --fill: #2c2c2c;
+  --track: #2a2a2a;
+  --tag-neutral: #2f2f2f;
+  --border: #333333;
+  --divider: #2a2a2a;
+  --heat-empty-line: #222222;
+  --text: #e6e6e6;
+  --text-strong: #dcdcdc;
+  --text-body: #cfcfcf;
+  --text-muted: #8f8f8f;
+  --link: #529cca;
+  --link-hover: #7db8e0;
+  --on-accent: #ffffff;
+
+  /* 시그니처 (강조색 — data-accent 프리셋으로 바뀌는 값) */
+  --accent: #e27a72;
+  --accent-strong: #c4554d;
+  --accent-soft: #4a2a27;
+  --heat-0: #252525;
+  --heat-1: #3e2624;
+  --heat-2: #6b3530;
+  --heat-3: #9c4540;
+  --heat-4: #e27a72;
+
+  /* 노션 태그색: 글자 / 배경 */
+  --blue: #529cca;
+  --blue-bg: #1b3445;
+  --green: #529e72;
+  --green-bg: #243d30;
+  --purple: #9d68d3;
+  --purple-bg: #3c2d49;
+  --yellow: #ca9849;
+  --yellow-bg: #4a3d24;
+  --orange: #c77d48;
+  --orange-bg: #4f3423;
+  --red: #df5453;
+  --red-bg: #4f2826;
+  --gray: #8f8f8f;
+  --gray-bg: #2f2f2f;
+
+  /* 오류 카드 */
+  --error-border: #a8403b;
+  --error-bg: #2b1d1c;
+
+  /* 아바타 */
+  --avatar: #2383e2;
+
+  /* 사이드바 전용 (GitHub 다크) */
+  --sb-bg: #0d1117;
+  --sb-band: #010409;
+  --sb-active: #212830;
+  --sb-border: #3d444d;
+  --sb-text: #d1d7e0;
+  --sb-text-strong: #f0f6fc;
+  --sb-muted: #9198a1;
+  --sb-counter: #2f3742;
+  --sb-heat-0: #161b22;
+  --sb-avatar: #1f6feb;
+  --sb-online: #3fb950;
+  --sb-offline: #9198a1;
+  --sb-error: #f85149;
+
+  /* 과목 색 점 (GitHub 라벨 톤, 과목 순서대로 돌려 씀) */
+  --course-1: #4493f8;
+  --course-2: #3fb950;
+  --course-3: #ab7df8;
+  --course-4: #d29922;
+  --course-5: #db6d28;
+  --course-6: #9198a1;
+
+  --radius: 6px;
+  --radius-tag: 4px;
+  --radius-pill: 10px;
+  --font-sans: 'IBM Plex Sans KR', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --sidebar-w: 232px;
+  --header-h: 44px;
+
+  color-scheme: dark;
+}
+
+/* 강조색 프리셋 5개. 강조색은 버튼, 탭 밑줄, 히트맵, 사이드바 현재 메뉴 막대, 선택 표시에만 쓴다 */
+:root[data-accent='green'] {
+  --accent: #6cc28f;
+  --accent-strong: #3f8f5f;
+  --accent-soft: #1f3a2a;
+  --heat-1: #1f3a2a;
+  --heat-2: #2c5e40;
+  --heat-3: #3f8f5f;
+  --heat-4: #6cc28f;
+}
+:root[data-accent='blue'] {
+  --accent: #6ab0e0;
+  --accent-strong: #2f7fbf;
+  --accent-soft: #1b3445;
+  --heat-1: #1b3445;
+  --heat-2: #24506d;
+  --heat-3: #2f7fbf;
+  --heat-4: #6ab0e0;
+}
+:root[data-accent='purple'] {
+  --accent: #b48be0;
+  --accent-strong: #8a5cc4;
+  --accent-soft: #3c2d49;
+  --heat-1: #33263f;
+  --heat-2: #54386f;
+  --heat-3: #8a5cc4;
+  --heat-4: #b48be0;
+}
+:root[data-accent='orange'] {
+  --accent: #e0995f;
+  --accent-strong: #b8672f;
+  --accent-soft: #4f3423;
+  --heat-1: #3f2a1d;
+  --heat-2: #6b4225;
+  --heat-3: #b8672f;
+  --heat-4: #e0995f;
+}
+
+/* 라이트 테마: 토큰만 바꿔 동작하게 구조만 잡아 둔다 (1차 완성 기준은 다크) */
+:root[data-theme='light'] {
+  --bg: #ffffff;
+  --surface: #fbfbfa;
+  --header: #f7f7f5;
+  --subtle: #f1f1ef;
+  --fill: #efefed;
+  --track: #e9e9e7;
+  --tag-neutral: #e9e9e7;
+  --border: #e3e3e1;
+  --divider: #ececea;
+  --heat-empty-line: #e6e6e4;
+  --text: #37352f;
+  --text-strong: #37352f;
+  --text-body: #454440;
+  --text-muted: #787774;
+  --link: #2f7fbf;
+  --link-hover: #1f5f8f;
+  --heat-0: #ececea;
+  --blue-bg: #e7f3f8;
+  --green-bg: #edf3ec;
+  --purple-bg: #f4f0f7;
+  --yellow-bg: #fbf3db;
+  --orange-bg: #faebdd;
+  --red-bg: #fdebec;
+  --gray-bg: #f1f1ef;
+  --error-bg: #fdebec;
+  color-scheme: light;
+}

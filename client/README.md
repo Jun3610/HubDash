@@ -1,4 +1,7 @@
-# HubDash 클라이언트 (iOS / macOS)
+# HubDash 클라이언트
+
+> **현재 트랙은 웹입니다 (이슈 #93).** React 웹 클라이언트는 [`web/`](web/README.md)에 있습니다.
+> 아래 iOS/macOS(`HubDashKit`) 내용은 웹으로 전환하기 전 기록으로 남겨 둡니다.
 
 노션 마이그레이션의 두 번째 목표인 "Mac·iOS에서 같은 대시보드를 쓰는 클라이언트"입니다. 서버(`../server`)는 화면 없는 순수 REST API입니다.
 
