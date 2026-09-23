@@ -36,6 +36,35 @@ docker compose up -d db kafka
   `docker compose down`(볼륨 삭제 없이) 후 다시 `up`해도 유지된다. 완전히 초기화하려면
   `docker compose down -v`.
 
+## 노션 → 허브 링크 자동 동기화 (이슈 #107)
+
+노션에 새로 만든 페이지를 허브 링크로 자동으로 가져온다. **노션 → HubDash 한 방향**이고 가져오는 건 페이지 제목과 주소뿐이다(본문은 노션에 그대로). 노션에서 제목을 바꾸거나 페이지를 지운 건 반영하지 않는다.
+
+### 처음 한 번 설정
+1. <https://www.notion.so/my-integrations>에서 **내부 통합(Internal integration)**을 만들고 토큰(`ntn_...`)을 복사한다. 권한은 "콘텐츠 읽기"만 있으면 된다.
+2. 동기화할 노션 DB/페이지마다 오른쪽 위 `•••` → **연결(Connections)**에서 만든 통합을 추가한다. 연결하지 않은 DB는 API에서 404로 보여 그 소스만 실패로 기록된다.
+3. `server/.env`에 `NOTION_TOKEN=ntn_...`을 넣고 `docker compose up -d`로 앱을 다시 띄운다.
+
+토큰이 없으면 동기화만 꺼진 채로 앱은 정상 기동한다(로그: `NOTION_TOKEN이 없어 노션 동기화를 건너뜁니다`).
+
+### 동작
+- 동기화 소스 = 노션 DB(행이 대상) 또는 부모 페이지(바로 아래 하위 페이지가 대상) + 넣을 허브 카테고리
+- 기동 30초 뒤 한 번, 이후 10분마다 돈다(`app.notion.sync-initial-delay`, `app.notion.sync-interval`). 바로 돌리려면 `POST /api/notion/sync`
+- 새 페이지는 raw 허브 링크로 넣어 평소처럼 Kafka raw → ETL을 탄다
+- 이미 가져온 페이지는 다시 넣지 않고, 카테고리에 같은 노션 페이지 링크가 이미 있으면(#94 이관분) 새로 만들지 않는다
+
+### API
+```bash
+# 소스 등록 — notion에는 노션 ID나 주소를 그대로 넣어도 된다
+curl -X POST -H "X-API-KEY: $API_KEY" -H "Content-Type: application/json" localhost:8080/api/notion/sources \
+  -d '{"notion":"https://app.notion.com/p/<DB ID>","sourceType":"DATABASE","hubCategoryId":1}'
+curl -H "X-API-KEY: $API_KEY" localhost:8080/api/notion/sources          # 목록
+curl -X DELETE -H "X-API-KEY: $API_KEY" localhost:8080/api/notion/sources/1  # 삭제(만들어진 링크는 남음)
+curl -X POST -H "X-API-KEY: $API_KEY" localhost:8080/api/notion/sync     # 지금 동기화, 소스별 결과 반환
+```
+
+과목(`/api/pknu/courses`)과 공부 주제(`/api/study/topics`)에는 해당 노션 필기 페이지 주소를 `notionUrl`로 저장할 수 있다.
+
 ## 검증한 것 (2026-09-22)
 
 `down -v`로 볼륨까지 지운 뒤 처음부터 새로 띄워 확인했다.

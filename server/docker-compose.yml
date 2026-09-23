@@ -68,6 +68,8 @@ services:
       # 이미지는 prod 프로파일이라 API_KEY/DB_PASSWORD에 기본값이 없다. 로컬용 기본값은 여기서만 준다 —
       # 127.0.0.1로만 열려 있으므로 이 컴퓨터 밖에서는 접근할 수 없다. 바꾸려면 server/.env에 API_KEY=...를 적는다.
       API_KEY: ${API_KEY:-dev-local-key}
+      # 노션 동기화(이슈 #107)용 내부 통합 토큰. 없으면 동기화만 꺼진다. server/.env에 NOTION_TOKEN=...으로 넣는다.
+      NOTION_TOKEN: ${NOTION_TOKEN:-}
     ports:
       - "127.0.0.1:8080:8080"
 

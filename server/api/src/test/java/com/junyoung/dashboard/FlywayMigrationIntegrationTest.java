@@ -41,7 +41,7 @@ class FlywayMigrationIntegrationTest {
                         .as("migration V%s applied successfully", resultSet.getString("version"))
                         .isTrue();
             }
-            assertThat(count).isEqualTo(24);
+            assertThat(count).isEqualTo(26);
         }
     }
 
@@ -57,6 +57,7 @@ class FlywayMigrationIntegrationTest {
                 "memo", "memo_raw",
                 "user_profile", "user_setting",
                 "reminder", "reminder_raw",
+                "notion_sync_source", "notion_synced_page",
                 "batch_job_instance", "batch_job_execution", "batch_step_execution"
         };
 
