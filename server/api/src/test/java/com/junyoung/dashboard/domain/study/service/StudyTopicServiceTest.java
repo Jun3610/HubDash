@@ -35,7 +35,7 @@ class StudyTopicServiceTest {
 
     @Test
     void createsTopicUsingRequestFields() {
-        StudyTopicRequest request = new StudyTopicRequest("토익", "영어 공부");
+        StudyTopicRequest request = new StudyTopicRequest("토익", "영어 공부", null);
         when(studyTopicRepository.save(any(StudyTopic.class)))
                 .thenReturn(new StudyTopic("토익", "영어 공부"));
 

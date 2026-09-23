@@ -8,6 +8,7 @@ public record StudyTopicResponse(
         Long id,
         String name,
         String description,
+        String notionUrl,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -16,6 +17,7 @@ public record StudyTopicResponse(
                 topic.getId(),
                 topic.getName(),
                 topic.getDescription(),
+                topic.getNotionUrl(),
                 topic.getCreatedAt(),
                 topic.getUpdatedAt()
         );
