@@ -1,2 +1,2 @@
-# HubDash
-<img width="1213" height="882" alt="스크린샷 2026-09-16 오후 8 26 13" src="https://github.com/user-attachments/assets/8ae2fc79-832d-4b6a-b256-2f498e010584" />
+## 서버 아키텍쳐
+<img width="3000" height="1800" alt="hubdash-architecture" src="https://github.com/user-attachments/assets/fedb45a9-68ff-4cc0-877c-371de295bb6e" />
