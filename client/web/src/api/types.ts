@@ -36,8 +36,9 @@ export interface CourseRequest {
   name: string
   professor?: string | null
   credit: number // 1–6
+  notionUrl?: string | null // 노션 필기 페이지 (≤1000)
 }
-export type Course = CourseRequest & Timestamps & { professor: string | null }
+export type Course = CourseRequest & Timestamps & { professor: string | null; notionUrl: string | null }
 
 export interface AssignmentRequest {
   courseId: Id
@@ -52,8 +53,9 @@ export type Assignment = AssignmentRequest & Timestamps & { notes: string | null
 export interface StudyTopicRequest {
   name: string
   description?: string | null
+  notionUrl?: string | null // 노션 필기 페이지 (≤1000)
 }
-export type StudyTopic = StudyTopicRequest & Timestamps & { description: string | null }
+export type StudyTopic = StudyTopicRequest & Timestamps & { description: string | null; notionUrl: string | null }
 
 export interface StudyProgressRequest {
   topicId: Id

@@ -34,8 +34,9 @@ import { useUrlState } from '../hooks/useUrlState'
 import { formatMinutes, formatShortDate, shiftDate, weekStartOf, type LocalDate } from '../lib/date'
 import { sortBy, withinDates } from '../lib/select/range'
 import { longestStreak, studyStreak, weeklyMinutes } from '../lib/select/study'
-import { hasErrors, maxLen, numRange, optStr, required, type Errors } from '../lib/validate'
+import { hasErrors, isUrl, maxLen, numRange, optStr, required, type Errors } from '../lib/validate'
 import s from './study/Study.module.css'
+import { NotionLink } from '../components/ui/NotionLink'
 
 /** 주제 순서대로 쓰는 색 (점, 라벨, 막대가 같은 색) */
 const TOPIC_COLORS: (BarColor & Tone)[] = ['green', 'orange', 'purple', 'blue', 'yellow', 'accent', 'red']
@@ -256,6 +257,7 @@ function TopicCard({
         <button type="button" className={s.topicName} onClick={onEdit} title="주제 수정">
           {topic.name}
         </button>
+        {topic.notionUrl && <NotionLink url={topic.notionUrl} label={`${topic.name} 노션 필기`} />}
         <span className={s.total}>{total >= 60 ? `${Math.round(total / 60)}h` : `${total}m`}</span>
       </div>
       <span className={s.desc}>{topic.description ?? ''}</span>
@@ -577,6 +579,7 @@ function WeekSplit({
 function TopicModal({ topic, onClose }: { topic?: StudyTopic; onClose: () => void }) {
   const [name, setName] = useState(topic?.name ?? '')
   const [description, setDescription] = useState(topic?.description ?? '')
+  const [notionUrl, setNotionUrl] = useState(topic?.notionUrl ?? '')
   const [errors, setErrors] = useState<Errors>({})
   const [confirm, setConfirm] = useState(false)
   const create = useCreate(studyTopics)
@@ -585,10 +588,15 @@ function TopicModal({ topic, onClose }: { topic?: StudyTopic; onClose: () => voi
   const m = topic ? update : create
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    const errs = { name: required(name, '주제 이름') ?? maxLen(name, 100), description: maxLen(description, 500) }
+    const errs = {
+      name: required(name, '주제 이름') ?? maxLen(name, 100),
+      description: maxLen(description, 500),
+      notionUrl: notionUrl.trim() ? (isUrl(notionUrl.trim()) ?? maxLen(notionUrl, 1000)) : undefined,
+    }
     setErrors(errs)
     if (hasErrors(errs)) return
-    const body = { name: name.trim(), description: optStr(description) }
+    // 수정할 때 빠뜨리면 서버가 기존 노션 링크를 지우므로 항상 보낸다
+    const body = { name: name.trim(), description: optStr(description), notionUrl: optStr(notionUrl) }
     if (topic) update.mutate({ id: topic.id, body }, { onSuccess: onClose })
     else create.mutate(body, { onSuccess: onClose })
   }
@@ -620,6 +628,15 @@ function TopicModal({ topic, onClose }: { topic?: StudyTopic; onClose: () => voi
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="JPA · 트랜잭션 · Spring Batch"
+          />
+        </Field>
+        <Field label="노션 필기 페이지" error={errors.notionUrl}>
+          <Input
+            mono
+            type="url"
+            placeholder="https://www.notion.so/…"
+            value={notionUrl}
+            onChange={(e) => setNotionUrl(e.target.value)}
           />
         </Field>
         <FormError error={m.error ?? remove.error} />
