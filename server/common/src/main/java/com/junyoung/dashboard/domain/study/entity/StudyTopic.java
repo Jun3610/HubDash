@@ -25,6 +25,10 @@ public class StudyTopic extends BaseEntity {
     @Column(length = 500)
     private String description;
 
+    // 이 주제의 노션 정리 페이지 주소
+    @Column(length = 1000)
+    private String notionUrl;
+
     @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StudyProgress> progresses = new ArrayList<>();
 
@@ -36,5 +40,9 @@ public class StudyTopic extends BaseEntity {
     public void update(String name, String description) {
         this.name = name;
         this.description = description;
+    }
+
+    public void changeNotionUrl(String notionUrl) {
+        this.notionUrl = notionUrl;
     }
 }
