@@ -10,6 +10,7 @@ public record CourseRequest(
         @NotNull Long semesterId,
         @NotBlank @Size(max = 100) String name,
         @Size(max = 50) String professor,
-        @NotNull @Min(1) @Max(6) Integer credit
+        @NotNull @Min(1) @Max(6) Integer credit,
+        @Size(max = 1000) String notionUrl
 ) {
 }

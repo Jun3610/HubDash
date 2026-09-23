@@ -22,8 +22,9 @@ public class StudyTopicService {
 
     @Transactional
     public StudyTopicResponse create(StudyTopicRequest request) {
-        StudyTopic saved = studyTopicRepository.save(
-                new StudyTopic(request.name(), request.description()));
+        StudyTopic topic = new StudyTopic(request.name(), request.description());
+        topic.changeNotionUrl(request.notionUrl());
+        StudyTopic saved = studyTopicRepository.save(topic);
         return StudyTopicResponse.from(saved);
     }
 
@@ -40,6 +41,7 @@ public class StudyTopicService {
     public StudyTopicResponse update(Long id, StudyTopicRequest request) {
         StudyTopic topic = getOrThrow(id);
         topic.update(request.name(), request.description());
+        topic.changeNotionUrl(request.notionUrl());
         return StudyTopicResponse.from(topic);
     }
 

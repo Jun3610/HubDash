@@ -10,6 +10,7 @@ public record CourseResponse(
         String name,
         String professor,
         Integer credit,
+        String notionUrl,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -20,6 +21,7 @@ public record CourseResponse(
                 course.getName(),
                 course.getProfessor(),
                 course.getCredit(),
+                course.getNotionUrl(),
                 course.getCreatedAt(),
                 course.getUpdatedAt()
         );
