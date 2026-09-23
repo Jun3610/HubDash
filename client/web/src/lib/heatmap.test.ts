@@ -51,6 +51,13 @@ describe('buildYearGrid', () => {
     expect(labels[octIdx]).toBe('10월')
     expect(labels.filter(Boolean).length).toBeGreaterThanOrEqual(12)
   })
+
+  it('첫 열 라벨은 바로 뒤에 다음 달이 오면 생략 (겹침 방지)', () => {
+    // 2025-09-21 시작 → 10월 1일이 2번째 열
+    expect(monthLabels(grid)[0]).toBe('')
+    const g2 = buildYearGrid(counts, '2026-09-09') // 2025-09-07 시작, 10월은 4번째 열
+    expect(monthLabels(g2)[0]).toBe('9월')
+  })
 })
 
 describe('currentStreak', () => {

@@ -51,8 +51,9 @@
   --error-border: #a8403b;
   --error-bg: #2b1d1c;
 
-  /* 아바타 */
+  /* 아바타 · 선택 표시(연도 버튼 등) */
   --avatar: #2383e2;
+  --selected: #2383e2;
 
   /* 사이드바 전용 (GitHub 다크) */
   --sb-bg: #0d1117;

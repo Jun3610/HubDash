@@ -284,6 +284,7 @@ const GOAL_FIELDS: { key: keyof Goals; label: string; unit: string }[] = [
   { key: 'carbsG', label: '탄수 이하', unit: 'g' },
   { key: 'fatG', label: '지방 이하', unit: 'g' },
   { key: 'sodiumMg', label: '나트륨', unit: 'mg' },
+  { key: 'studyWeekMinutes', label: '주간 공부', unit: '분' },
 ]
 
 function GoalsSection() {

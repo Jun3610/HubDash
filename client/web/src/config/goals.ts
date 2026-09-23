@@ -7,6 +7,7 @@ export interface Goals {
   carbsG: number // 이하
   fatG: number // 이하
   sodiumMg: number // 대 (이 값을 넘으면 경고)
+  studyWeekMinutes: number // 주간 공부 목표 (분)
 }
 
 export const DEFAULT_GOALS: Goals = {
@@ -15,6 +16,10 @@ export const DEFAULT_GOALS: Goals = {
   carbsG: 140,
   fatG: 50,
   sodiumMg: 2000,
+  studyWeekMinutes: 600,
 }
 
-export const goalsStore = createStore<Goals>('hubdash.goals', DEFAULT_GOALS)
+const stored = createStore<Goals>('hubdash.goals', DEFAULT_GOALS)
+// 새 목표 항목이 생겨도 예전에 저장된 값과 합쳐 빈 값이 없게 한다
+stored.set((g) => ({ ...DEFAULT_GOALS, ...g }))
+export const goalsStore = stored
