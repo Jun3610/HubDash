@@ -31,7 +31,7 @@ import {
 } from '../components/ui'
 import { goalsStore } from '../config/goals'
 import { pledgesStore } from '../config/prefs'
-import { ACTIVITY_LABEL, useActivity, type ActivityDomain } from '../hooks/useActivity'
+import { ACTIVITY_LABEL, useActivity, YEAR_PAGE, type ActivityDomain } from '../hooks/useActivity'
 import { useAllHubLinks } from '../hooks/useHub'
 import { logOn, useHabitsWithLogs, useToggleHabit } from '../hooks/useLife'
 import { useIsMobile } from '../hooks/useMediaQuery'
@@ -467,7 +467,7 @@ function DietCard() {
   const today = useToday()
   const goals = useStore(goalsStore)
   const summary = useDailySummary(today)
-  const recs = useList(mealRecords, { size: BIG_PAGE, sort: 'consumedAt,desc' })
+  const recs = useList(mealRecords, { size: YEAR_PAGE, sort: 'consumedAt,desc' })
   const todays = withinDateTimes(recs.data?.content ?? [], (r) => r.consumedAt, today, today)
   const t = summary.data?.totals
   const macros: {

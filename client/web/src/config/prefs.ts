@@ -44,3 +44,6 @@ export function applyTheme(theme: string | undefined) {
 export function applyAccent(accent: Accent) {
   document.documentElement.dataset.accent = accent
 }
+
+/** 과목 분류(시경/컴공/교양 등) — 서버에 필드가 없어 과목 id별로 localStorage */
+export const courseCategoryStore = createStore<Record<number, string>>('hubdash.courseCategory', {})
