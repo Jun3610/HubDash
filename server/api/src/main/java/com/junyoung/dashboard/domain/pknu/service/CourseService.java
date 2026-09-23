@@ -27,8 +27,9 @@ public class CourseService {
     @Transactional
     public CourseResponse create(CourseRequest request) {
         Semester semester = getSemesterOrThrow(request.semesterId());
-        Course saved = courseRepository.save(
-                new Course(semester, request.name(), request.professor(), request.credit()));
+        Course course = new Course(semester, request.name(), request.professor(), request.credit());
+        course.changeNotionUrl(request.notionUrl());
+        Course saved = courseRepository.save(course);
         return CourseResponse.from(saved);
     }
 
@@ -46,6 +47,7 @@ public class CourseService {
         Course course = getOrThrow(id);
         Semester semester = getSemesterOrThrow(request.semesterId());
         course.update(semester, request.name(), request.professor(), request.credit());
+        course.changeNotionUrl(request.notionUrl());
         return CourseResponse.from(course);
     }
 

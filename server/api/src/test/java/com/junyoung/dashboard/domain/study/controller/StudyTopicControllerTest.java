@@ -43,8 +43,8 @@ class StudyTopicControllerTest {
 
     @Test
     void createsTopic() throws Exception {
-        StudyTopicRequest request = new StudyTopicRequest("토익", "영어 공부");
-        StudyTopicResponse response = new StudyTopicResponse(1L, "토익", "영어 공부",
+        StudyTopicRequest request = new StudyTopicRequest("토익", "영어 공부", null);
+        StudyTopicResponse response = new StudyTopicResponse(1L, "토익", "영어 공부", null,
                 LocalDateTime.now(), LocalDateTime.now());
         when(studyTopicService.create(request)).thenReturn(response);
 
@@ -58,7 +58,7 @@ class StudyTopicControllerTest {
 
     @Test
     void rejectsBlankName() throws Exception {
-        StudyTopicRequest invalid = new StudyTopicRequest("", null);
+        StudyTopicRequest invalid = new StudyTopicRequest("", null, null);
 
         mockMvc.perform(post("/api/study/topics")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -70,7 +70,7 @@ class StudyTopicControllerTest {
     @Test
     void listsTopics() throws Exception {
         when(studyTopicService.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(
-                new StudyTopicResponse(1L, "토익", null, LocalDateTime.now(), LocalDateTime.now())
+                new StudyTopicResponse(1L, "토익", null, null, LocalDateTime.now(), LocalDateTime.now())
         )));
 
         mockMvc.perform(get("/api/study/topics"))

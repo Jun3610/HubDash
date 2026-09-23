@@ -71,7 +71,7 @@ class DashboardApplicationTests {
 
     @Test
     void createsAndFetchesStudyTopicEndToEnd() throws Exception {
-        StudyTopicRequest request = new StudyTopicRequest("토익", "영어 공부");
+        StudyTopicRequest request = new StudyTopicRequest("토익", "영어 공부", null);
 
         mockMvc.perform(post("/api/study/topics")
                         .header("X-API-KEY", "test-api-key")
@@ -88,7 +88,7 @@ class DashboardApplicationTests {
 
     @Test
     void movesStudyProgressBetweenTopicsEndToEnd() throws Exception {
-        StudyTopicRequest topicARequest = new StudyTopicRequest("토익", "영어 공부");
+        StudyTopicRequest topicARequest = new StudyTopicRequest("토익", "영어 공부", null);
         String topicAResponse = mockMvc.perform(post("/api/study/topics")
                         .header("X-API-KEY", "test-api-key")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -97,7 +97,7 @@ class DashboardApplicationTests {
                 .andReturn().getResponse().getContentAsString();
         long topicAId = objectMapper.readTree(topicAResponse).path("data").path("id").asLong();
 
-        StudyTopicRequest topicBRequest = new StudyTopicRequest("알고리즘", "코딩테스트 공부");
+        StudyTopicRequest topicBRequest = new StudyTopicRequest("알고리즘", "코딩테스트 공부", null);
         String topicBResponse = mockMvc.perform(post("/api/study/topics")
                         .header("X-API-KEY", "test-api-key")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -294,7 +294,7 @@ class DashboardApplicationTests {
                 .andReturn().getResponse().getContentAsString();
         Long semesterBId = objectMapper.readTree(semesterBResponse).get("data").get("id").asLong();
 
-        CourseRequest createRequest = new CourseRequest(semesterAId, "자료구조", "김교수", 3);
+        CourseRequest createRequest = new CourseRequest(semesterAId, "자료구조", "김교수", 3, null);
         String courseResponse = mockMvc.perform(post("/api/pknu/courses")
                         .header("X-API-KEY", "test-api-key")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -304,7 +304,7 @@ class DashboardApplicationTests {
                 .andReturn().getResponse().getContentAsString();
         Long courseId = objectMapper.readTree(courseResponse).get("data").get("id").asLong();
 
-        CourseRequest moveRequest = new CourseRequest(semesterBId, "운영체제", "이교수", 4);
+        CourseRequest moveRequest = new CourseRequest(semesterBId, "운영체제", "이교수", 4, null);
         mockMvc.perform(put("/api/pknu/courses/" + courseId)
                         .header("X-API-KEY", "test-api-key")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -324,7 +324,7 @@ class DashboardApplicationTests {
                 .andReturn().getResponse().getContentAsString();
         Long semesterId = objectMapper.readTree(semesterResponse).get("data").get("id").asLong();
 
-        CourseRequest courseARequest = new CourseRequest(semesterId, "자료구조", "김교수", 3);
+        CourseRequest courseARequest = new CourseRequest(semesterId, "자료구조", "김교수", 3, null);
         String courseAResponse = mockMvc.perform(post("/api/pknu/courses")
                         .header("X-API-KEY", "test-api-key")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -333,7 +333,7 @@ class DashboardApplicationTests {
                 .andReturn().getResponse().getContentAsString();
         Long courseAId = objectMapper.readTree(courseAResponse).get("data").get("id").asLong();
 
-        CourseRequest courseBRequest = new CourseRequest(semesterId, "운영체제", "이교수", 4);
+        CourseRequest courseBRequest = new CourseRequest(semesterId, "운영체제", "이교수", 4, null);
         String courseBResponse = mockMvc.perform(post("/api/pknu/courses")
                         .header("X-API-KEY", "test-api-key")
                         .contentType(MediaType.APPLICATION_JSON)

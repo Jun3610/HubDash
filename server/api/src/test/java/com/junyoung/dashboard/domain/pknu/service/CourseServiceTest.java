@@ -43,7 +43,7 @@ class CourseServiceTest {
     @Test
     void createsCourseUnderExistingSemester() {
         Semester semester = new Semester("2026-1학기", LocalDate.of(2026, 3, 1), LocalDate.of(2026, 6, 30));
-        CourseRequest request = new CourseRequest(1L, "자료구조", "김교수", 3);
+        CourseRequest request = new CourseRequest(1L, "자료구조", "김교수", 3, "https://app.notion.com/p/abc");
         when(semesterRepository.findById(1L)).thenReturn(Optional.of(semester));
         when(courseRepository.save(any(Course.class)))
                 .thenReturn(new Course(semester, "자료구조", "김교수", 3));
@@ -56,11 +56,12 @@ class CourseServiceTest {
         verify(courseRepository).save(captor.capture());
         assertThat(captor.getValue().getSemester()).isSameAs(semester);
         assertThat(captor.getValue().getCredit()).isEqualTo(3);
+        assertThat(captor.getValue().getNotionUrl()).isEqualTo("https://app.notion.com/p/abc");
     }
 
     @Test
     void throwsWhenSemesterMissingOnCreate() {
-        CourseRequest request = new CourseRequest(1L, "자료구조", "김교수", 3);
+        CourseRequest request = new CourseRequest(1L, "자료구조", "김교수", 3, null);
         when(semesterRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> courseService.create(request))
@@ -73,7 +74,8 @@ class CourseServiceTest {
         Semester newSemester = new Semester("2026-1학기", LocalDate.of(2026, 3, 1), LocalDate.of(2026, 6, 30));
         Course course = new Course(oldSemester, "자료구조", "김교수", 3);
         ReflectionTestUtils.setField(newSemester, "id", 2L);
-        CourseRequest request = new CourseRequest(2L, "운영체제", "이교수", 4);
+        course.changeNotionUrl("https://app.notion.com/p/old");
+        CourseRequest request = new CourseRequest(2L, "운영체제", "이교수", 4, "https://app.notion.com/p/new");
         when(courseRepository.findById(10L)).thenReturn(Optional.of(course));
         when(semesterRepository.findById(2L)).thenReturn(Optional.of(newSemester));
 
@@ -83,13 +85,14 @@ class CourseServiceTest {
         assertThat(course.getSemester()).isNotSameAs(oldSemester);
         assertThat(course.getName()).isEqualTo("운영체제");
         assertThat(course.getCredit()).isEqualTo(4);
+        assertThat(course.getNotionUrl()).isEqualTo("https://app.notion.com/p/new");
     }
 
     @Test
     void throwsWhenNewSemesterMissingOnUpdate() {
         Semester oldSemester = new Semester("2025-2학기", LocalDate.of(2025, 9, 1), LocalDate.of(2025, 12, 20));
         Course course = new Course(oldSemester, "자료구조", "김교수", 3);
-        CourseRequest request = new CourseRequest(2L, "운영체제", "이교수", 4);
+        CourseRequest request = new CourseRequest(2L, "운영체제", "이교수", 4, null);
         when(courseRepository.findById(10L)).thenReturn(Optional.of(course));
         when(semesterRepository.findById(2L)).thenReturn(Optional.empty());
 

@@ -44,8 +44,8 @@ class CourseControllerTest {
 
     @Test
     void createsCourse() throws Exception {
-        CourseRequest request = new CourseRequest(1L, "자료구조", "김교수", 3);
-        CourseResponse response = new CourseResponse(1L, 1L, "자료구조", "김교수", 3, LocalDateTime.now(), LocalDateTime.now());
+        CourseRequest request = new CourseRequest(1L, "자료구조", "김교수", 3, null);
+        CourseResponse response = new CourseResponse(1L, 1L, "자료구조", "김교수", 3, null, LocalDateTime.now(), LocalDateTime.now());
         when(courseService.create(request)).thenReturn(response);
 
         mockMvc.perform(post("/api/pknu/courses")
@@ -57,7 +57,7 @@ class CourseControllerTest {
 
     @Test
     void rejectsCreditOutOfRange() throws Exception {
-        CourseRequest invalid = new CourseRequest(1L, "자료구조", "김교수", 7);
+        CourseRequest invalid = new CourseRequest(1L, "자료구조", "김교수", 7, null);
 
         mockMvc.perform(post("/api/pknu/courses")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -69,7 +69,7 @@ class CourseControllerTest {
     @Test
     void listsCoursesBySemesterId() throws Exception {
         when(courseService.findBySemesterId(eq(1L), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(
-                new CourseResponse(1L, 1L, "자료구조", "김교수", 3, LocalDateTime.now(), LocalDateTime.now())
+                new CourseResponse(1L, 1L, "자료구조", "김교수", 3, null, LocalDateTime.now(), LocalDateTime.now())
         )));
 
         mockMvc.perform(get("/api/pknu/courses").param("semesterId", "1"))

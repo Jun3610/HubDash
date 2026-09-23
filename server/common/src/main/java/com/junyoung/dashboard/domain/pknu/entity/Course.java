@@ -35,6 +35,10 @@ public class Course extends BaseEntity {
     @Column(nullable = false)
     private Integer credit;
 
+    // 이 과목의 노션 필기 페이지 주소
+    @Column(length = 1000)
+    private String notionUrl;
+
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Assignment> assignments = new ArrayList<>();
 
@@ -50,5 +54,9 @@ public class Course extends BaseEntity {
         this.name = name;
         this.professor = professor;
         this.credit = credit;
+    }
+
+    public void changeNotionUrl(String notionUrl) {
+        this.notionUrl = notionUrl;
     }
 }
