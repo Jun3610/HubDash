@@ -1,0 +1,64 @@
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.inHeader {
+  border-bottom: 0;
+  align-self: stretch;
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.inHeader .tab {
+  margin-bottom: 0;
+  height: 100%;
+}
+.tab:hover {
+  color: var(--text);
+}
+.active {
+  color: var(--text);
+  font-weight: 600;
+  border-bottom-color: var(--accent);
+}
+.seg {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+.segBtn {
+  height: 22px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.segBtn:hover {
+  color: var(--text);
+}
+.segOn {
+  background: var(--fill);
+  color: var(--text);
+  font-weight: 500;
+}
