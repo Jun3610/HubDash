@@ -1,5 +1,6 @@
 import { useQueries } from '@tanstack/react-query'
 import { CheckCircle2, Circle, MoreHorizontal, Plus } from 'lucide-react'
+import { NotionLink } from '../components/ui/NotionLink'
 import { useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { assignmentWeeklyStats, useRunWeeklyStat } from '../api/analytics'
@@ -37,7 +38,7 @@ import { datePart, formatShortDate, shiftDate, weekdayKo, weekStartOf, type Loca
 import { courseProgress, mergeWeekly, semesterStatus, weekNumber } from '../lib/select/pknu'
 import { sortBy } from '../lib/select/range'
 import { useStore } from '../lib/storage'
-import { hasErrors, maxLen, numRange, optStr, required, type Errors } from '../lib/validate'
+import { hasErrors, isUrl, maxLen, numRange, optStr, required, type Errors } from '../lib/validate'
 import s from './pknu/Pknu.module.css'
 
 /** 과목 순서대로 사이드바 색 점과 같은 계열의 라벨 색 */
@@ -313,6 +314,7 @@ function CoursesTable({
                   <button type="button" className={s.courseName} onClick={() => onEdit(c)}>
                     {c.name}
                   </button>{' '}
+                  {c.notionUrl && <NotionLink url={c.notionUrl} label={`${c.name} 노션 필기`} />}
                   {categories[c.id] && <Tag tone={toneFor(categories[c.id])}>{categories[c.id]}</Tag>}
                   <span className="sr-only">색 {i + 1}</span>
                 </td>
@@ -640,6 +642,7 @@ function CourseModal({
     professor: course?.professor ?? '',
     credit: String(course?.credit ?? 3),
     category: course ? (categories[course.id] ?? '') : '',
+    notionUrl: course?.notionUrl ?? '',
   })
   const [errors, setErrors] = useState<Errors<keyof typeof d>>({})
   const [confirm, setConfirm] = useState(false)
@@ -662,6 +665,7 @@ function CourseModal({
       professor: maxLen(d.professor, 100),
       credit: required(d.credit, '학점') ?? numRange(d.credit, 1, 6, true),
       category: maxLen(d.category, 10),
+      notionUrl: d.notionUrl.trim() ? (isUrl(d.notionUrl.trim()) ?? maxLen(d.notionUrl, 1000)) : undefined,
     }
     setErrors(errs)
     if (hasErrors(errs)) return
@@ -670,6 +674,8 @@ function CourseModal({
       name: d.name.trim(),
       professor: optStr(d.professor),
       credit: Number(d.credit),
+      // 수정할 때 빠뜨리면 서버가 기존 노션 링크를 지우므로 항상 보낸다
+      notionUrl: optStr(d.notionUrl),
     }
     const done = (x: Course) => {
       saveCategory(x.id)
@@ -720,6 +726,15 @@ function CourseModal({
         </Field>
         <Field label="분류" hint="예: 시경, 컴공, 교양 · 이 브라우저에 저장" error={errors.category}>
           <Input list="course-cats" value={d.category} onChange={set('category')} />
+        </Field>
+        <Field label="노션 필기 페이지" error={errors.notionUrl} className={s.full}>
+          <Input
+            mono
+            type="url"
+            placeholder="https://www.notion.so/…"
+            value={d.notionUrl}
+            onChange={set('notionUrl')}
+          />
         </Field>
         <datalist id="course-cats">
           {knownCats.map((c) => (
