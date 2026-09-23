@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { useSettings } from './api/user'
 import { AppLayout } from './components/layout/AppLayout'
-import { accentStore, applyAccent, applyTheme } from './config/prefs'
+import { accentStore, applyAccent, applyTheme, avatarColorStore } from './config/prefs'
 import { useStore } from './lib/storage'
 import HealthPage from './pages/HealthPage'
 import HomePage from './pages/HomePage'
@@ -50,9 +50,14 @@ const router = createBrowserRouter(
 function ThemeSync() {
   const settings = useSettings()
   const accent = useStore(accentStore)
+  const avatar = useStore(avatarColorStore)
   const theme = settings.data?.theme
   useEffect(() => applyTheme(theme), [theme])
   useEffect(() => applyAccent(accent), [accent])
+  useEffect(() => {
+    document.documentElement.style.setProperty('--avatar', avatar)
+    document.documentElement.style.setProperty('--sb-avatar', avatar)
+  }, [avatar])
   useEffect(() => {
     if (theme?.toLowerCase() !== 'system') return
     const mq = window.matchMedia('(prefers-color-scheme: light)')

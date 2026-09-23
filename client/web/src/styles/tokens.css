@@ -90,41 +90,42 @@
 }
 
 /* 강조색 프리셋 5개. 강조색은 버튼, 탭 밑줄, 히트맵, 사이드바 현재 메뉴 막대, 선택 표시에만 쓴다 */
+/* 설정 화면 스와치와 같은 노션 태그색 계열 */
 :root[data-accent='green'] {
-  --accent: #6cc28f;
-  --accent-strong: #3f8f5f;
-  --accent-soft: #1f3a2a;
-  --heat-1: #1f3a2a;
-  --heat-2: #2c5e40;
-  --heat-3: #3f8f5f;
-  --heat-4: #6cc28f;
+  --accent: #529e72;
+  --accent-strong: #3f7d59;
+  --accent-soft: #243d30;
+  --heat-1: #1f3328;
+  --heat-2: #2c5a40;
+  --heat-3: #3f7d59;
+  --heat-4: #529e72;
 }
 :root[data-accent='blue'] {
-  --accent: #6ab0e0;
-  --accent-strong: #2f7fbf;
+  --accent: #529cca;
+  --accent-strong: #3a7aa6;
   --accent-soft: #1b3445;
-  --heat-1: #1b3445;
-  --heat-2: #24506d;
-  --heat-3: #2f7fbf;
-  --heat-4: #6ab0e0;
+  --heat-1: #182a38;
+  --heat-2: #214a66;
+  --heat-3: #3a7aa6;
+  --heat-4: #529cca;
 }
 :root[data-accent='purple'] {
-  --accent: #b48be0;
-  --accent-strong: #8a5cc4;
+  --accent: #9d68d3;
+  --accent-strong: #7d4fb3;
   --accent-soft: #3c2d49;
-  --heat-1: #33263f;
-  --heat-2: #54386f;
-  --heat-3: #8a5cc4;
-  --heat-4: #b48be0;
+  --heat-1: #2e2438;
+  --heat-2: #4a3464;
+  --heat-3: #7d4fb3;
+  --heat-4: #9d68d3;
 }
 :root[data-accent='orange'] {
-  --accent: #e0995f;
-  --accent-strong: #b8672f;
+  --accent: #c77d48;
+  --accent-strong: #a8622f;
   --accent-soft: #4f3423;
-  --heat-1: #3f2a1d;
-  --heat-2: #6b4225;
-  --heat-3: #b8672f;
-  --heat-4: #e0995f;
+  --heat-1: #3a2a1e;
+  --heat-2: #5e3d25;
+  --heat-3: #a8622f;
+  --heat-4: #c77d48;
 }
 
 /* 라이트 테마: 토큰만 바꿔 동작하게 구조만 잡아 둔다 (1차 완성 기준은 다크) */
