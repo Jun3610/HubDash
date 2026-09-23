@@ -51,11 +51,15 @@ export function buildYearGrid(counts: Map<LocalDate, number>, end: LocalDate, we
 
 /** 격자 열마다 월 라벨 — 그 주에 1일이 들어 있으면 "N월", 아니면 빈 문자열 */
 export function monthLabels(grid: HeatCell[][]): string[] {
-  return grid.map((col, i) => {
+  const labels = grid.map((col) => {
     const firstOfMonth = col.find((c) => c.date.endsWith('-01'))
-    if (firstOfMonth) return `${Number(firstOfMonth.date.slice(5, 7))}월`
-    return i === 0 ? `${Number(col[0].date.slice(5, 7))}월` : ''
+    return firstOfMonth ? `${Number(firstOfMonth.date.slice(5, 7))}월` : ''
   })
+  // 첫 열은 월 이름이 없으면 그 달을 붙이되, 다음 달 라벨과 겹치면(3열 안) 생략
+  if (grid.length && !labels[0] && !labels.slice(1, 3).some(Boolean)) {
+    labels[0] = `${Number(grid[0][0].date.slice(5, 7))}월`
+  }
+  return labels
 }
 
 /** 오늘까지 연속 기록 일수. 오늘 기록이 아직 없으면 어제부터 센다 */

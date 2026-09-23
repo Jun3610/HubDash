@@ -41,9 +41,39 @@ export function HeatLegend() {
 }
 
 /** 최근 1년(53주 × 7) 기록 히트맵 */
-export function YearHeatmap({ counts, end, label }: { counts: Map<LocalDate, number>; end: LocalDate; label: string }) {
-  const grid = buildYearGrid(counts, end)
+export function YearHeatmap({
+  counts,
+  end,
+  label,
+  weeks = 53,
+  cell = 10,
+  labels = true,
+}: {
+  counts: Map<LocalDate, number>
+  end: LocalDate
+  label: string
+  weeks?: number
+  cell?: number
+  labels?: boolean
+}) {
+  const grid = buildYearGrid(counts, end, weeks)
   const months = monthLabels(grid)
+  const size = { gridTemplateRows: `repeat(7, ${cell}px)`, gridAutoColumns: `${cell}px` }
+  if (!labels) {
+    return (
+      <div className={s.heatGrid} style={{ ...size, justifyContent: 'space-between' }} role="img" aria-label={label}>
+        {grid.flat().map((c) => (
+          <HeatCellBox
+            key={c.date}
+            level={c.level}
+            future={c.future}
+            size={cell}
+            title={c.future ? undefined : `${c.date} · ${c.count}건`}
+          />
+        ))}
+      </div>
+    )
+  }
   return (
     <div className={s.heatWrap}>
       <div className={s.heatDays} aria-hidden="true">

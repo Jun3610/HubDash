@@ -89,7 +89,8 @@ export function useCreate<Res, Req>(res: Resource<Res, Req>) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (body: Req) => res.create(body),
-    onSuccess: () => invalidateDomain(qc, res.path),
+    // 실패해도 다시 받는다 (다른 곳에서 지워진 항목 등 서버 상태를 화면에 맞추기 위해)
+    onSettled: () => invalidateDomain(qc, res.path),
   })
 }
 
@@ -97,7 +98,8 @@ export function useUpdate<Res, Req>(res: Resource<Res, Req>) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, body }: { id: Id; body: Req }) => res.update(id, body),
-    onSuccess: () => invalidateDomain(qc, res.path),
+    // 실패해도 다시 받는다 (다른 곳에서 지워진 항목 등 서버 상태를 화면에 맞추기 위해)
+    onSettled: () => invalidateDomain(qc, res.path),
   })
 }
 
@@ -105,6 +107,7 @@ export function useRemove(res: Resource<unknown, unknown>) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: Id) => res.remove(id),
-    onSuccess: () => invalidateDomain(qc, res.path),
+    // 실패해도 다시 받는다 (다른 곳에서 지워진 항목 등 서버 상태를 화면에 맞추기 위해)
+    onSettled: () => invalidateDomain(qc, res.path),
   })
 }
