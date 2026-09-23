@@ -93,3 +93,44 @@ describe('리마인더', () => {
     expect(urgency('2026-09-30T09:00:00', now)).toBe('later')
   })
 })
+
+import { courseProgress, mergeWeekly, semesterStatus, weekNumber } from './pknu'
+
+describe('학기·과목', () => {
+  it('학기 상태', () => {
+    expect(semesterStatus('2026-09-01', '2026-12-19', '2026-09-23')).toBe('진행 중')
+    expect(semesterStatus('2026-09-01', '2026-12-19', '2026-08-31')).toBe('예정')
+    expect(semesterStatus('2026-09-01', '2026-12-19', '2026-12-20')).toBe('종료')
+  })
+  it('주차: 개강 주가 1주차 (2026-09-01 화 개강 → 09-23 수는 4주차)', () => {
+    expect(weekNumber('2026-09-01', '2026-12-19', '2026-09-01')).toBe(1)
+    expect(weekNumber('2026-09-01', '2026-12-19', '2026-09-06')).toBe(1)
+    expect(weekNumber('2026-09-01', '2026-12-19', '2026-09-07')).toBe(2)
+    expect(weekNumber('2026-09-01', '2026-12-19', '2026-09-23')).toBe(4)
+    expect(weekNumber('2026-09-01', '2026-12-19', '2027-01-01')).toBeNull()
+  })
+  it('과목 진행', () => {
+    const list = [
+      asg(1, '2026-09-26', false),
+      asg(2, '2026-09-24', false),
+      asg(3, '2026-09-20', false),
+      asg(4, '2026-09-10', true),
+    ]
+    const p = courseProgress(list, '2026-09-23')
+    expect(p.done).toBe(1)
+    expect(p.total).toBe(4)
+    expect(p.next?.id).toBe(2)
+    expect(p.overdue).toBe(1)
+  })
+  it('주간 통계 합치기', () => {
+    const rows = [
+      { weekStart: '2026-09-14', totalCount: 2, completedCount: 1 },
+      { weekStart: '2026-09-14', totalCount: 3, completedCount: 3 },
+      { weekStart: '2026-09-07', totalCount: 1, completedCount: 1 },
+    ]
+    expect(mergeWeekly(rows)).toEqual([
+      { weekStart: '2026-09-07', total: 1, done: 1, rate: 1 },
+      { weekStart: '2026-09-14', total: 5, done: 4, rate: 0.8 },
+    ])
+  })
+})
