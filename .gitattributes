@@ -1,0 +1,8 @@
+# 윈도우에서 받아도 줄바꿈을 LF로 유지한다 — 도커(리눅스) 안에서 도는 gradlew·셸 스크립트가 CRLF면 실행이 안 된다
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.png binary
+*.jpg binary
+*.pdf binary
+*.jar binary
