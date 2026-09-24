@@ -96,16 +96,16 @@ export default function HealthPage() {
     <>
       <PageHeader title="Health">
         <Button icon={<Target size={14} />} onClick={() => setDialog({ kind: 'goal' })}>
-          식단 목표
+          Diet Goal
         </Button>
         <Button icon={<Scale size={14} />} onClick={() => setDialog({ kind: 'body' })}>
-          체중 · 수면
+          Weight · Sleep
         </Button>
         <Button icon={<Dumbbell size={14} />} onClick={() => setDialog({ kind: 'workout' })}>
-          운동
+          Workout
         </Button>
         <Button variant="primary" icon={<Plus size={14} />} onClick={() => openPeek('meal')}>
-          식단 추가
+          Add Meal
         </Button>
       </PageHeader>
 

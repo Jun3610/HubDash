@@ -285,7 +285,8 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-  align-items: start;
+  /* 같은 줄 카드 높이를 맞춰 수면·운동 카드 아래 빈 곳이 생기지 않게 (이슈 #199) */
+  align-items: stretch;
 }
 .span2 {
   grid-column: span 2;
