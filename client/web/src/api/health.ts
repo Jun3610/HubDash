@@ -1,8 +1,10 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { http } from './client'
 import { defineResource } from './resource'
 import type {
   DailyMealSummary,
+  DietGoal,
+  DietGoalRequest,
   HealthLog,
   HealthLogRequest,
   MealItem,
@@ -28,4 +30,18 @@ export function fetchDailySummary(date: LocalDate) {
 
 export function useDailySummary(date: LocalDate) {
   return useQuery({ queryKey: [DAILY_SUMMARY, date], queryFn: () => fetchDailySummary(date) })
+}
+
+const DIET_GOAL = '/api/health/diet-goal'
+
+export function useDietGoal() {
+  return useQuery({ queryKey: [DIET_GOAL], queryFn: () => http.get<DietGoal>(DIET_GOAL) })
+}
+
+export function useUpdateDietGoal() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: DietGoalRequest) => http.put<DietGoal>(DIET_GOAL, body),
+    onSuccess: (data) => qc.setQueryData([DIET_GOAL], data),
+  })
 }

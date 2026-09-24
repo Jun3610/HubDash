@@ -268,3 +268,188 @@
     display: none;
   }
 }
+
+/* ---- 건강 화면 개편 (이슈 #131) ---- */
+.page {
+  flex: 1 1 auto;
+  padding: 20px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.span2 {
+  grid-column: span 2;
+}
+.legend {
+  display: flex;
+  gap: 10px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.legend i,
+.mealMacros i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.dayChips {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+.dayChips button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 5px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+.dayChips button:hover {
+  background: var(--subtle);
+  color: var(--text);
+}
+.dayChips b {
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--text-body);
+}
+.avgRow {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 4px 0;
+}
+.noGoalTrack {
+  height: 6px;
+  border-radius: 3px;
+  border: 1px dashed var(--border);
+}
+.shareBar {
+  display: flex;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  gap: 2px;
+  margin-top: 6px;
+  background: var(--track);
+}
+.mealGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.mealBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: none;
+  border: 0;
+  width: 100%;
+  text-align: left;
+}
+.mealBody:hover {
+  background: var(--surface);
+}
+.mealTitle {
+  color: var(--text);
+  font-weight: 500;
+  font-size: 14px;
+  word-break: break-word;
+}
+.mealMacros {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.mealMacros span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.mealMacros b {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--text-body);
+}
+.macroInputs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) 110px;
+  gap: 8px;
+  align-items: end;
+}
+.kcalBox {
+  height: 52px;
+  border-radius: var(--radius);
+  background: var(--subtle);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.kcalBox b {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.2;
+}
+.kcalBox small {
+  font-size: 10.5px;
+}
+.goalRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+@media (max-width: 1100px) {
+  .page {
+    padding: 20px;
+  }
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 767px) {
+  .page {
+    padding: 14px 16px 88px;
+  }
+  .statsGrid,
+  .mealGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .span2 {
+    grid-column: auto;
+  }
+  .macroInputs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .kcalBox {
+    grid-column: 1 / -1;
+  }
+}

@@ -218,6 +218,7 @@ export const handlers: HttpHandler[] = [
   }),
   ...singleton('/api/user/profile', 'displayName'),
   ...singleton('/api/user/settings', 'theme'),
+  ...singleton('/api/health/diet-goal', 'carbsRule'),
   ...STATS.flatMap(([p, r]) => stats(p, r)),
   ...SPECS.flatMap(crud),
 ]

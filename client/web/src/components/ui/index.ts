@@ -1,6 +1,15 @@
 export { Button, IconButton } from './Button'
 export { Card, Row, SectionHeader } from './Card'
-export { BarChart, HBarList, HeatCellBox, HeatLegend, Sparkline, YearHeatmap } from './Charts'
+export {
+  BarChart,
+  HBarList,
+  HeatCellBox,
+  HeatLegend,
+  LineChart,
+  Sparkline,
+  StackedBarChart,
+  YearHeatmap,
+} from './Charts'
 export { Checkbox, Field, FormError, Input, Select, Switch, Textarea } from './Form'
 export { ConfirmDialog, Modal } from './Modal'
 export { KpiTile, ProgressBar } from './Progress'

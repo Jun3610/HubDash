@@ -189,7 +189,7 @@ export function buildSeed(today = todayLocalDate()): Tables {
       healthLogs.push(
         row(
           {
-            recordedAt: d(-i),
+            recordedAt: `${d(-i)}T07:${String(10 + (i % 40)).padStart(2, '0')}:00`,
             weightKg: Math.round((72.4 + i * 0.03 + (rnd() - 0.5) * 0.6) * 10) / 10,
             sleepHours: Math.round((6.8 + (rnd() - 0.5) * 2) * 10) / 10,
             notes: null,
@@ -376,6 +376,22 @@ export function buildSeed(today = todayLocalDate()): Tables {
     ),
   ]
   const settings = [row({ theme: 'dark', language: 'ko', notificationEnabled: true }, d(-100))]
+  // 식단 목표는 비워 둔 상태로 시작 (사용자가 정함)
+  const dietGoal = [
+    row(
+      {
+        carbsG: null,
+        carbsRule: 'AT_MOST',
+        fatG: null,
+        fatRule: 'AT_MOST',
+        proteinG: null,
+        proteinRule: 'AT_LEAST',
+        calories: null,
+        caloriesRule: 'AT_MOST',
+      },
+      d(-100),
+    ),
+  ]
 
   // ---- 주간 통계 ----
   const weeks = Array.from({ length: 8 }, (_, i) => shiftDate(weekStartOf(today), -7 * (i + 1)))
@@ -444,6 +460,7 @@ export function buildSeed(today = todayLocalDate()): Tables {
     '/api/reminder/reminders': reminders,
     '/api/user/profile': profile,
     '/api/user/settings': settings,
+    '/api/health/diet-goal': dietGoal,
     '/api/health/analytics/meal-weekly-stats': mealStats,
     '/api/health/analytics/weekly-stats': healthStats,
     '/api/study/analytics/topic-weekly-stats': studyStats,
