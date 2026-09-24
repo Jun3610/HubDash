@@ -43,3 +43,24 @@ export function firstLetter(title: string): string {
   const ch = [...title.trim()][0] ?? '?'
   return ch.toUpperCase()
 }
+
+/**
+ * 노션 링크를 브라우저에서 열리는 주소로 바꾼다 (이슈 #132).
+ * 이관된 링크는 `https://app.notion.com/p/<페이지ID>` 모양인데, 이 주소는 노션 앱으로 넘어간다.
+ * 웹 주소 `https://www.notion.so/<페이지ID>`로 바꿔 연다. 저장된 값은 그대로 둔다.
+ */
+export function browserUrl(url: string): string {
+  try {
+    const u = new URL(url)
+    if (u.host === 'app.notion.com') {
+      const id = u.pathname.split('/').filter(Boolean).pop() ?? ''
+      return `https://www.notion.so/${id}${u.search}${u.hash}`
+    }
+    if (u.protocol === 'notion:') {
+      return `https://www.notion.so${u.pathname}${u.search}${u.hash}`
+    }
+    return url
+  } catch {
+    return url
+  }
+}

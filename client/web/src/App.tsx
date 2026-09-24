@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { useSettings } from './api/user'
 import { AppLayout } from './components/layout/AppLayout'
-import { accentStore, applyAccent, applyTheme, avatarColorStore } from './config/prefs'
+import { accentStore, applyAccent, applyBorder, applyTheme, avatarColorStore, borderStore } from './config/prefs'
 import { useStore } from './lib/storage'
 import HealthPage from './pages/HealthPage'
 import HomePage from './pages/HomePage'
@@ -56,6 +56,8 @@ function ThemeSync() {
   const theme = settings.data?.theme
   useEffect(() => applyTheme(theme), [theme])
   useEffect(() => applyAccent(accent), [accent])
+  const border = useStore(borderStore)
+  useEffect(() => applyBorder(border), [border])
   useEffect(() => {
     document.documentElement.style.setProperty('--avatar', avatar)
     document.documentElement.style.setProperty('--sb-avatar', avatar)

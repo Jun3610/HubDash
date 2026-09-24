@@ -289,3 +289,35 @@
     padding: 9px 12px;
   }
 }
+
+.navOrder {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  max-width: 320px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.navOrder li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px 4px 10px;
+  font-size: 13px;
+}
+.navOrder li + li {
+  border-top: 1px solid var(--border);
+}
+.navOrder li span {
+  flex-grow: 1;
+}
+.linkBtn {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--accent);
+  font-size: inherit;
+  cursor: pointer;
+}

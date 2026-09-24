@@ -6,6 +6,7 @@ import { studyProgresses, studyTopics } from '../api/study'
 import type { HabitLog, StudyProgress } from '../api/types'
 import { datePart, type LocalDate } from '../lib/date'
 import { countByDate } from '../lib/heatmap'
+import type { ActivitySources } from '../lib/select/activity'
 
 /** 1년치 기록을 모으기 위한 큰 페이지 (Spring 기본 최대 2000) */
 export const YEAR_PAGE = 2000
@@ -43,7 +44,7 @@ export function useActivity() {
     const d: Record<ActivityDomain, LocalDate[]> = {
       meal: (meals.data?.content ?? []).map((m) => datePart(m.consumedAt)),
       workout: (workouts.data?.content ?? []).map((w) => w.performedAt),
-      body: (body.data?.content ?? []).map((b) => b.recordedAt),
+      body: (body.data?.content ?? []).map((b) => datePart(b.recordedAt)),
       study: progresses.data.map((p) => p.studiedAt),
       habit: logs.data.filter((l) => l.completed).map((l) => l.performedAt),
     }
@@ -52,9 +53,24 @@ export function useActivity() {
 
   const counts = useMemo(() => countByDate(...Object.values(byDomain)), [byDomain])
 
+  // 날짜별 상세 목록용 원본 (사이드바 날짜 클릭, 이슈 #132)
+  const sources = useMemo<ActivitySources>(
+    () => ({
+      meals: meals.data?.content ?? [],
+      workouts: workouts.data?.content ?? [],
+      body: body.data?.content ?? [],
+      progresses: progresses.data,
+      topics: topics.data?.content ?? [],
+      habitLogs: logs.data,
+      habits: habitList.data?.content ?? [],
+    }),
+    [meals.data, workouts.data, body.data, progresses.data, topics.data, logs.data, habitList.data],
+  )
+
   return {
     counts,
     byDomain,
+    sources,
     isLoading:
       meals.isLoading ||
       workouts.isLoading ||

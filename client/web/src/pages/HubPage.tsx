@@ -25,7 +25,7 @@ import { useAllHubLinks } from '../hooks/useHub'
 import { datePart, formatShortDate } from '../lib/date'
 import { createStore, useStore } from '../lib/storage'
 import { sortBy } from '../lib/select/range'
-import { firstLetter, shortUrl, titleFromUrl } from '../lib/url'
+import { browserUrl, firstLetter, shortUrl, titleFromUrl } from '../lib/url'
 import { hasErrors, isUrl, maxLen, optStr, required, type Errors } from '../lib/validate'
 import s from './hub/Hub.module.css'
 
@@ -243,7 +243,12 @@ export default function HubPage() {
                           {pinned.includes(l.id) && (
                             <Pin size={11} style={{ marginRight: 4, color: 'var(--accent)' }} aria-label="고정됨" />
                           )}
-                          <a href={l.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text)' }}>
+                          <a
+                            href={browserUrl(l.url)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: 'var(--text)' }}
+                          >
                             {l.title}
                           </a>
                         </td>
@@ -334,14 +339,27 @@ function LinkCard({
     fn()
   }
   return (
-    <article className={s.card}>
+    // 카드 아무 곳이나 누르면 새 탭으로 (메뉴 버튼 제외, 이슈 #132)
+    <article
+      className={`${s.card} ${s.cardClickable}`}
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest('button, a, [role=menu]')) return
+        window.open(browserUrl(link.url), '_blank', 'noopener,noreferrer')
+      }}
+    >
       <div className={s.cardHead}>
         <span className={s.letter} aria-hidden="true">
           {firstLetter(link.title)}
         </span>
         <div className={s.titleCol}>
           {/* 결정(이슈 #105): 노션 링크 포함 모든 링크는 브라우저 새 탭 */}
-          <a href={link.url} target="_blank" rel="noopener noreferrer" className={s.linkTitle} title={link.url}>
+          <a
+            href={browserUrl(link.url)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={s.linkTitle}
+            title={link.url}
+          >
             {link.title}
           </a>
           <span className={s.domain}>{shortUrl(link.url)}</span>

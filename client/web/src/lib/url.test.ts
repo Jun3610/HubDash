@@ -26,3 +26,24 @@ describe('url', () => {
     expect(firstLetter('')).toBe('?')
   })
 })
+
+import { browserUrl } from './url'
+
+describe('노션 링크를 브라우저 주소로', () => {
+  it('app.notion.com/p/<id> → www.notion.so/<id>', () => {
+    expect(browserUrl('https://app.notion.com/p/7122b9e1fd14833ca059019e1c5f1a65')).toBe(
+      'https://www.notion.so/7122b9e1fd14833ca059019e1c5f1a65',
+    )
+  })
+  it('쿼리·해시는 유지', () => {
+    expect(browserUrl('https://app.notion.com/p/abc?pvs=4#h1')).toBe('https://www.notion.so/abc?pvs=4#h1')
+  })
+  it('notion:// 스킴도 웹 주소로', () => {
+    expect(browserUrl('notion://www.notion.so/abc')).toBe('https://www.notion.so/abc')
+  })
+  it('다른 주소는 그대로', () => {
+    expect(browserUrl('https://www.notion.so/abc')).toBe('https://www.notion.so/abc')
+    expect(browserUrl('https://github.com/x')).toBe('https://github.com/x')
+    expect(browserUrl('not a url')).toBe('not a url')
+  })
+})

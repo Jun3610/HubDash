@@ -1,15 +1,38 @@
 import { useIsMutating } from '@tanstack/react-query'
-import { Eye, EyeOff, Plus, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, Eye, EyeOff, Plus, X } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { WEEKLY_STATS, useRunWeeklyStat, type WeeklyStat } from '../api/analytics'
 import { ApiError, connectionStatus, request } from '../api/client'
 import type { BatchRunResult, UserProfile, UserSetting } from '../api/types'
 import { useProfile, useSettings, useUpdateProfile, useUpdateSettings } from '../api/user'
 import { PageHeader } from '../components/layout/PageHeader'
-import { Button, Field, FormError, Input, QueryState, Select, Switch, Tag, Textarea, useToast } from '../components/ui'
+import {
+  Button,
+  Field,
+  FormError,
+  IconButton,
+  Input,
+  QueryState,
+  Select,
+  Switch,
+  Tag,
+  Textarea,
+  useToast,
+} from '../components/ui'
 import { connectionStore, DEFAULT_API_KEY, DEFAULT_BASE_URL } from '../config/connection'
 import { DEFAULT_GOALS, goalsStore, type Goals } from '../config/goals'
-import { accentStore, ACCENTS, AVATAR_COLORS, avatarColorStore, pledgesStore, type ThemeValue } from '../config/prefs'
+import {
+  accentStore,
+  ACCENTS,
+  AVATAR_COLORS,
+  avatarColorStore,
+  BORDERS,
+  borderStore,
+  navOrderStore,
+  pledgesStore,
+  type ThemeValue,
+} from '../config/prefs'
+import { orderedNav } from '../components/layout/nav'
 import { useToday } from '../hooks/useToday'
 import { shiftDate, weekStartOf, type LocalDate } from '../lib/date'
 import { initials } from '../lib/format'
@@ -175,6 +198,14 @@ function useSaveSetting() {
 function DisplaySection() {
   const { settings, save } = useSaveSetting()
   const accent = useStore(accentStore)
+  const border = useStore(borderStore)
+  const navOrder = useStore(navOrderStore)
+  const navItems = orderedNav(navOrder)
+  const moveNav = (i: number, d: number) => {
+    const keys = navItems.map((n) => n.key as string)
+    ;[keys[i], keys[i + d]] = [keys[i + d], keys[i]]
+    navOrderStore.set(keys)
+  }
   const theme = (settings.data?.theme ?? 'DARK').toUpperCase()
   return (
     <Section title="화면" path="/api/user/settings">
@@ -245,6 +276,59 @@ function DisplaySection() {
               </div>
               <span className={s.note}>
                 버튼 · 탭 밑줄 · 기록 히트맵 · 사이드바 표시가 함께 바뀌어요. 이 브라우저에만 저장돼요.
+              </span>
+            </div>
+
+            <span className={s.label} id="border-label">
+              테두리
+            </span>
+            <div role="radiogroup" aria-labelledby="border-label" className={s.seg}>
+              {BORDERS.map((b) => (
+                <button
+                  key={b.key}
+                  type="button"
+                  role="radio"
+                  aria-checked={border === b.key}
+                  onClick={() => borderStore.set(b.key)}
+                >
+                  {b.label}
+                </button>
+              ))}
+            </div>
+
+            <span className={`${s.label} ${s.top}`} id="nav-order-label">
+              메뉴 순서
+            </span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+              <ol aria-labelledby="nav-order-label" className={s.navOrder}>
+                {navItems.map((n, i) => {
+                  const Icon = n.icon
+                  return (
+                    <li key={n.key}>
+                      <Icon size={14} strokeWidth={1.8} aria-hidden="true" />
+                      <span>{n.label}</span>
+                      <IconButton label={`${n.label} 위로`} size="sm" disabled={i === 0} onClick={() => moveNav(i, -1)}>
+                        <ArrowUp size={13} />
+                      </IconButton>
+                      <IconButton
+                        label={`${n.label} 아래로`}
+                        size="sm"
+                        disabled={i === navItems.length - 1}
+                        onClick={() => moveNav(i, 1)}
+                      >
+                        <ArrowDown size={13} />
+                      </IconButton>
+                    </li>
+                  )
+                })}
+              </ol>
+              <span className={s.note}>
+                사이드바 메뉴 순서예요. 이 브라우저에만 저장돼요.{' '}
+                {navOrder.length > 0 && (
+                  <button type="button" className={s.linkBtn} onClick={() => navOrderStore.set([])}>
+                    기본 순서로
+                  </button>
+                )}
               </span>
             </div>
           </div>

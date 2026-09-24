@@ -45,5 +45,24 @@ export function applyAccent(accent: Accent) {
   document.documentElement.dataset.accent = accent
 }
 
+/** 사이드바에 보여 줄 학기 (null이면 오늘 기준 현재 학기, 이슈 #132) */
+export const sidebarSemesterStore = createStore<number | null>('hubdash.sidebarSemester', null)
+
+/** 사이드바 메뉴 순서 (메뉴 key 배열, 이슈 #132) */
+export const navOrderStore = createStore<string[]>('hubdash.navOrder', [])
+
+/** 카드·입력칸 테두리 색 (이슈 #132) */
+export const BORDERS = [
+  { key: 'accent', label: '강조색 섞기' },
+  { key: 'gray', label: '기존 회색' },
+  { key: 'light', label: '밝은 회색' },
+] as const
+export type BorderStyle = (typeof BORDERS)[number]['key']
+export const borderStore = createStore<BorderStyle>('hubdash.border', 'accent')
+
+export function applyBorder(border: BorderStyle) {
+  document.documentElement.dataset.border = border
+}
+
 /** 과목 분류(시경/컴공/교양 등) — 서버에 필드가 없어 과목 id별로 localStorage */
 export const courseCategoryStore = createStore<Record<number, string>>('hubdash.courseCategory', {})

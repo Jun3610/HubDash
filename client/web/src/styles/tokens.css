@@ -158,3 +158,19 @@
   --error-bg: #fdebec;
   color-scheme: light;
 }
+
+/* 테두리 색 (설정 > 화면 > 테두리, 이슈 #132). 기본은 강조색을 살짝 섞은 색 */
+:root[data-border='accent'] {
+  --border: color-mix(in srgb, var(--accent) 38%, #2a2a2a);
+  --sb-border: color-mix(in srgb, var(--accent) 30%, #30363d);
+}
+:root[data-border='light'] {
+  --border: #4d4d4d;
+  --sb-border: #545b64;
+}
+:root[data-theme='light'][data-border='accent'] {
+  --border: color-mix(in srgb, var(--accent) 35%, #e3e3e1);
+}
+:root[data-theme='light'][data-border='light'] {
+  --border: #efefed;
+}

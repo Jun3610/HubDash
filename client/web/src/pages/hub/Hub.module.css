@@ -291,3 +291,10 @@
     display: none;
   }
 }
+
+.cardClickable {
+  cursor: pointer;
+}
+.cardClickable:hover .linkTitle {
+  color: var(--link-hover) !important;
+}
