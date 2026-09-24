@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { useSettings } from './api/user'
 import { AppLayout } from './components/layout/AppLayout'
 import { accentStore, applyAccent, applyTheme, avatarColorStore } from './config/prefs'
@@ -11,7 +11,6 @@ import LifePage from './pages/LifePage'
 import MemoPage from './pages/MemoPage'
 import NotFoundPage from './pages/NotFoundPage'
 import PknuPage from './pages/PknuPage'
-import RemindersPage from './pages/RemindersPage'
 import SchedulePage from './pages/SchedulePage'
 import SettingsPage from './pages/SettingsPage'
 import StudyPage from './pages/StudyPage'
@@ -29,7 +28,8 @@ const router = createBrowserRouter(
         { path: '/schedule', element: <SchedulePage /> },
         { path: '/memo', element: <MemoPage /> },
         { path: '/hub', element: <HubPage /> },
-        { path: '/reminders', element: <RemindersPage /> },
+        // 리마인더는 화면에서 뺐다(이슈 #135) — 예전 주소는 홈으로
+        { path: '/reminders', element: <Navigate to="/" replace /> },
         { path: '/settings', element: <SettingsPage /> },
         { path: '*', element: <NotFoundPage /> },
       ],

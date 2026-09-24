@@ -1,20 +1,17 @@
 import { Plus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { mealRecords, useDailySummary } from '../api/health'
+import { mealRecords, useDailySummary, workoutLogs } from '../api/health'
 import { memos } from '../api/memo'
-import { assignments } from '../api/pknu'
-import { reminders } from '../api/reminder'
-import { BIG_PAGE, useList, useListsByParent, useUpdate } from '../api/resource'
+import { BIG_PAGE, useList, useListsByParent } from '../api/resource'
 import { studyProgresses, studyTopics } from '../api/study'
-import { MEAL_TYPE_KO, MEAL_TYPES, type Assignment, type StudyProgress } from '../api/types'
+import { MEAL_TYPE_KO, MEAL_TYPES, type StudyProgress } from '../api/types'
 import { useProfile } from '../api/user'
 import { PageContent, PageHeader } from '../components/layout/PageHeader'
 import { useQuickRecord } from '../components/layout/quickContext'
 import {
   Button,
   Card,
-  DdayBadge,
   EmptyState,
   HeatLegend,
   IconButton,
@@ -37,21 +34,11 @@ import { useAllEvents } from '../hooks/useEvents'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { useOptimistic } from '../hooks/useOptimistic'
 import { useSemesterBundle } from '../hooks/usePknu'
-import { useNow, useToday } from '../hooks/useToday'
-import {
-  datePart,
-  formatHeaderDate,
-  formatMinutes,
-  shiftDate,
-  toLocalDateTime,
-  weekDays,
-  weekStartOf,
-} from '../lib/date'
+import { useToday } from '../hooks/useToday'
+import { datePart, formatHeaderDate, formatMinutes, shiftDate, weekDays, weekStartOf } from '../lib/date'
 import { initials, num, pct, splitTags } from '../lib/format'
 import { totalIn } from '../lib/heatmap'
-import { homeAssignments, weekCompletion } from '../lib/select/pknu'
 import { withinDates, withinDateTimes } from '../lib/select/range'
-import { DOMAIN_ROUTE, pendingReminders, urgency, whenLabel } from '../lib/select/reminder'
 import { eventsOn, eventTimeLabel } from '../lib/select/schedule'
 import { useStore } from '../lib/storage'
 import s from './home/Home.module.css'
@@ -77,7 +64,6 @@ export default function HomePage() {
         {isMobile ? (
           <>
             <MobileHeat />
-            <AssignmentsCard />
             <HabitsCard />
             <EventsCard />
             <DietCard />
@@ -90,17 +76,11 @@ export default function HomePage() {
             </div>
             <div className={s.row3}>
               <EventsCard />
-              <AssignmentsCard />
               <HabitsCard />
-            </div>
-            <div className={s.row3}>
-              <DietCard />
-              <RemindersCard />
-            </div>
-            <div className={s.row3}>
-              <HubCard />
               <MemosCard />
             </div>
+            <DietCard />
+            <HubCard />
           </>
         )}
       </PageContent>
@@ -166,9 +146,11 @@ function Kpis() {
   const goals = useStore(goalsStore)
   const summary = useDailySummary(today)
   const study = useWeekStudy()
-  const pknu = useSemesterBundle()
   const t = summary.data?.totals
-  const wc = weekCompletion(pknu.assignments, today)
+  const workouts = useList(workoutLogs, { size: BIG_PAGE, sort: 'performedAt,desc' })
+  const from = weekStartOf(today)
+  const weekWorkouts = withinDates(workouts.data?.content ?? [], (w) => w.performedAt, from, shiftDate(from, 6))
+  const workoutMinutes = weekWorkouts.reduce((a, w) => a + w.durationMinutes, 0)
   const dash = (loading: boolean, v: string) => (loading ? '…' : v)
   return (
     <section aria-label="오늘 요약" className={s.kpis}>
@@ -195,10 +177,10 @@ function Kpis() {
         color="purple"
       />
       <KpiTile
-        label="이번 주 과제 완료율"
-        value={dash(pknu.isLoading, wc.total ? String(Math.round(wc.rate * 100)) : '—')}
-        unit={wc.total ? `% · ${wc.done}/${wc.total}` : '이번 주 마감 없음'}
-        progress={wc.rate * 100}
+        label="이번 주 운동"
+        value={dash(workouts.isLoading, formatMinutes(workoutMinutes))}
+        unit={`${weekWorkouts.length}회 · 권장 150분`}
+        progress={pct(workoutMinutes, 150)}
         color="orange"
       />
     </section>
@@ -212,7 +194,6 @@ const DOMAIN_COLOR: Record<ActivityDomain, BarColor> = {
   study: 'purple',
   habit: 'blue',
   workout: 'yellow',
-  assignment: 'orange',
   body: 'gray',
 }
 
@@ -240,7 +221,7 @@ function HeatCard({ range }: { range: YearRange }) {
             {year === thisYear ? '최근 1년' : `${year}년`} 기록 <span className="mono">{num(total)}</span>건
           </>
         }
-        meta={<span className={s.desktopOnly}>식단 · 운동 · 공부 · 습관 · 과제 기록을 하루 단위로 합산</span>}
+        meta={<span className={s.desktopOnly}>식단 · 운동 · 체중 · 공부 · 습관 기록을 하루 단위로 합산</span>}
         actions={
           <div className={s.yearBtns}>
             {[thisYear, thisYear - 1].map((y) => (
@@ -346,61 +327,6 @@ function EventsCard() {
             </div>
           </div>
         ))}
-      </QueryState>
-    </Card>
-  )
-}
-
-// ---- 과제 ----
-
-function AssignmentsCard() {
-  const today = useToday()
-  const pknu = useSemesterBundle()
-  const update = useUpdate(assignments)
-  const opt = useOptimistic<number>()
-  const courseName = new Map(pknu.courses.map((c) => [c.id, c.name]))
-  const list = homeAssignments(pknu.assignments, today)
-  const openCount = pknu.assignments.filter((a) => !a.completed).length
-  const toggle = (a: Assignment) => {
-    const next = !opt.value(a.id, a.completed)
-    opt.set(a.id, next)
-    update.mutate(
-      {
-        id: a.id,
-        body: { courseId: a.courseId, title: a.title, dueDate: a.dueDate, completed: next, notes: a.notes },
-      },
-      { onSettled: () => opt.clear(a.id) },
-    )
-  }
-  return (
-    <Card>
-      <SectionHeader title="과제" count={openCount} actions={<Link to="/pknu">학업</Link>} />
-      <QueryState
-        loading={pknu.isLoading}
-        error={pknu.error}
-        onRetry={pknu.refetch}
-        empty={list.length === 0}
-        emptyView={<EmptyState compact title="남은 과제가 없어요" />}
-      >
-        {list.map((a) => {
-          const done = opt.value(a.id, a.completed)
-          return (
-            <label key={a.id} className={s.line} style={{ cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                className={s.check}
-                style={{ accentColor: 'var(--accent-strong)' }}
-                checked={done}
-                onChange={() => toggle(a)}
-              />
-              <div className={s.stack}>
-                <span className={cx(done ? s.done : s.title, 'ellipsis')}>{a.title}</span>
-                <span className={s.sub}>{courseName.get(a.courseId) ?? ''}</span>
-              </div>
-              <DdayBadge due={a.dueDate} today={today} completed={done} />
-            </label>
-          )
-        })}
       </QueryState>
     </Card>
   )
@@ -571,50 +497,6 @@ function DietCard() {
             )
           })}
         </div>
-      </QueryState>
-    </Card>
-  )
-}
-
-// ---- 리마인더 ----
-
-const URGENCY_COLOR = { overdue: 'var(--red)', soon: 'var(--red)', near: 'var(--orange)', later: 'var(--border)' }
-
-function RemindersCard() {
-  const today = useToday()
-  const now = toLocalDateTime(useNow())
-  const list = useList(reminders, { size: BIG_PAGE, sort: 'targetAt,asc' })
-  const pending = pendingReminders(list.data?.content ?? [])
-  return (
-    <Card>
-      <SectionHeader title="리마인더" count={pending.length || undefined} actions={<Link to="/reminders">전체</Link>} />
-      <QueryState
-        loading={list.isLoading}
-        error={list.error}
-        onRetry={() => void list.refetch()}
-        empty={pending.length === 0}
-        emptyView={<EmptyState compact title="대기 중인 리마인더가 없어요" />}
-      >
-        {pending.slice(0, 4).map((r) => {
-          const u = urgency(r.targetAt, now)
-          const dom = r.targetDomain ? (DOMAIN_ROUTE[r.targetDomain]?.label ?? r.targetDomain) : null
-          return (
-            <div key={r.id} className={s.line}>
-              <span
-                className={s.rdot}
-                style={{ background: URGENCY_COLOR[u] }}
-                aria-label={u === 'overdue' ? '지남' : undefined}
-              />
-              <div className={s.stack}>
-                <span className={cx(s.title, 'ellipsis')}>{r.title}</span>
-                {dom && <span className={s.sub}>{dom}</span>}
-              </div>
-              <span className={s.time} style={{ fontSize: 11.5, color: u === 'overdue' ? 'var(--red)' : undefined }}>
-                {whenLabel(r.targetAt, today)}
-              </span>
-            </div>
-          )
-        })}
       </QueryState>
     </Card>
   )

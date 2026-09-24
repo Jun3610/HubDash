@@ -1,8 +1,7 @@
-import { Bell, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
-import { reminders } from '../api/reminder'
-import { BIG_PAGE, useCreate, useList, useRemove, useUpdate } from '../api/resource'
+import { useSearchParams } from 'react-router-dom'
+import { useCreate, useRemove, useUpdate } from '../api/resource'
 import { events } from '../api/schedule'
 import type { ScheduleEvent } from '../api/types'
 import { PageHeader } from '../components/layout/PageHeader'
@@ -34,7 +33,6 @@ import {
   weekdayKo,
   type LocalDate,
 } from '../lib/date'
-import { whenLabel } from '../lib/select/reminder'
 import {
   allDayOn,
   eventsOn,
@@ -193,7 +191,6 @@ export default function SchedulePage() {
           {selected ? (
             <Detail
               event={selected}
-              today={today}
               onEdit={() => setDialog({ event: selected })}
               onDeleted={() => setSelectedId(null)}
             />
@@ -445,21 +442,9 @@ function ListView({
 
 // ---- 오른쪽 ----
 
-function Detail({
-  event,
-  today,
-  onEdit,
-  onDeleted,
-}: {
-  event: ScheduleEvent
-  today: LocalDate
-  onEdit: () => void
-  onDeleted: () => void
-}) {
+function Detail({ event, onEdit, onDeleted }: { event: ScheduleEvent; onEdit: () => void; onDeleted: () => void }) {
   const [confirm, setConfirm] = useState(false)
   const remove = useRemove(events)
-  const rem = useList(reminders, { size: BIG_PAGE, sort: 'targetAt,asc' })
-  const linked = (rem.data?.content ?? []).filter((r) => r.targetDomain === 'schedule' && r.targetEntityId === event.id)
   const sd = datePart(event.startAt)
   const ed = datePart(event.endAt)
   const time = event.allDay
@@ -496,17 +481,6 @@ function Detail({
         <dt>메모</dt>
         <dd style={{ color: 'var(--text-body)', whiteSpace: 'pre-wrap' }}>{event.description ?? '—'}</dd>
       </dl>
-      <div className={s.reminderLine}>
-        <Bell size={14} />
-        {linked.length ? (
-          <span className="ellipsis">리마인더 {linked.map((r) => whenLabel(r.targetAt, today)).join(', ')}</span>
-        ) : (
-          <span>연결된 리마인더 없음</span>
-        )}
-        <Link to={`/reminders?new=1&domain=schedule&entity=${event.id}`} style={{ marginLeft: 'auto' }}>
-          {linked.length ? '추가' : '만들기'}
-        </Link>
-      </div>
       <ConfirmDialog
         open={confirm}
         title="일정 삭제"

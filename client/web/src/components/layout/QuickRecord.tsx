@@ -1,4 +1,4 @@
-import { Bell, BookOpen, CalendarPlus, CheckSquare, FileText, Utensils } from 'lucide-react'
+import { BookOpen, CalendarPlus, CheckSquare, FileText, Utensils } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Modal } from '../ui'
@@ -11,7 +11,6 @@ const ITEMS = [
   { to: '/life', icon: CheckSquare, label: '습관 체크', sub: '오늘' },
   { to: '/memo?new=1', icon: FileText, label: '메모 쓰기', sub: '마크다운' },
   { to: '/schedule?new=1', icon: CalendarPlus, label: '일정 추가', sub: '캘린더' },
-  { to: '/reminders?new=1', icon: Bell, label: '리마인더', sub: '알림' },
 ]
 
 export function QuickRecordProvider({ children }: { children: ReactNode }) {
