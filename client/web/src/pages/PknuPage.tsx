@@ -1,5 +1,5 @@
 import { MoreHorizontal, Plus } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { semesters } from '../api/pknu'
 import { useCreate, useRemove, useUpdate } from '../api/resource'
@@ -16,14 +16,13 @@ import {
   Modal,
   QueryState,
   Table,
-  Tabs,
   Tag,
   toneFor,
 } from '../components/ui'
 import { NotionLink } from '../components/ui/NotionLink'
 import { usePeekTo } from '../components/layout/peek'
 import { courseCategoryStore } from '../config/prefs'
-import { pickCurrentSemester, useAllCourses, useSemesterBundle } from '../hooks/usePknu'
+import { useAllCourses, useSemesterBundle } from '../hooks/usePknu'
 import { useToday } from '../hooks/useToday'
 import { type LocalDate } from '../lib/date'
 import { semesterStatus, weekNumber } from '../lib/select/pknu'
@@ -34,63 +33,37 @@ import { hasErrors, maxLen, required, type Errors } from '../lib/validate'
 import s from './pknu/Pknu.module.css'
 import { CourseModal } from './pknu/CourseModal'
 
-type Dialog = { kind: 'semester'; semester?: Semester } | { kind: 'course'; course?: Course } | null
+type Dialog = { kind: 'semester'; semester?: Semester } | { kind: 'course'; semesterId: number; course?: Course } | null
 
+/** PKNU: 학기 탭 없이 최신 학기가 위로 오게 쌓아서 스크롤 (이슈 #165). 과목은 누르면 작은 창 */
 export default function PknuPage() {
   const today = useToday()
-  const [params, setParams] = useSearchParams()
+  const [params] = useSearchParams()
   const [dialog, setDialog] = useState<Dialog>(null)
 
   const all = useSemesterBundle()
-  const sorted = sortBy(all.semesters, (x) => x.startDate)
-  const selectedId = Number(params.get('semester')) || pickCurrentSemester(all.semesters, today)?.id || null
-  const bundle = useSemesterBundle(selectedId)
-  const semester = bundle.semester
+  const courses = useAllCourses()
+  const newestFirst = sortBy(all.semesters, (x) => x.startDate, 'desc')
+  const total = gpaOf(courses.courses)
 
-  const select = (id: string) =>
-    setParams(
-      (p) => {
-        const n = new URLSearchParams(p)
-        n.set('semester', id)
-        return n
-      },
-      { replace: true },
-    )
+  // 사이드바·과목 창에서 ?semester=<id>로 들어오면 그 학기로 스크롤
+  const target = params.get('semester')
+  useEffect(() => {
+    if (target) document.getElementById(`sem-${target}`)?.scrollIntoView({ block: 'start' })
+  }, [target, all.semesters.length])
 
   return (
     <>
-      <PageHeader
-        title="PKNU"
-        tabs={
-          sorted.length > 0 ? (
-            <Tabs
-              inHeader
-              label="학기"
-              value={String(selectedId ?? '')}
-              onChange={(k) => (k === 'new' ? setDialog({ kind: 'semester' }) : select(k))}
-              items={[
-                ...sorted.map((x) => ({
-                  key: String(x.id),
-                  label: x.name.replace(/\s*학기$/, ''),
-                  count: x.id === selectedId ? bundle.courses.length : undefined,
-                })),
-                { key: 'new', label: '+ 학기' },
-              ]}
-            />
-          ) : undefined
-        }
-      >
-        <Button
-          variant="primary"
-          icon={<Plus size={14} />}
-          disabled={!semester}
-          onClick={() => setDialog({ kind: 'course' })}
-        >
-          과목 추가
+      <PageHeader title="PKNU">
+        <span className={s.totalLine}>
+          전체 평점 <b>{formatGpa(total.gpa)}</b> / 4.5 · 이수 <b>{total.earnedCredits}</b>학점
+        </span>
+        <Button variant="primary" icon={<Plus size={14} />} onClick={() => setDialog({ kind: 'semester' })}>
+          학기 추가
         </Button>
       </PageHeader>
 
-      <PageContent>
+      <PageContent className={s.narrow}>
         <QueryState
           loading={all.isLoading && all.semesters.length === 0}
           error={all.error}
@@ -108,24 +81,17 @@ export default function PknuPage() {
             />
           }
         >
-          {semester && (
-            <>
-              <SemesterSummary
-                semester={semester}
-                semesterList={sorted}
-                onSelect={select}
-                courseList={bundle.courses}
-                today={today}
-                onEdit={() => setDialog({ kind: 'semester', semester })}
-              />
-              <CoursesTable
-                courseList={bundle.courses}
-                loading={bundle.isLoading}
-                error={bundle.error}
-                onAdd={() => setDialog({ kind: 'course' })}
-              />
-            </>
-          )}
+          {newestFirst.map((sem) => (
+            <SemesterBlock
+              key={sem.id}
+              semester={sem}
+              courseList={courses.courses.filter((c) => c.semesterId === sem.id)}
+              loading={courses.isLoading}
+              today={today}
+              onEdit={() => setDialog({ kind: 'semester', semester: sem })}
+              onAddCourse={() => setDialog({ kind: 'course', semesterId: sem.id })}
+            />
+          ))}
         </QueryState>
       </PageContent>
 
@@ -133,13 +99,13 @@ export default function PknuPage() {
         <SemesterModal
           semester={dialog.semester}
           onClose={() => setDialog(null)}
-          onSaved={(x) => select(String(x.id))}
+          onSaved={(x) => setTimeout(() => document.getElementById(`sem-${x.id}`)?.scrollIntoView(), 300)}
         />
       )}
-      {dialog?.kind === 'course' && semester && (
+      {dialog?.kind === 'course' && (
         <CourseModal
-          semesterList={sorted}
-          semesterId={semester.id}
+          semesterList={newestFirst}
+          semesterId={dialog.semesterId}
           course={dialog.course}
           onClose={() => setDialog(null)}
         />
@@ -148,26 +114,24 @@ export default function PknuPage() {
   )
 }
 
-// ---- 학기 요약 ----
+// ---- 학기 한 덩어리 ----
 
-function SemesterSummary({
+function SemesterBlock({
   semester,
-  semesterList,
   courseList,
+  loading,
   today,
   onEdit,
-  onSelect,
+  onAddCourse,
 }: {
   semester: Semester
-  semesterList: Semester[]
   courseList: Course[]
+  loading: boolean
   today: LocalDate
   onEdit: () => void
-  onSelect: (id: string) => void
+  onAddCourse: () => void
 }) {
-  const allCourses = useAllCourses()
   const semGpa = gpaOf(courseList)
-  const totalGpa = gpaOf(allCourses.courses)
   const categories = useStore(courseCategoryStore)
   const status = semesterStatus(semester.startDate, semester.endDate, today)
   const wk = weekNumber(semester.startDate, semester.endDate, today)
@@ -178,22 +142,7 @@ function SemesterSummary({
     if (cat) byCat.set(cat, (byCat.get(cat) ?? 0) + c.credit)
   }
   return (
-    <>
-      {/* 학기가 헤더의 작은 탭에만 있으면 잘 안 보여서 본문에도 크게 (이슈 #132) */}
-      <div className={s.semSwitch} role="tablist" aria-label="학기 선택">
-        {semesterList.map((x) => (
-          <button
-            key={x.id}
-            type="button"
-            role="tab"
-            aria-selected={x.id === semester.id}
-            onClick={() => onSelect(String(x.id))}
-          >
-            {x.name}
-            <small>{semesterStatus(x.startDate, x.endDate, today)}</small>
-          </button>
-        ))}
-      </div>
+    <article id={`sem-${semester.id}`} className={s.semBlock} aria-label={`${semester.name} 학기`}>
       <section className={s.semHead}>
         <h1>{semester.name}</h1>
         <Tag size="lg" tone={status === '진행 중' ? 'neutral' : status === '예정' ? 'blue' : 'gray'}>
@@ -203,7 +152,7 @@ function SemesterSummary({
           {semester.startDate.replaceAll('-', '.')} → {semester.endDate.replaceAll('-', '.')}
           {wk && ` · ${wk}주차`}
         </span>
-        <IconButton label="학기 수정" size="sm" onClick={onEdit}>
+        <IconButton label={`${semester.name} 학기 수정`} size="sm" onClick={onEdit}>
           <MoreHorizontal size={15} />
         </IconButton>
         <div className={s.credits}>
@@ -218,12 +167,10 @@ function SemesterSummary({
           <span>
             학기 평점 <b>{formatGpa(semGpa.gpa)}</b>
           </span>
-          <span>
-            전체 평점 <b>{formatGpa(totalGpa.gpa)}</b> / 4.5
-          </span>
         </div>
       </section>
-    </>
+      <CoursesTable courseList={courseList} loading={loading} error={null} onAdd={onAddCourse} />
+    </article>
   )
 }
 
@@ -249,6 +196,9 @@ function CoursesTable({
       <div className={s.boxHead}>
         <h2>과목</h2>
         <Tag mono>{courseList.length}</Tag>
+        <Button size="sm" icon={<Plus size={13} />} style={{ marginLeft: 'auto' }} onClick={onAdd}>
+          과목 추가
+        </Button>
       </div>
       {loading && courseList.length === 0 ? (
         <div style={{ padding: '8px 14px' }}>
