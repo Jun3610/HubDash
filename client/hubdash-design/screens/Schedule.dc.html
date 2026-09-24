@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>일정</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans KR',system-ui,sans-serif;background:#191919;color:#cfcfcf}
+a{color:#529cca;text-decoration:none}a:hover{color:#7db8e0}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1024px; display: flex; background: #191919; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; color: #cfcfcf; font-size: 13px; overflow: hidden;">
+<dc-import name="Sidebar" active="schedule" hint-size="232px,1024px"></dc-import>
+
+<main style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+<header style="height: 44px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 20px; border-bottom: 1px solid #333333;">
+<span style="color: #8f8f8f;">HubDash</span><span style="color: #333333;">/</span><span style="color: #e6e6e6; font-weight: 500;">일정</span>
+<div role="group" aria-label="보기" style="display: flex; margin-left: 16px; border: 1px solid #333333; border-radius: 6px; overflow: hidden;">
+<button type="button" style="height: 26px; padding: 0 10px; background: transparent; color: #8f8f8f; border: 0; font: inherit; font-size: 12.5px;">월</button>
+<button type="button" aria-pressed="true" style="height: 26px; padding: 0 10px; background: #2a2a2a; color: #e6e6e6; border: 0; border-left: 1px solid #333333; border-right: 1px solid #333333; font: inherit; font-size: 12.5px; font-weight: 600;">주</button>
+<button type="button" style="height: 26px; padding: 0 10px; background: transparent; color: #8f8f8f; border: 0; font: inherit; font-size: 12.5px;">목록</button>
+</div>
+<div style="display: flex; align-items: center; gap: 4px; margin-left: 8px;">
+<button type="button" aria-label="이전 주" style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid #333333; border-radius: 5px; color: #8f8f8f;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg></button>
+<button type="button" style="height: 26px; padding: 0 8px; background: transparent; border: 1px solid #333333; border-radius: 5px; color: #cfcfcf; font: inherit; font-size: 12px;">오늘</button>
+<button type="button" aria-label="다음 주" style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid #333333; border-radius: 5px; color: #8f8f8f;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></button>
+<span style="padding-left: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #e6e6e6;">2026.09.21 – 09.27</span>
+</div>
+<button type="button" style="margin-left: auto; display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; background: #c4554d; color: #ffffff; border: 0; border-radius: 6px; font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>일정 추가</button>
+</header>
+
+<div style="flex-grow: 1; padding: 16px 20px 20px 28px; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; overflow: hidden;">
+<section aria-label="주간 캘린더" style="border: 1px solid #333333; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; min-width: 0;">
+<div style="display: grid; grid-template-columns: 52px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid #333333; background: #252525;">
+<span></span>
+<sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+<div style="{{d.head}}"><span style="font-size: 11.5px;">{{d.dow}}</span><span style="{{d.numStyle}}">{{d.num}}</span></div>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: 52px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid #333333; min-height: 30px;">
+<span style="font-size: 10.5px; color: #8f8f8f; padding: 8px 6px 0; text-align: right;">종일</span>
+<sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+<div style="border-left: 1px solid #2a2a2a; padding: 3px; display: flex; flex-direction: column; gap: 2px;">
+<sc-for list="{{d.allDay}}" as="a" hint-placeholder-count="0"><span style="font-size: 11.5px; padding: 1px 6px; border-radius: 4px; background: #3e2624; color: #e27a72; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{a}}</span></sc-for>
+</div>
+</sc-for>
+</div>
+<div style="position: relative; display: grid; grid-template-columns: 52px repeat(7, minmax(0, 1fr)); flex-grow: 1;">
+<div style="display: flex; flex-direction: column;">
+<sc-for list="{{hours}}" as="h" hint-placeholder-count="14"><span style="height: 56px; box-sizing: border-box; padding: 0 6px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8f8f8f; transform: translateY(-6px);">{{h}}</span></sc-for>
+</div>
+<sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+<div style="{{d.col}}">
+<sc-for list="{{hours}}" as="h" hint-placeholder-count="14"><div style="height: 56px; box-sizing: border-box; border-top: 1px solid #222222;"></div></sc-for>
+<sc-for list="{{d.events}}" as="e" hint-placeholder-count="2">
+<button type="button" style="{{e.style}}"><span style="font-weight: 600; color: #e6e6e6; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{e.title}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #b3b3b3;">{{e.time}}</span><span style="font-size: 10.5px; color: #8f8f8f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{e.loc}}</span></button>
+</sc-for>
+<sc-if value="{{d.isToday}}" hint-placeholder-val="{{false}}"><div aria-label="현재 시각 14:20" style="position: absolute; left: 0; right: 0; top: 355px; border-top: 2px solid #e27a72;"><span style="position: absolute; left: -4px; top: -5px; width: 8px; height: 8px; border-radius: 50%; background: #e27a72;"></span></div></sc-if>
+</div>
+</sc-for>
+</div>
+</section>
+
+<aside style="display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+<div style="border: 1px solid #9c4540; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+<div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 11.5px; color: #e27a72;">선택한 일정</span>
+<button type="button" style="margin-left: auto; height: 24px; padding: 0 8px; background: #2c2c2c; color: #cfcfcf; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 12px;">수정</button>
+<button type="button" aria-label="삭제" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: #2c2c2c; color: #df5453; border: 1px solid #333333; border-radius: 6px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"></path></svg></button>
+</div>
+<h2 style="margin: 0; font-size: 17px; font-weight: 600; color: #e6e6e6;">WAP 백엔드 회의</h2>
+<dl style="margin: 0; display: grid; grid-template-columns: 52px minmax(0, 1fr); row-gap: 6px; font-size: 12.5px;">
+<dt style="color: #8f8f8f;">시간</dt><dd style="margin: 0; font-family: 'JetBrains Mono', monospace; color: #e6e6e6;">09.23 수 15:00 – 16:30</dd>
+<dt style="color: #8f8f8f;">장소</dt><dd style="margin: 0; color: #e6e6e6;">동아리방</dd>
+<dt style="color: #8f8f8f;">종일</dt><dd style="margin: 0; color: #e6e6e6;">아니요</dd>
+<dt style="color: #8f8f8f;">메모</dt><dd style="margin: 0; color: #cfcfcf;">'18번을 찾아줘' 후속 — API 명세 리뷰, 배포 파이프라인 점검</dd>
+</dl>
+<div style="display: flex; align-items: center; gap: 8px; padding-top: 8px; border-top: 1px solid #2a2a2a; font-size: 12px; color: #8f8f8f;">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>
+리마인더 14:30 · 30분 전
+<a href="#reminder" style="margin-left: auto;">변경</a>
+</div>
+</div>
+
+<div style="border: 1px solid #333333; border-radius: 6px; overflow: hidden;">
+<div style="display: flex; align-items: center; padding: 10px 14px; background: #252525; border-bottom: 1px solid #333333;"><h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">다가오는 일정</h2><span style="margin-left: auto; font-size: 12px; color: #8f8f8f;">7일</span></div>
+<sc-for list="{{upcoming}}" as="u" hint-placeholder-count="6">
+<div style="display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 10px; padding: 7px 14px; border-top: 1px solid #2a2a2a;">
+<div style="display: flex; flex-direction: column; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8f8f8f;"><span>{{u.date}}</span><span>{{u.time}}</span></div>
+<div style="display: flex; flex-direction: column; min-width: 0;"><span style="color: #dcdcdc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{u.title}}</span><span style="font-size: 11.5px; color: #8f8f8f;">{{u.loc}}</span></div>
+</div>
+</sc-for>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1024}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const H = 56, START = 8;
+    const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const ev = (title, s, e, loc, sel) => {
+      const top = (toMin(s) - START * 60) / 60 * H;
+      const h = (toMin(e) - toMin(s)) / 60 * H;
+      return {
+        title, loc, time: s + '–' + e,
+        style: 'position: absolute; left: 3px; right: 3px; top: ' + top + 'px; height: ' + (h - 2) + 'px; box-sizing: border-box; padding: 4px 6px; display: flex; flex-direction: column; gap: 1px; text-align: left; overflow: hidden; border-radius: 5px; font: inherit; cursor: pointer; ' +
+          (sel ? 'background: #3e2624; border: 1px solid #e27a72;' : 'background: #252525; border: 1px solid #333333;')
+      };
+    };
+    const raw = [
+      { dow: '월', num: 21, allDay: [], events: [ev('알고리즘과자료구조', '10:30', '12:00', '공학관 A-203'), ev('웨이트 — 어깨 + 하체', '19:00', '20:20', '헬스장')] },
+      { dow: '화', num: 22, allDay: [], events: [ev('데이터베이스응용', '13:00', '14:30', '공학관 B-105'), ev('유산소', '18:00', '18:40', '헬스장')] },
+      { dow: '수', num: 23, today: true, allDay: [], events: [ev('알고리즘과자료구조', '10:30', '12:00', '공학관 A-203'), ev('WAP 백엔드 회의', '15:00', '16:30', '동아리방', true), ev('웨이트 — 등 + 이두', '19:00', '20:00', '헬스장')] },
+      { dow: '목', num: 24, allDay: ['정렬 과제 마감'], events: [ev('통계적데이터분석', '13:00', '14:30', '공학관 C-301')] },
+      { dow: '금', num: 25, allDay: [], events: [ev('실무전산II - C언어', '10:00', '11:30', '실습실 2'), ev('웨이트 — 가슴 + 삼두', '19:00', '20:10', '헬스장')] },
+      { dow: '토', num: 26, allDay: ['리눅스 마스터 접수'], events: [ev('HubDash 개발', '14:00', '17:00', '집')] },
+      { dow: '일', num: 27, allDay: [], events: [] }
+    ];
+    const days = raw.map((d, i) => ({
+      ...d,
+      isToday: !!d.today,
+      head: 'display: flex; flex-direction: column; align-items: center; padding: 6px 0; border-left: 1px solid #2a2a2a; color: ' + (d.today ? '#e27a72' : i >= 5 ? '#8f8f8f' : '#cfcfcf') + ';',
+      numStyle: "font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 500; " + (d.today ? 'color: #ffffff; background: #c4554d; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;' : 'height: 26px; display: flex; align-items: center;'),
+      col: 'position: relative; border-left: 1px solid #2a2a2a;' + (d.today ? ' background: #1e1e1e;' : '')
+    }));
+    return {
+      days,
+      hours: ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'],
+      upcoming: [
+        { date: '09.23', time: '19:00', title: '웨이트 — 등 + 이두', loc: '헬스장' },
+        { date: '09.24', time: '종일', title: '정렬 과제 마감', loc: '알고리즘과자료구조' },
+        { date: '09.24', time: '13:00', title: '통계적데이터분석', loc: '공학관 C-301' },
+        { date: '09.25', time: '10:00', title: '실무전산II - C언어', loc: '실습실 2' },
+        { date: '09.26', time: '종일', title: '리눅스 마스터 접수', loc: '' },
+        { date: '09.26', time: '14:00', title: 'HubDash 개발', loc: '집' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

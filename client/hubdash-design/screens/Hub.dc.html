@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>허브</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans KR',system-ui,sans-serif;background:#191919;color:#cfcfcf}
+a{color:#529cca;text-decoration:none}a:hover{color:#7db8e0}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1024px; display: flex; background: #191919; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; color: #cfcfcf; font-size: 13px; overflow: hidden;">
+<dc-import name="Sidebar" active="hub" hint-size="232px,1024px"></dc-import>
+
+<main style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+<header style="height: 44px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 20px; border-bottom: 1px solid #333333;">
+<span style="color: #8f8f8f;">HubDash</span><span style="color: #333333;">/</span><span style="color: #8f8f8f;">허브</span><span style="color: #333333;">/</span><span style="color: #e6e6e6; font-weight: 500;">CI/CD</span>
+<label style="margin-left: auto; display: flex; align-items: center; gap: 8px; width: 260px; height: 28px; padding: 0 8px; border: 1px solid #333333; border-radius: 6px; color: #8f8f8f;">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+<input type="text" placeholder="링크 제목 · 주소 검색" aria-label="링크 검색" style="flex-grow: 1; min-width: 0; background: transparent; border: 0; color: #e6e6e6; font: inherit; font-size: 12.5px; outline: none;">
+</label>
+<button type="button" style="height: 28px; padding: 0 10px; background: #2c2c2c; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 12.5px; cursor: pointer;">카테고리 추가</button>
+<button type="button" style="display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; background: #c4554d; color: #ffffff; border: 0; border-radius: 6px; font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>링크 추가</button>
+</header>
+
+<div style="flex-grow: 1; display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 0;">
+<section aria-label="카테고리" style="border-right: 1px solid #333333; padding: 14px 10px; display: flex; flex-direction: column; gap: 2px;">
+<div style="display: flex; align-items: center; padding: 0 8px 6px; font-size: 12px; font-weight: 600; color: #8f8f8f;">카테고리<span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-weight: 400;">9</span></div>
+<sc-for list="{{cats}}" as="c" hint-placeholder-count="10">
+<a href="#cat" style="{{c.style}}">
+<span style="{{c.badge}}">{{c.abbr}}</span>
+<span style="flex-grow: 1;">{{c.name}}</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8f8f8f;">{{c.count}}</span>
+</a>
+</sc-for>
+</section>
+
+<section style="padding: 20px 28px 24px; display: flex; flex-direction: column; gap: 16px; min-width: 0; overflow: hidden;">
+<div style="display: flex; align-items: flex-end; gap: 12px;">
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #e6e6e6;">CI/CD</h1>
+<span style="color: #8f8f8f;">Jenkins · GitHub Actions · 배포 파이프라인 참고 자료</span>
+</div>
+<button type="button" style="margin-left: auto; height: 26px; padding: 0 10px; background: #2c2c2c; color: #cfcfcf; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 12px;">카테고리 수정</button>
+<div role="group" aria-label="보기" style="display: flex; border: 1px solid #333333; border-radius: 6px; overflow: hidden;">
+<button type="button" aria-pressed="true" style="height: 26px; padding: 0 10px; background: #2a2a2a; color: #e6e6e6; border: 0; font: inherit; font-size: 12px; font-weight: 600;">카드</button>
+<button type="button" style="height: 26px; padding: 0 10px; background: transparent; color: #8f8f8f; border: 0; border-left: 1px solid #333333; font: inherit; font-size: 12px;">목록</button>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+<sc-for list="{{links}}" as="l" hint-placeholder-count="6">
+<div style="border: 1px solid #333333; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; background: #1e1e1e;">
+<div style="display: flex; align-items: center; gap: 10px;">
+<span style="width: 28px; height: 28px; flex-shrink: 0; border-radius: 6px; background: #2c2c2c; color: #cfcfcf; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center;">{{l.letter}}</span>
+<div style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1;">
+<a href="#open" style="color: #e6e6e6; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{l.title}}</a>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8f8f8f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{l.domain}}</span>
+</div>
+<button type="button" aria-label="링크 메뉴" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: transparent; border: 0; color: #8f8f8f;"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></button>
+</div>
+<span style="font-size: 12.5px; color: #b3b3b3; line-height: 1.5;">{{l.desc}}</span>
+<span style="font-size: 11px; color: #8f8f8f;">{{l.at}}</span>
+</div>
+</sc-for>
+<button type="button" style="border: 1px dashed #333333; border-radius: 6px; padding: 12px 14px; background: transparent; color: #8f8f8f; font: inherit; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 110px; cursor: pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>이 카테고리에 링크 추가</button>
+</div>
+
+<form aria-label="링크 추가" style="margin: 0; border: 1px solid #9c4540; border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; background: #1e1e1e;">
+<div style="display: flex; align-items: center;"><h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">링크 추가</h2><span style="margin-left: auto; font-size: 12px; color: #8f8f8f;">주소를 붙여넣으면 제목을 먼저 채워둬요</span></div>
+<div style="display: grid; grid-template-columns: 2fr 1.4fr 1fr; gap: 10px;">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">주소<input type="text" value="https://www.jenkins.io/doc/book/pipeline/" style="height: 30px; box-sizing: border-box; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px;"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">제목<input type="text" value="Jenkins Pipeline 문서" style="height: 30px; box-sizing: border-box; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 13px;"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">카테고리<select style="height: 30px; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 13px;"><option>CI/CD</option><option>Docker</option><option>Network</option></select></label>
+</div>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">설명 (선택)<input type="text" value="Jenkinsfile 문법 · stage / post 정리" style="height: 30px; box-sizing: border-box; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 13px;"></label>
+<div style="display: flex; gap: 8px; justify-content: flex-end;">
+<button type="button" style="height: 28px; padding: 0 12px; background: #2c2c2c; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 12.5px;">취소</button>
+<button type="submit" style="height: 28px; padding: 0 12px; background: #c4554d; color: #ffffff; border: 0; border-radius: 6px; font: inherit; font-size: 12.5px; font-weight: 500;">저장</button>
+</div>
+</form>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1024}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const cat = (abbr, name, count, on) => ({
+      abbr, name, count,
+      style: 'display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: ' + (on ? '#e6e6e6; background: #2a2a2a; font-weight: 600;' : '#cfcfcf;'),
+      badge: "width: 22px; height: 22px; border-radius: 5px; font-family: 'JetBrains Mono', monospace; font-size: 10px; display: flex; align-items: center; justify-content: center; " + (on ? 'background: #4a2a27; color: #e27a72;' : 'background: #2c2c2c; color: #8f8f8f;')
+    });
+    const l = (letter, title, domain, desc, at) => ({ letter, title, domain, desc, at });
+    return {
+      cats: [
+        cat('*', '전체', 42, false), cat('CI', 'CI/CD', 6, true), cat('NW', 'Network', 5, false), cat('CS', 'CS', 8, false),
+        cat('SH', 'Scripts', 4, false), cat('JV', 'Java', 7, false), cat('CT', 'CT', 3, false), cat('DK', 'Docker', 4, false),
+        cat('IF', 'Infra Structure', 3, false), cat('LC', 'License', 2, false)
+      ],
+      links: [
+        l('J', 'Jenkins 공식 문서', 'jenkins.io/doc', 'Pipeline · Jenkinsfile 레퍼런스', '09.20 추가'),
+        l('G', 'GitHub Actions 문서', 'docs.github.com/actions', 'workflow 문법과 러너 설정', '09.18 추가'),
+        l('K', 'k3s 빠른 시작', 'docs.k3s.io', '로컬 k3s 클러스터 구성', '09.14 추가'),
+        l('D', 'Docker multi-stage build', 'docs.docker.com/build', 'Gradle 빌드 이미지 줄이기', '09.12 추가'),
+        l('A', 'Argo CD 개념 정리', 'argo-cd.readthedocs.io', 'GitOps 배포 흐름', '09.08 추가')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

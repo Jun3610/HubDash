@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>학업 — PKNU</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans KR',system-ui,sans-serif;background:#191919;color:#cfcfcf}
+a{color:#529cca;text-decoration:none}a:hover{color:#7db8e0}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1024px; display: flex; background: #191919; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; color: #cfcfcf; font-size: 13px; overflow: hidden;">
+<dc-import name="Sidebar" active="pknu" hint-size="232px,1024px"></dc-import>
+
+<main style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+<header style="height: 44px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 20px; border-bottom: 1px solid #333333;">
+<span style="color: #8f8f8f;">HubDash</span><span style="color: #333333;">/</span><span style="color: #e6e6e6; font-weight: 500;">학업 · PKNU</span>
+<nav aria-label="학기" style="display: flex; align-self: stretch; align-items: flex-end; gap: 4px; margin-left: 16px;">
+<a href="#s1" style="display: flex; align-items: center; height: 43px; box-sizing: border-box; padding: 0 10px; border-bottom: 2px solid transparent; color: #8f8f8f; font-size: 13px;">2026-1</a>
+<a href="#s2" style="display: flex; align-items: center; gap: 6px; height: 43px; box-sizing: border-box; padding: 0 10px; border-bottom: 2px solid #e27a72; color: #e6e6e6; font-size: 13px; font-weight: 600;">2026-2<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 0 6px; border-radius: 10px; background: #333333; color: #cfcfcf;">6</span></a>
+<a href="#new" style="display: flex; align-items: center; height: 43px; box-sizing: border-box; padding: 0 10px; border-bottom: 2px solid transparent; color: #8f8f8f; font-size: 13px;">+ 학기</a>
+</nav>
+<button type="button" style="margin-left: auto; height: 28px; padding: 0 10px; background: #2c2c2c; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 12.5px; cursor: pointer;">과목 추가</button>
+<button type="button" style="display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; background: #c4554d; color: #ffffff; border: 0; border-radius: 6px; font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>과제 추가</button>
+</header>
+
+<div style="flex-grow: 1; padding: 20px 28px 24px; display: flex; flex-direction: column; gap: 14px; overflow: hidden;">
+<section style="display: flex; align-items: center; gap: 12px;">
+<h1 style="margin: 0; font-size: 20px; font-weight: 600; color: #e6e6e6;">2026-2 학기</h1>
+<span style="padding: 1px 9px; border-radius: 4px; background: #2f2f2f; color: #8f8f8f; font-size: 12px;">진행 중</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #8f8f8f;">2026.09.01 → 2026.12.19 · 4주차</span>
+<div style="margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 12.5px;">
+<span style="color: #8f8f8f;">시경전공 <b style="font-family: 'JetBrains Mono', monospace; color: #e6e6e6; font-weight: 500;">9</b></span>
+<span style="color: #8f8f8f;">컴공전공 <b style="font-family: 'JetBrains Mono', monospace; color: #e6e6e6; font-weight: 500;">3</b></span>
+<span style="color: #8f8f8f;">교양 <b style="font-family: 'JetBrains Mono', monospace; color: #e6e6e6; font-weight: 500;">4</b></span>
+<span style="color: #8f8f8f;">합계 <b style="font-family: 'JetBrains Mono', monospace; color: #e6e6e6; font-weight: 500;">16</b>학점</span>
+</div>
+</section>
+
+<section style="display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 16px; flex-grow: 1; min-height: 0;">
+<div style="display: flex; flex-direction: column; gap: 14px; min-width: 0;">
+<div style="border: 1px solid #333333; border-radius: 6px; overflow: hidden;">
+<div style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #252525; border-bottom: 1px solid #333333;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">과목</h2>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 0 6px; border-radius: 10px; background: #333333; color: #cfcfcf;">6</span>
+<span style="margin-left: auto; font-size: 12px; color: #8f8f8f;">과제 완료율 순</span>
+</div>
+<table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+<thead>
+<tr style="color: #8f8f8f; font-size: 11.5px;">
+<th scope="col" style="text-align: left; font-weight: 500; padding: 7px 14px;">과목</th>
+<th scope="col" style="text-align: left; font-weight: 500; padding: 7px 8px; width: 120px;">교수</th>
+<th scope="col" style="text-align: right; font-weight: 500; padding: 7px 8px; width: 48px;">학점</th>
+<th scope="col" style="text-align: left; font-weight: 500; padding: 7px 8px; width: 170px;">과제</th>
+<th scope="col" style="text-align: right; font-weight: 500; padding: 7px 14px; width: 80px;">다음 마감</th>
+</tr>
+</thead>
+<tbody>
+<sc-for list="{{courses}}" as="c" hint-placeholder-count="6">
+<tr style="border-top: 1px solid #2a2a2a;">
+<td style="padding: 8px 14px;"><a href="#course" style="color: #dcdcdc; font-weight: 500;">{{c.name}}</a> <span style="{{c.tagStyle}}">{{c.tag}}</span></td>
+<td style="padding: 8px; color: #8f8f8f;">{{c.prof}}</td>
+<td style="padding: 8px; text-align: right; font-family: 'JetBrains Mono', monospace; color: #cfcfcf;">{{c.credit}}</td>
+<td style="padding: 8px;"><div style="display: flex; align-items: center; gap: 8px;"><div style="flex-grow: 1; height: 6px; border-radius: 3px; background: #2a2a2a; overflow: hidden;"><div style="{{c.bar}}"></div></div><span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8f8f8f; width: 30px; text-align: right;">{{c.ratio}}</span></div></td>
+<td style="padding: 8px 14px; text-align: right;"><span style="{{c.dueStyle}}">{{c.due}}</span></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+
+<div style="border: 1px solid #333333; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">주간 과제 완료율</h2>
+<span style="font-size: 12px; color: #8f8f8f;">assignment-weekly-stats</span>
+<button type="button" style="margin-left: auto; height: 24px; padding: 0 8px; background: #2c2c2c; color: #cfcfcf; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 12px; cursor: pointer;">통계 다시 계산</button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;">
+<sc-for list="{{weeks}}" as="w" hint-placeholder-count="4">
+<div style="padding: 10px; border-radius: 6px; background: #252525; display: flex; flex-direction: column; gap: 6px;">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8f8f8f;">{{w.label}}</span>
+<div style="display: flex; align-items: baseline; gap: 4px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 20px; color: #e6e6e6;">{{w.rate}}</span><span style="font-size: 11.5px; color: #8f8f8f;">%</span><span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8f8f8f;">{{w.count}}</span></div>
+<div style="height: 4px; border-radius: 2px; background: #2a2a2a; overflow: hidden;"><div style="{{w.bar}}"></div></div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<div style="border: 1px solid #333333; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; min-height: 0;">
+<div style="display: flex; align-items: center; gap: 14px; padding: 10px 14px; background: #252525; border-bottom: 1px solid #333333; font-size: 13px;">
+<a href="#open" style="display: flex; align-items: center; gap: 6px; color: #e6e6e6; font-weight: 600;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#529e72" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="1.5" fill="#529e72"></circle></svg>4 진행 중</a>
+<a href="#closed" style="display: flex; align-items: center; gap: 6px; color: #8f8f8f;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"></path></svg>12 완료</a>
+<span style="margin-left: auto; font-size: 12px; color: #8f8f8f;">마감순</span>
+</div>
+<sc-for list="{{assignments}}" as="a" hint-placeholder-count="7">
+<div style="display: flex; gap: 10px; padding: 10px 14px; border-top: 1px solid #2a2a2a;">
+<sc-if value="{{a.open}}" hint-placeholder-val="{{true}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#529e72" stroke-width="2" style="margin-top: 2px; flex-shrink: 0;" aria-label="진행 중"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="1.5" fill="#529e72"></circle></svg></sc-if>
+<sc-if value="{{a.closed}}" hint-placeholder-val="{{false}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9d68d3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-top: 2px; flex-shrink: 0;" aria-label="완료"><circle cx="12" cy="12" r="8"></circle><path d="m8.5 12 2.5 2.5 4.5-5"></path></svg></sc-if>
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0; flex-grow: 1;">
+<div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;"><a href="#assignment" style="color: #e6e6e6; font-weight: 600;">{{a.title}}</a><span style="{{a.labelStyle}}">{{a.course}}</span></div>
+<span style="font-size: 12px; color: #8f8f8f;">{{a.meta}}</span>
+</div>
+<span style="{{a.dueStyle}}">{{a.due}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1024}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const nbg = (c) => ({ '#529cca': '#1b3445', '#529e72': '#243d30', '#9d68d3': '#3c2d49', '#ca9849': '#4a3d24', '#c77d48': '#4f3423', '#df5453': '#4f2826', '#e27a72': '#4a2a27' }[c] || '#2f2f2f');
+    const bar = (pct, color) => 'height: 100%; width: ' + pct + '%; background: ' + color + '; border-radius: 3px;';
+    const due = (tone) => {
+      const t = { red: ['#df5453', '#a8403b'], orange: ['#ca9849', '#7a5a24'], gray: ['#8f8f8f', '#333333'], done: ['#9d68d3', '#6f4a96'] }[tone];
+      return 'font-family: JetBrains Mono, monospace; font-size: 11.5px; padding: 0 7px; border-radius: 4px; background: ' + nbg(t[0]) + '; color: ' + t[0] + '; white-space: nowrap; align-self: flex-start;';
+    };
+    const label = (c) => 'font-size: 11px; padding: 0 7px; border-radius: 4px; background: ' + nbg(c) + '; color: ' + c + ';';
+    const tag = (c) => 'margin-left: 6px; font-size: 11px; padding: 0 6px; border-radius: 4px; background: ' + nbg(c) + '; color: ' + c + ';';
+    const C = { algo: '#529cca', db: '#529e72', stat: '#9d68d3', ethic: '#8f8f8f', c: '#ca9849', prog: '#c77d48' };
+    return {
+      courses: [
+        { name: '알고리즘과자료구조', tag: '컴공', tagStyle: tag('#529cca'), prof: '[교수명]', credit: 3, ratio: '2/4', bar: bar(50, '#529e72'), due: 'D-1', dueStyle: due('red') },
+        { name: '데이터베이스응용', tag: '시경', tagStyle: tag('#529e72'), prof: '[교수명]', credit: 3, ratio: '1/3', bar: bar(33, '#529e72'), due: 'D-3', dueStyle: due('orange') },
+        { name: '통계적데이터분석', tag: '시경', tagStyle: tag('#529e72'), prof: '[교수명]', credit: 3, ratio: '3/3', bar: bar(100, '#529e72'), due: '—', dueStyle: due('gray') },
+        { name: '실무전산II - C언어', tag: '시경', tagStyle: tag('#529e72'), prof: '[교수명]', credit: 3, ratio: '2/3', bar: bar(67, '#529e72'), due: 'D-6', dueStyle: due('gray') },
+        { name: '직업과 윤리', tag: '교양', tagStyle: tag('#8f8f8f'), prof: '[교수명]', credit: 2, ratio: '1/1', bar: bar(100, '#529e72'), due: '—', dueStyle: due('gray') },
+        { name: '프로그래밍기초2', tag: '교양', tagStyle: tag('#8f8f8f'), prof: '[교수명]', credit: 2, ratio: '3/4', bar: bar(75, '#529e72'), due: 'D-9', dueStyle: due('gray') }
+      ],
+      weeks: [
+        { label: '09.01 주', rate: '100', count: '2/2', bar: bar(100, '#529e72') },
+        { label: '09.08 주', rate: '75', count: '3/4', bar: bar(75, '#529e72') },
+        { label: '09.15 주', rate: '80', count: '4/5', bar: bar(80, '#529e72') },
+        { label: '09.22 주', rate: '60', count: '3/5', bar: bar(60, '#ca9849') }
+      ],
+      assignments: [
+        { open: true, closed: false, title: '정렬 알고리즘 구현 과제', course: '알고리즘과자료구조', labelStyle: label(C.algo), meta: '09.24 (목) 마감 · 메모 있음', due: 'D-1', dueStyle: due('red') },
+        { open: true, closed: false, title: 'ERD 설계 보고서', course: '데이터베이스응용', labelStyle: label(C.db), meta: '09.26 (토) 마감', due: 'D-3', dueStyle: due('orange') },
+        { open: true, closed: false, title: '포인터 실습 3', course: '실무전산II - C언어', labelStyle: label(C.c), meta: '09.29 (화) 마감', due: 'D-6', dueStyle: due('gray') },
+        { open: true, closed: false, title: '재귀 함수 문제풀이', course: '프로그래밍기초2', labelStyle: label(C.prog), meta: '10.02 (금) 마감', due: 'D-9', dueStyle: due('gray') },
+        { open: false, closed: true, title: '회귀분석 퀴즈', course: '통계적데이터분석', labelStyle: label(C.stat), meta: '09.22 완료', due: '완료', dueStyle: due('done') },
+        { open: false, closed: true, title: '스택 · 큐 구현', course: '알고리즘과자료구조', labelStyle: label(C.algo), meta: '09.18 완료', due: '완료', dueStyle: due('done') },
+        { open: false, closed: true, title: '직업윤리 사례 보고서', course: '직업과 윤리', labelStyle: label(C.ethic), meta: '09.15 완료', due: '완료', dueStyle: due('done') }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

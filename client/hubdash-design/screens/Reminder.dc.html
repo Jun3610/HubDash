@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>리마인더</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans KR',system-ui,sans-serif;background:#191919;color:#cfcfcf}
+a{color:#529cca;text-decoration:none}a:hover{color:#7db8e0}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1024px; display: flex; background: #191919; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; color: #cfcfcf; font-size: 13px; overflow: hidden;">
+<dc-import name="Sidebar" active="reminder" hint-size="232px,1024px"></dc-import>
+
+<main style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+<header style="height: 44px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 20px; border-bottom: 1px solid #333333;">
+<span style="color: #8f8f8f;">HubDash</span><span style="color: #333333;">/</span><span style="color: #e6e6e6; font-weight: 500;">리마인더</span>
+<nav aria-label="리마인더 필터" style="display: flex; align-self: stretch; align-items: flex-end; gap: 4px; margin-left: 16px;">
+<a href="#pending" style="display: flex; align-items: center; gap: 6px; height: 43px; box-sizing: border-box; padding: 0 10px; border-bottom: 2px solid #e27a72; color: #e6e6e6; font-size: 13px; font-weight: 600;">대기<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 0 6px; border-radius: 10px; background: #4a2a27; color: #e27a72;">6</span></a>
+<a href="#sent" style="display: flex; align-items: center; gap: 6px; height: 43px; box-sizing: border-box; padding: 0 10px; border-bottom: 2px solid transparent; color: #8f8f8f; font-size: 13px;">보냄<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 0 6px; border-radius: 10px; background: #333333; color: #cfcfcf;">24</span></a>
+<a href="#all" style="display: flex; align-items: center; height: 43px; box-sizing: border-box; padding: 0 10px; border-bottom: 2px solid transparent; color: #8f8f8f; font-size: 13px;">전체</a>
+</nav>
+<button type="button" style="margin-left: auto; display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; background: #c4554d; color: #ffffff; border: 0; border-radius: 6px; font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>리마인더 추가</button>
+</header>
+
+<div style="flex-grow: 1; padding: 20px 28px 24px; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; overflow: hidden;">
+<div style="display: flex; flex-direction: column; gap: 14px; min-width: 0;">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+<section style="border: 1px solid #333333; border-radius: 6px; overflow: hidden;">
+<div style="display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: #252525; border-bottom: 1px solid #333333;">
+<span style="{{g.dot}}"></span>
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">{{g.name}}</h2>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8f8f8f;">{{g.count}}</span>
+<span style="margin-left: auto; font-size: 12px; color: #8f8f8f;">{{g.hint}}</span>
+</div>
+<sc-for list="{{g.items}}" as="r" hint-placeholder-count="2">
+<div style="display: grid; grid-template-columns: 96px minmax(0, 1fr) auto auto; align-items: center; gap: 14px; padding: 9px 14px; border-top: 1px solid #2a2a2a;">
+<div style="display: flex; flex-direction: column; font-family: 'JetBrains Mono', monospace;"><span style="{{r.whenStyle}}">{{r.when}}</span><span style="font-size: 11px; color: #8f8f8f;">{{r.date}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+<span style="color: #e6e6e6; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{r.title}}</span>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #8f8f8f;"><span style="{{r.domainStyle}}">{{r.domain}}</span><a href="{{r.href}}">{{r.target}}</a></span>
+</div>
+<button type="button" style="height: 26px; padding: 0 10px; background: #2c2c2c; color: #cfcfcf; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 12px;">{{r.action}}</button>
+<button type="button" aria-label="리마인더 메뉴" style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: transparent; border: 0; color: #8f8f8f;"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></button>
+</div>
+</sc-for>
+</section>
+</sc-for>
+</div>
+
+<aside style="display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+<form aria-label="리마인더 추가" style="margin: 0; border: 1px solid #333333; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">새 리마인더</h2>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">제목<input type="text" value="ERD 보고서 초안 끝내기" style="height: 30px; box-sizing: border-box; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 13px;"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">알림 시각<input type="text" value="2026-09-25 21:00" style="height: 30px; box-sizing: border-box; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;"></label>
+<div style="display: flex; gap: 6px; flex-wrap: wrap;">
+<button type="button" style="height: 24px; padding: 0 8px; background: #252525; color: #cfcfcf; border: 1px solid #333333; border-radius: 4px; font: inherit; font-size: 11.5px;">1시간 뒤</button>
+<button type="button" style="height: 24px; padding: 0 8px; background: #252525; color: #cfcfcf; border: 1px solid #333333; border-radius: 4px; font: inherit; font-size: 11.5px;">오늘 밤 9시</button>
+<button type="button" style="height: 24px; padding: 0 8px; background: #4a2a27; color: #e27a72; border: 1px solid #9c4540; border-radius: 4px; font: inherit; font-size: 11.5px;">마감 하루 전</button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">연결 도메인<select style="height: 30px; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 13px;"><option>pknu · 과제</option><option>schedule · 일정</option><option>health</option><option>없음</option></select></label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">대상<select style="height: 30px; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 13px;"><option>ERD 설계 보고서</option></select></label>
+</div>
+<span style="font-size: 11.5px; color: #8f8f8f;">targetDomain / targetEntityId로 저장돼요. 연결하면 목록에서 바로 이동할 수 있어요.</span>
+<button type="submit" style="height: 30px; background: #c4554d; color: #ffffff; border: 0; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 500;">추가</button>
+</form>
+
+<div style="border: 1px solid #333333; border-radius: 6px; padding: 12px 14px; display: flex; align-items: center; gap: 10px;">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#529e72" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>
+<div style="display: flex; flex-direction: column; flex-grow: 1;"><span style="color: #e6e6e6;">알림 켜짐</span><span style="font-size: 12px; color: #8f8f8f;">설정 › notificationEnabled</span></div>
+<a href="Settings.dc.html" style="font-size: 12px;">설정</a>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1024}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const D = { pknu: ['#1b3445', '#529cca'], schedule: ['#3c2d49', '#9d68d3'], health: ['#243d30', '#529e72'], study: ['#4a3d24', '#ca9849'] };
+    const dom = (k) => 'font-size: 11px; padding: 0 6px; border-radius: 4px; background: ' + D[k][0] + '; color: ' + D[k][1] + ';';
+    const r = (when, date, title, k, target, href, action, tone) => ({
+      when, date, title, domain: k, domainStyle: dom(k), target, href, action,
+      whenStyle: 'font-size: 13px; font-weight: 500; color: ' + (tone === 'late' ? '#df5453' : tone === 'soon' ? '#e27a72' : '#e6e6e6') + ';'
+    });
+    const dot = (c) => 'width: 8px; height: 8px; border-radius: 50%; background: ' + c + ';';
+    return {
+      groups: [
+        { name: '지남 · 아직 안 보냄', count: 1, hint: '알림 시각이 지났지만 sent = false', dot: dot('#df5453'), items: [
+          r('어제 21:00', '09.22 화', '회귀분석 퀴즈 복습', 'pknu', '통계적데이터분석', 'Pknu.dc.html', '보냄 처리', 'late')
+        ] },
+        { name: '오늘', count: 2, hint: '09.23 수', dot: dot('#e27a72'), items: [
+          r('14:30', '30분 뒤', 'WAP 백엔드 회의', 'schedule', '일정 · 15:00 동아리방', 'Schedule.dc.html', '미루기', 'soon'),
+          r('18:30', '4시간 뒤', '웨이트 전 단백질 챙기기', 'health', '식단 · 간식', 'Health.dc.html', '미루기', 'soon')
+        ] },
+        { name: '예정', count: 3, hint: '7일 이내', dot: dot('#8f8f8f'), items: [
+          r('09:00', '09.24 목', '정렬 과제 제출', 'pknu', '정렬 알고리즘 구현 과제', 'Pknu.dc.html', '미루기', ''),
+          r('10:00', '09.26 토', '리눅스 마스터 접수', 'schedule', '일정 · 종일', 'Schedule.dc.html', '미루기', ''),
+          r('20:00', '09.28 월', '주간 통계 확인', 'study', '공부 · 주간 통계', 'Study.dc.html', '미루기', '')
+        ] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

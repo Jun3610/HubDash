@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>설정</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans KR',system-ui,sans-serif;background:#191919;color:#cfcfcf}
+a{color:#529cca;text-decoration:none}a:hover{color:#7db8e0}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1024px; display: flex; background: #191919; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; color: #cfcfcf; font-size: 13px; overflow: hidden;">
+<dc-import name="Sidebar" active="settings" hint-size="232px,1024px"></dc-import>
+
+<main style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+<header style="height: 44px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 20px; border-bottom: 1px solid #333333;">
+<span style="color: #8f8f8f;">HubDash</span><span style="color: #333333;">/</span><span style="color: #e6e6e6; font-weight: 500;">설정</span>
+<span style="margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 12px; color: #8f8f8f;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #529e72;"></span>모든 변경 저장됨</span>
+</header>
+
+<div style="flex-grow: 1; padding: 24px 32px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; overflow: hidden; align-content: start;">
+<div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+<section style="border: 1px solid #333333; border-radius: 6px; overflow: hidden;">
+<div style="padding: 10px 16px; background: #252525; border-bottom: 1px solid #333333; display: flex; align-items: center;"><h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">프로필</h2><span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8f8f8f;">/api/user/profile</span></div>
+<div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+<div style="display: flex; align-items: center; gap: 14px;">
+<div style="width: 52px; height: 52px; border-radius: 50%; background: #2383e2; color: #ffffff; font-weight: 700; font-size: 17px; display: flex; align-items: center; justify-content: center;">PJ</div>
+<button type="button" style="height: 26px; padding: 0 10px; background: #2c2c2c; color: #cfcfcf; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 12px;">이니셜 색 바꾸기</button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">표시 이름<input type="text" value="Park Jun Young" style="height: 30px; box-sizing: border-box; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 13px;"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">이메일<input type="text" value="[이메일]" style="height: 30px; box-sizing: border-box; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 13px;"></label>
+</div>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">소개<textarea rows="2" style="padding: 6px 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 13px; resize: none;">부경대 시스템경영안전공학부 · 기술데이터공학 전공 · WAP 백엔드</textarea></label>
+<div style="display: flex; justify-content: flex-end;"><button type="button" style="height: 28px; padding: 0 12px; background: #c4554d; color: #ffffff; border: 0; border-radius: 6px; font: inherit; font-size: 12.5px; font-weight: 500;">프로필 저장</button></div>
+</div>
+</section>
+
+<section style="border: 1px solid #333333; border-radius: 6px; overflow: hidden;">
+<div style="padding: 10px 16px; background: #252525; border-bottom: 1px solid #333333; display: flex; align-items: center;"><h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">화면</h2><span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8f8f8f;">/api/user/settings</span></div>
+<div style="padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+<div style="display: grid; grid-template-columns: 110px minmax(0, 1fr); align-items: center; gap: 12px;">
+<span style="color: #e6e6e6;">테마</span>
+<div role="radiogroup" aria-label="테마" style="display: flex; border: 1px solid #333333; border-radius: 6px; overflow: hidden; width: fit-content;">
+<button type="button" role="radio" aria-checked="true" style="height: 28px; padding: 0 14px; background: #2a2a2a; color: #e6e6e6; border: 0; font: inherit; font-size: 12.5px; font-weight: 600;">다크</button>
+<button type="button" role="radio" aria-checked="false" style="height: 28px; padding: 0 14px; background: transparent; color: #8f8f8f; border: 0; border-left: 1px solid #333333; font: inherit; font-size: 12.5px;">라이트</button>
+<button type="button" role="radio" aria-checked="false" style="height: 28px; padding: 0 14px; background: transparent; color: #8f8f8f; border: 0; border-left: 1px solid #333333; font: inherit; font-size: 12.5px;">시스템</button>
+</div>
+<span style="color: #e6e6e6;">언어</span>
+<select aria-label="언어" style="height: 30px; width: 180px; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 13px;"><option>한국어</option><option>English</option></select>
+<span style="color: #e6e6e6; align-self: start; padding-top: 6px;">강조색</span>
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div role="radiogroup" aria-label="강조색" style="display: flex; gap: 8px;">
+<sc-for list="{{accents}}" as="a" hint-placeholder-count="5">
+<button type="button" role="radio" aria-checked="{{a.on}}" aria-label="{{a.name}}" style="{{a.style}}"><span style="{{a.sw}}"></span><span style="font-size: 11.5px;">{{a.name}}</span></button>
+</sc-for>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #333333; border-radius: 6px; background: #1e1e1e;">
+<span style="font-size: 12px; color: #8f8f8f;">미리보기</span>
+<span style="display: flex; gap: 3px;"><span style="width: 12px; height: 12px; border-radius: 3px; background: #252525;"></span><span style="width: 12px; height: 12px; border-radius: 3px; background: #3e2624;"></span><span style="width: 12px; height: 12px; border-radius: 3px; background: #6b3530;"></span><span style="width: 12px; height: 12px; border-radius: 3px; background: #9c4540;"></span><span style="width: 12px; height: 12px; border-radius: 3px; background: #e27a72;"></span></span>
+<span style="height: 22px; padding: 0 10px; border-radius: 6px; background: #c4554d; color: #ffffff; font-size: 12px; display: flex; align-items: center;">버튼</span>
+<span style="padding: 2px 8px; border-bottom: 2px solid #e27a72; color: #e6e6e6; font-size: 12px;">탭</span>
+</div>
+<span style="font-size: 11.5px; color: #8f8f8f;">버튼 · 탭 밑줄 · 기록 히트맵 · 사이드바 표시가 함께 바뀌어요. 이 브라우저에만 저장돼요.</span>
+</div>
+</div>
+</div>
+</section>
+
+<section style="border: 1px solid #333333; border-radius: 6px; padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
+<div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1;"><h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">알림</h2><span style="font-size: 12px; color: #8f8f8f;">리마인더 시각에 알림을 보내요 · notificationEnabled</span></div>
+<button type="button" role="switch" aria-checked="true" aria-label="알림" style="position: relative; width: 40px; height: 22px; border-radius: 11px; background: #c4554d; border: 0; padding: 0; cursor: pointer;"><span style="position: absolute; top: 3px; left: 21px; width: 16px; height: 16px; border-radius: 50%; background: #ffffff;"></span></button>
+</section>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+<section style="border: 1px solid #333333; border-radius: 6px; overflow: hidden;">
+<div style="padding: 10px 16px; background: #252525; border-bottom: 1px solid #333333; display: flex; align-items: center;"><h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">API 연결</h2><span style="margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 12px; color: #529e72;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #529e72;"></span>연결됨 · 32ms</span></div>
+<div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">서버 주소<input type="text" value="http://localhost:8080" style="height: 30px; box-sizing: border-box; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;"></label>
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<label for="api-key" style="font-size: 12px; color: #8f8f8f;">X-API-KEY</label>
+<div style="display: flex; gap: 6px;">
+<input id="api-key" type="password" value="dev-local-key" style="flex-grow: 1; height: 30px; box-sizing: border-box; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;">
+<button type="button" style="height: 30px; padding: 0 10px; background: #2c2c2c; color: #cfcfcf; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 12px;">보기</button>
+</div>
+</div>
+<span style="font-size: 11.5px; color: #8f8f8f;">서버는 필요할 때만 로컬에서 켜요. 꺼져 있으면 화면 위에 "서버에 연결할 수 없어요" 배너가 떠요.</span>
+<div style="display: flex; justify-content: flex-end; gap: 8px;">
+<button type="button" style="height: 28px; padding: 0 12px; background: #2c2c2c; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 12.5px;">연결 테스트</button>
+<button type="button" style="height: 28px; padding: 0 12px; background: #c4554d; color: #ffffff; border: 0; border-radius: 6px; font: inherit; font-size: 12.5px; font-weight: 500;">저장</button>
+</div>
+</div>
+</section>
+
+<section style="border: 1px solid #333333; border-radius: 6px; overflow: hidden;">
+<div style="padding: 10px 16px; background: #252525; border-bottom: 1px solid #333333; display: flex; align-items: center; gap: 10px;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">주간 통계 다시 계산</h2>
+<label style="margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 12px; color: #8f8f8f;">기준 주<input type="text" value="2026-09-21" style="width: 104px; height: 26px; box-sizing: border-box; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px;"></label>
+</div>
+<sc-for list="{{jobs}}" as="j" hint-placeholder-count="5">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 9px 16px; border-top: 1px solid #2a2a2a;">
+<div style="display: flex; flex-direction: column; min-width: 0;"><span style="color: #e6e6e6;">{{j.name}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8f8f8f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{j.path}}</span></div>
+<span style="{{j.statusStyle}}">{{j.status}}</span>
+<button type="button" style="height: 26px; padding: 0 10px; background: #2c2c2c; color: #cfcfcf; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 12px;">실행</button>
+</div>
+</sc-for>
+<div style="padding: 9px 16px; border-top: 1px solid #2a2a2a; font-size: 11.5px; color: #8f8f8f;">POST …/batch-runs 응답의 jobExecutionId · status를 옆에 보여줘요.</div>
+</section>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1024}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const acc = (name, c, on) => ({
+      name, on: on ? 'true' : 'false',
+      sw: 'width: 28px; height: 28px; border-radius: 50%; background: ' + c + ';',
+      style: 'display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 8px; border-radius: 6px; background: transparent; font: inherit; cursor: pointer; ' + (on ? 'border: 1px solid #e27a72; color: #e6e6e6;' : 'border: 1px solid transparent; color: #8f8f8f;')
+    });
+    const st = (s) => "font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 0 6px; border-radius: 4px; " + (s === 'fail' ? 'background: #4f2826; color: #df5453;' : s === 'run' ? 'background: #4a3d24; color: #ca9849;' : 'background: #243d30; color: #529e72;');
+    const job = (name, path, status, s) => ({ name, path, status, statusStyle: st(s) });
+    return {
+      accents: [acc('연빨강', '#e27a72', true), acc('초록', '#529e72', false), acc('파랑', '#529cca', false), acc('보라', '#9d68d3', false), acc('주황', '#c77d48', false)],
+      jobs: [
+        job('식단 주간 통계', '/api/health/analytics/meal-weekly-stats', '#41 COMPLETED', 'ok'),
+        job('체중 · 수면 주간 통계', '/api/health/analytics/weekly-stats', '#40 COMPLETED', 'ok'),
+        job('공부 주제별 주간 통계', '/api/study/analytics/topic-weekly-stats', '#42 STARTED', 'run'),
+        job('습관 주간 통계', '/api/life/analytics/habit-weekly-stats', '#38 COMPLETED', 'ok'),
+        job('과제 주간 통계', '/api/pknu/analytics/assignment-weekly-stats', '#37 FAILED', 'fail')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

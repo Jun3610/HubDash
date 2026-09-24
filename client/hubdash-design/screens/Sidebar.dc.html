@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>사이드바</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans KR',system-ui,sans-serif;background:#0d1117;color:#d1d7e0}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<nav aria-label="주 메뉴" style="width: 232px; height: {{h}}; box-sizing: border-box; background: #0d1117; border-right: 1px solid #3d444d; display: flex; flex-direction: column; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; font-size: 13px; color: #d1d7e0;">
+
+<div style="display: flex; align-items: center; gap: 8px; height: 52px; box-sizing: border-box; padding: 0 14px; border-bottom: 1px solid #3d444d; background: #010409;">
+<div aria-hidden="true" style="width: 26px; height: 26px; border-radius: 7px; background: #c4554d; display: flex; align-items: center; justify-content: center;">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16M18 4v16M6 12h12"></path></svg>
+</div>
+<div style="display: flex; align-items: baseline; gap: 4px; min-width: 0; flex-grow: 1; font-size: 13.5px;">
+<span style="color: #9198a1;">Jun3610</span><span style="color: #9198a1;">/</span><span style="color: #f0f6fc; font-weight: 600;">HubDash</span>
+</div>
+<button type="button" aria-label="작업 공간 메뉴" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid #3d444d; border-radius: 6px; color: #9198a1;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"></path></svg></button>
+</div>
+
+<div style="padding: 12px 12px 4px; display: flex; flex-direction: column; gap: 10px;">
+<button type="button" style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; background: #0d1117; border: 1px solid #3d444d; border-radius: 6px; color: #9198a1; font: inherit; font-size: 12.5px; text-align: left; cursor: pointer;">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+<span style="flex-grow: 1;"><span style="border: 1px solid #3d444d; border-radius: 4px; padding: 0 4px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #d1d7e0;">/</span> 로 검색</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">⌘K</span>
+</button>
+
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid #3d444d; border-radius: 6px; background: #010409;">
+<div style="display: flex; align-items: baseline; font-size: 11.5px;"><span style="color: #9198a1;">이번 주 기록</span><span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; color: #e27a72;">13건</span></div>
+<div aria-label="이번 주 요일별 기록 수" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px;">
+<sc-for list="{{week}}" as="d" hint-placeholder-count="7"><span style="{{d}}"></span></sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: #9198a1; text-align: center;"><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span></div>
+<div style="display: flex; align-items: baseline; gap: 4px; font-size: 11.5px; color: #9198a1;"><b style="font-family: 'JetBrains Mono', monospace; font-weight: 500; color: #f0f6fc;">5일</b> 연속 기록 중</div>
+</div>
+</div>
+
+<ul style="list-style: none; margin: 0; padding: 6px 8px; display: flex; flex-direction: column; gap: 1px;">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="9">
+<li style="position: relative;">
+<span aria-hidden="true" style="{{n.bar}}"></span>
+<a href="{{n.href}}" aria-current="{{n.current}}" style="{{n.style}}">
+<sc-if value="{{n.i.home}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21H3z"></path><path d="M9 21v-6h6v6"></path></svg></sc-if>
+<sc-if value="{{n.i.hub}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"></path><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"></path></svg></sc-if>
+<sc-if value="{{n.i.study}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2z"></path></svg></sc-if>
+<sc-if value="{{n.i.pknu}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5z"></path><path d="M6 11v5c3 2 9 2 12 0v-5"></path></svg></sc-if>
+<sc-if value="{{n.i.health}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"></path></svg></sc-if>
+<sc-if value="{{n.i.life}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"></path></svg></sc-if>
+<sc-if value="{{n.i.schedule}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg></sc-if>
+<sc-if value="{{n.i.memo}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h10l4 4v14H5z"></path><path d="M9 12h6M9 16h6"></path></svg></sc-if>
+<sc-if value="{{n.i.reminder}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg></sc-if>
+<span style="flex-grow: 1;">{{n.label}}</span>
+<sc-if value="{{n.hasCount}}" hint-placeholder-val="{{false}}"><span style="{{n.countStyle}}">{{n.count}}</span></sc-if>
+</a>
+</li>
+</sc-for>
+</ul>
+
+<div style="margin: 6px 16px 0; height: 1px; background: #3d444d;"></div>
+
+<div style="padding: 10px 8px 0; display: flex; flex-direction: column; gap: 1px;">
+<div style="display: flex; align-items: center; gap: 6px; padding: 0 8px 4px; font-size: 12px; font-weight: 600; color: #9198a1;">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"></path></svg>2026-2 학기<span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-weight: 400;">16학점</span>
+</div>
+<sc-for list="{{courses}}" as="c" hint-placeholder-count="6">
+<a href="Pknu.dc.html" style="display: flex; align-items: center; gap: 8px; height: 26px; padding: 0 8px 0 12px; border-radius: 6px; color: #d1d7e0; font-size: 12.5px; white-space: nowrap; overflow: hidden;">
+<span style="{{c.dot}}"></span>
+<span style="flex-grow: 1; overflow: hidden; text-overflow: ellipsis;">{{c.name}}</span>
+<sc-if value="{{c.hasDue}}" hint-placeholder-val="{{false}}"><span style="{{c.dueStyle}}">{{c.due}}</span></sc-if>
+</a>
+</sc-for>
+</div>
+
+<div style="padding: 12px 8px 0; display: flex; flex-direction: column; gap: 1px;">
+<div style="display: flex; align-items: center; gap: 6px; padding: 0 8px 4px; font-size: 12px; font-weight: 600; color: #9198a1;">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"></path></svg>고정한 링크
+</div>
+<sc-for list="{{pins}}" as="p" hint-placeholder-count="4">
+<a href="Hub.dc.html" style="display: flex; align-items: center; gap: 8px; height: 26px; padding: 0 8px 0 12px; border-radius: 6px; color: #d1d7e0; font-size: 12.5px;">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9198a1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"></path><path d="M5 17a3 3 0 0 1 3-3h11"></path></svg>
+<span style="flex-grow: 1;">{{p}}</span>
+</a>
+</sc-for>
+</div>
+
+<div style="flex-grow: 1;"></div>
+
+<div style="border-top: 1px solid #3d444d; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; background: #010409;">
+<div style="display: flex; align-items: center; gap: 10px;">
+<div style="position: relative; width: 30px; height: 30px; border-radius: 50%; background: #1f6feb; color: #ffffff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">PJ<span aria-label="온라인" style="position: absolute; right: -1px; bottom: -1px; width: 9px; height: 9px; border-radius: 50%; background: #3fb950; border: 2px solid #010409;"></span></div>
+<div style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1; line-height: 1.3;">
+<span style="color: #f0f6fc; font-weight: 600; font-size: 12.5px;">박준영</span>
+<span style="color: #9198a1; font-size: 11.5px;">@Jun3610</span>
+</div>
+<a href="Settings.dc.html" aria-label="설정" style="{{settingsStyle}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"></path></svg></a>
+</div>
+<div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #9198a1;">
+<span style="width: 6px; height: 6px; border-radius: 50%; background: #3fb950;"></span>
+<span style="font-family: 'JetBrains Mono', monospace;">localhost:8080</span>
+<span style="margin-left: auto;">API 연결됨</span>
+</div>
+</div>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["home","hub","study","pknu","health","life","schedule","memo","reminder","settings"],"default":"home"},"height":{"editor":"int","default":1024,"unit":"px"},"$preview":{"width":232,"height":1024}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const active = this.props.active ?? 'home';
+    const items = [
+      ['home', '홈', 'Main.dc.html', null],
+      ['hub', '허브', 'Hub.dc.html', '42'],
+      ['study', '공부', 'Study.dc.html', null],
+      ['pknu', '학업 · PKNU', 'Pknu.dc.html', '4'],
+      ['health', '건강', 'Health.dc.html', null],
+      ['life', '생활 · 습관', 'Life.dc.html', null],
+      ['schedule', '일정', 'Schedule.dc.html', null],
+      ['memo', '메모', 'Memo.dc.html', null],
+      ['reminder', '리마인더', 'Reminder.dc.html', '3']
+    ];
+    const nav = items.map(([key, label, href, count]) => {
+      const on = key === active;
+      const i = {};
+      i[key] = true;
+      return {
+        label, href, count, i,
+        current: on ? 'page' : 'false',
+        hasCount: !!count,
+        style: 'display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 8px; border-radius: 6px; font-size: 13px; ' + (on ? 'background: #212830; color: #f0f6fc; font-weight: 600;' : 'color: #d1d7e0;'),
+        bar: on ? 'position: absolute; left: -8px; top: 5px; width: 4px; height: 20px; border-radius: 6px; background: #e27a72;' : 'display: none;',
+        countStyle: "font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 18px; padding: 0 7px; border-radius: 2em; " + (key === 'reminder' ? 'background: #4a2a27; color: #e27a72;' : 'background: #2f3742; color: #d1d7e0;')
+      };
+    });
+    const lv = ['#161b22', '#3e2624', '#6b3530', '#9c4540', '#e27a72'];
+    const week = [3, 2, 4, 1, 3, 0, 0].map((l, idx) => 'height: 16px; border-radius: 3px; background: ' + lv[l] + ';' + (idx === 2 ? ' outline: 1px solid #e27a72; outline-offset: 1px;' : '') + (idx > 2 ? ' opacity: 0.45;' : ''));
+    const dot = (c) => 'width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: ' + c + ';';
+    const due = (c) => "font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: " + c + ';';
+    return {
+      nav,
+      week,
+      h: (this.props.height ?? 1024) + 'px',
+      settingsStyle: 'width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid #3d444d; ' + (active === 'settings' ? 'background: #212830; color: #f0f6fc;' : 'color: #9198a1;'),
+      courses: [
+        { name: '알고리즘과자료구조', dot: dot('#4493f8'), hasDue: true, due: 'D-1', dueStyle: due('#e27a72') },
+        { name: '데이터베이스응용', dot: dot('#3fb950'), hasDue: true, due: 'D-3', dueStyle: due('#d29922') },
+        { name: '통계적데이터분석', dot: dot('#ab7df8'), hasDue: false },
+        { name: '직업과 윤리', dot: dot('#9198a1'), hasDue: false },
+        { name: '실무전산II - C언어', dot: dot('#d29922'), hasDue: true, due: 'D-6', dueStyle: due('#9198a1') },
+        { name: '프로그래밍기초2', dot: dot('#db6d28'), hasDue: true, due: 'D-9', dueStyle: due('#9198a1') }
+      ],
+      pins: ['CI/CD', 'Docker', 'Network', '리눅스 마스터 2급']
+    };
+  }
+}
+</script>
+</body>
+</html>
