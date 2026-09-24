@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ScheduleEvent } from '../../api/types'
-import { allDayOn, eventsOn, monthGrid, placeDay, timeRange, upcoming } from './schedule'
+import { allDayOn, eventsOn, monthGrid, placeDay, searchEvents, timeRange, upcoming } from './schedule'
 
 const ev = (id: number, startAt: string, endAt: string | null, allDay = false): ScheduleEvent => ({
   id,
@@ -104,5 +104,19 @@ describe('끝 시각 없는 일정 (이슈 #156)', () => {
     expect(p.height).toBe(30)
     expect(upcoming([e], `${D}T18:00:00`)).toHaveLength(1)
     expect(upcoming([e], `${D}T20:00:00`)).toHaveLength(0)
+  })
+})
+
+describe('일정 검색 (이슈 #160)', () => {
+  const list = [
+    { ...ev(1, '2026-09-01T10:00:00', null), title: '프젝회의' },
+    { ...ev(2, '2026-09-20T10:00:00', null), title: '운동', location: '헬스장' },
+    { ...ev(3, '2026-09-10T10:00:00', null), title: 'OP6 출근', description: '프로젝트 발표' },
+  ]
+  it('제목·장소·메모에서 찾고 최근 순', () => {
+    expect(searchEvents(list, '프').map((e) => e.id)).toEqual([3, 1])
+    expect(searchEvents(list, '헬스').map((e) => e.id)).toEqual([2])
+    expect(searchEvents(list, 'op6').map((e) => e.id)).toEqual([3])
+    expect(searchEvents(list, '  ')).toEqual([])
   })
 })

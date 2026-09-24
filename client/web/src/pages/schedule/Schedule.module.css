@@ -414,3 +414,65 @@
     display: none;
   }
 }
+
+/* 일정 검색 (이슈 #160) */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 260px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+}
+.search:focus-within {
+  border-color: var(--accent);
+}
+.search input {
+  flex-grow: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  font-size: 12.5px;
+  outline: none;
+}
+.results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.result {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 110px 96px minmax(0, 1fr) minmax(0, 160px);
+  gap: 10px;
+  align-items: center;
+  padding: 9px 14px;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--divider);
+  text-align: left;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.result:hover {
+  background: var(--subtle);
+}
+.resultTitle {
+  color: var(--text);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 767px) {
+  .search {
+    width: 150px;
+  }
+  .result {
+    grid-template-columns: 90px minmax(0, 1fr);
+  }
+}
