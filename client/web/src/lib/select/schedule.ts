@@ -15,6 +15,15 @@ export function eventTimeLabel(e: ScheduleEvent, date: LocalDate): string {
   return e.startAt.slice(11, 16)
 }
 
+/** "10:00–11:00", 끝이 없으면 "10:00" (이슈 #156) */
+export function timeRange(e: ScheduleEvent): string {
+  const start = e.startAt.slice(11, 16)
+  return e.endAt ? `${start}–${e.endAt.slice(11, 16)}` : start
+}
+
+/** 끝 시각이 없는 일정을 주 보기에 그릴 때의 길이 */
+const NO_END_MINUTES = 30
+
 export const GRID_START_HOUR = 8
 export const GRID_END_HOUR = 22
 
@@ -45,7 +54,7 @@ export function placeDay(events: ScheduleEvent[], date: LocalDate): PlacedEvent[
     .filter((e) => !e.allDay && overlapsDate(e.startAt, e.endAt, date))
     .map((e) => {
       const s = datePart(e.startAt) < date ? 0 : minutesOf(e.startAt)
-      const en = datePart(e.endAt) > date ? 24 * 60 : minutesOf(e.endAt)
+      const en = !e.endAt ? s + NO_END_MINUTES : datePart(e.endAt) > date ? 24 * 60 : minutesOf(e.endAt)
       const start = Math.min(Math.max(s, gridStart), gridEnd - 15)
       const end = Math.max(Math.min(en, gridEnd), start + 15)
       return { event: e, start, end, clippedTop: s < gridStart, clippedBottom: en > gridEnd }
@@ -100,7 +109,7 @@ export function monthGrid(anchor: LocalDate): LocalDate[] {
 export function upcoming(events: ScheduleEvent[], now: string, days = 7): ScheduleEvent[] {
   const until = shiftDate(datePart(now), days)
   return sortBy(
-    events.filter((e) => e.endAt >= now && datePart(e.startAt) <= until),
+    events.filter((e) => (e.endAt ?? e.startAt) >= now && datePart(e.startAt) <= until),
     (e) => e.startAt,
   )
 }

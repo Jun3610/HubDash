@@ -12,9 +12,9 @@ export function withinDateTimes<T>(items: T[], pick: (item: T) => LocalDateTime,
   return items.filter((item) => inRange(datePart(pick(item)), from, to))
 }
 
-/** 시작~끝이 걸쳐 있는 일정이 그 날짜에 보이는지 */
-export function overlapsDate(startAt: LocalDateTime, endAt: LocalDateTime, date: LocalDate): boolean {
-  return datePart(startAt) <= date && datePart(endAt) >= date
+/** 시작~끝이 걸쳐 있는 일정이 그 날짜에 보이는지. 끝이 없으면 시작한 날만 (이슈 #156) */
+export function overlapsDate(startAt: LocalDateTime, endAt: LocalDateTime | null, date: LocalDate): boolean {
+  return datePart(startAt) <= date && datePart(endAt ?? startAt) >= date
 }
 
 export function sortBy<T>(items: T[], key: (item: T) => string | number, dir: 'asc' | 'desc' = 'asc'): T[] {

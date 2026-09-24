@@ -178,7 +178,8 @@ export type DietGoal = DietGoalRequest & Timestamps
 export interface EventRequest {
   title: string
   startAt: LocalDateTime
-  endAt: LocalDateTime // > startAt
+  /** 끝나는 시각은 선택 (이슈 #156). 있으면 > startAt */
+  endAt: LocalDateTime | null
   location?: string | null
   description?: string | null
   allDay: boolean
