@@ -39,6 +39,7 @@ import { hasErrors, isUrl, maxLen, numRange, optStr, required, type Errors } fro
 import s from './study/Study.module.css'
 import { NotionLink } from '../components/ui/NotionLink'
 import { usePeekTo } from '../components/layout/peek'
+import { HubSection } from './hub/HubSection'
 
 /** 주제 순서대로 쓰는 색 (점, 라벨, 막대가 같은 색) */
 const TOPIC_COLORS: (BarColor & Tone)[] = ['green', 'orange', 'purple', 'blue', 'yellow', 'accent', 'red']
@@ -100,14 +101,14 @@ export default function StudyPage() {
   return (
     <>
       <PageHeader title="Study">
-        <Button onClick={() => setTopicDialog({})}>주제 추가</Button>
+        <Button onClick={() => setTopicDialog({})}>Add Topic</Button>
         <Button
           variant="primary"
           icon={<Plus size={14} />}
           onClick={() => formRef.current?.focus()}
           disabled={!data.topics.length}
         >
-          공부 기록
+          Log Study
         </Button>
       </PageHeader>
 
@@ -153,6 +154,7 @@ export default function StudyPage() {
                 ))}
               </div>
             </section>
+            <HubSection />
             <LogTable
               title="최근 기록"
               list={byDate(data.progresses).slice(0, 8)}
