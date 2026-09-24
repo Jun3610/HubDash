@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { buildYearGrid, monthLabels, type HeatLevel } from '../../lib/heatmap'
 import type { LocalDate } from '../../lib/date'
 import { ProgressBar } from './Progress'
@@ -294,6 +294,7 @@ export function LineChart({
   unit = '',
   digits = 1,
   axis,
+  ticks,
 }: {
   points: { key: string; value: number | null; title?: string }[]
   height?: number
@@ -302,7 +303,11 @@ export function LineChart({
   unit?: string
   digits?: number
   axis?: [ReactNode, ReactNode]
+  /** 점마다 가로축 라벨 (빈 문자열이면 표시 안 함). 있으면 axis 대신 쓴다 (이슈 #218) */
+  ticks?: string[]
 }) {
+  // 커서가 가까운 점: 세로 안내선과 날짜·값 말풍선 (이슈 #218)
+  const [hover, setHover] = useState<number | null>(null)
   const vals = points.map((p) => p.value).filter((v): v is number => v !== null)
   if (vals.length === 0) {
     return <div className={s.lineEmpty}>{label} — 기록이 없어요</div>
@@ -330,7 +335,21 @@ export function LineChart({
         </span>
       </div>
       <div style={{ flexGrow: 1, minWidth: 0 }}>
-        <div className={s.linePlot} style={{ height }} role="img" aria-label={label}>
+        <div
+          className={s.linePlot}
+          style={{ height }}
+          role="img"
+          aria-label={label}
+          onMouseLeave={() => setHover(null)}
+          onMouseMove={(e) => {
+            const r = e.currentTarget.getBoundingClientRect()
+            const x = ((e.clientX - r.left) / r.width) * w
+            let best: number | null = null
+            for (let i = 0; i < xy.length; i++)
+              if (best === null || Math.abs(xy[i].x - x) < Math.abs(xy[best].x - x)) best = i
+            setHover(best)
+          }}
+        >
           <svg viewBox="0 0 100 100" preserveAspectRatio="none" width="100%" height="100%">
             <polyline
               points={xy.map((c) => `${c.x},${c.y}`).join(' ')}
@@ -346,15 +365,39 @@ export function LineChart({
               key={c.p.key}
               className={s.lineDot}
               style={{ left: `${c.x}%`, top: `${c.y}%`, background: barVar(color) }}
-              title={c.p.title ?? `${c.p.value}${unit}`}
+              data-hover={hover !== null && xy[hover] === c}
             />
           ))}
+          {hover !== null && xy[hover] && (
+            <>
+              <span className={s.lineGuide} style={{ left: `${xy[hover].x}%` }} aria-hidden="true" />
+              <span
+                className={s.lineTip}
+                data-flip={xy[hover].x > 70}
+                style={{ left: `${xy[hover].x}%`, top: `${xy[hover].y}%` }}
+              >
+                {xy[hover].p.title ?? `${xy[hover].p.key} · ${xy[hover].p.value}${unit}`}
+              </span>
+            </>
+          )}
         </div>
-        {axis && (
-          <div className={s.barAxis}>
-            <span>{axis[0]}</span>
-            <span>{axis[1]}</span>
+        {ticks ? (
+          <div className={s.lineTicks} aria-hidden="true">
+            {ticks.map((t, i) =>
+              t ? (
+                <span key={i} style={{ left: `${(i / n) * 100}%` }}>
+                  {t}
+                </span>
+              ) : null,
+            )}
           </div>
+        ) : (
+          axis && (
+            <div className={s.barAxis}>
+              <span>{axis[0]}</span>
+              <span>{axis[1]}</span>
+            </div>
+          )
         )}
       </div>
     </div>

@@ -182,3 +182,58 @@
   font-size: 12.5px;
   color: var(--text-muted);
 }
+
+/* 선 그래프: 가로축 날짜, 커서 안내선·말풍선 (이슈 #218) */
+.lineTicks {
+  position: relative;
+  height: 16px;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+.lineTicks span {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.lineTicks span:first-child {
+  transform: none;
+}
+.lineTicks span:last-child {
+  transform: translateX(-100%);
+}
+.linePlot {
+  cursor: crosshair;
+}
+.lineGuide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--text-muted);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.lineDot[data-hover='true'] {
+  width: 10px;
+  height: 10px;
+  box-shadow: 0 0 0 3px var(--bg);
+}
+.lineTip {
+  position: absolute;
+  transform: translate(8px, -130%);
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
+.lineTip[data-flip='true'] {
+  transform: translate(calc(-100% - 8px), -130%);
+}
