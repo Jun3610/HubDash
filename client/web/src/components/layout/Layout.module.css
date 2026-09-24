@@ -39,9 +39,18 @@
 .crumb span:nth-child(2) {
   color: var(--border);
 }
-.crumb span:nth-child(3) {
+.crumb span:nth-child(3),
+.crumb span:last-child {
   color: var(--text);
   font-weight: 500;
+}
+.crumb .crumbMid {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+.crumb .crumbSep {
+  color: var(--border);
+  font-weight: 400;
 }
 .headerTabs {
   align-self: stretch;
