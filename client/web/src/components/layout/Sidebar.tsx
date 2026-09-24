@@ -1,21 +1,24 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { BookMarked, ChevronDown, Search, Settings } from 'lucide-react'
+import { BookMarked, ChevronDown, ChevronLeft, ChevronRight, Search, Settings } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { connectionStatus } from '../../api/client'
 import { useProfile } from '../../api/user'
 import { connectionStore, displayHost } from '../../config/connection'
-import { pinnedLinksStore } from '../../config/prefs'
-import { useActivity } from '../../hooks/useActivity'
+import { pinnedLinksStore, sidebarSemesterStore } from '../../config/prefs'
+import { ACTIVITY_LABEL, useActivity } from '../../hooks/useActivity'
 import { useAllHubLinks } from '../../hooks/useHub'
-import { courseColor, useSemesterBundle } from '../../hooks/usePknu'
+import { courseColor, useSemesterBundle, useSemesters } from '../../hooks/usePknu'
 import { useToday } from '../../hooks/useToday'
-import { shiftDate, weekDays } from '../../lib/date'
+import { formatHeaderDate, formatShortDate, shiftDate, weekDays } from '../../lib/date'
 import { initials } from '../../lib/format'
+import { browserUrl } from '../../lib/url'
 import { currentStreak, heatLevel } from '../../lib/heatmap'
+import { activityOn } from '../../lib/select/activity'
 import { useStore } from '../../lib/storage'
 import { cx } from '../ui'
-import { NAV } from './nav'
+import { orderedNav } from './nav'
+import { navOrderStore } from '../../config/prefs'
 import s from './Sidebar.module.css'
 
 export function Sidebar({ onSearch }: { onSearch: () => void }) {
@@ -27,7 +30,11 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
   const pinned = useStore(pinnedLinksStore)
   const qc = useQueryClient()
 
-  const pknu = useSemesterBundle()
+  const semPick = useStore(sidebarSemesterStore)
+  const navOrder = useStore(navOrderStore)
+  const semList = useSemesters().data?.content
+  // 저장해 둔 학기가 지워졌으면 현재 학기로
+  const pknu = useSemesterBundle(semPick != null && semList?.some((x) => x.id === semPick) ? semPick : null)
   const hub = useAllHubLinks()
   const activity = useActivity()
 
@@ -35,17 +42,31 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
   const [pinOpen, setPinOpen] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  // 이번 주 기록: ◀ ▶로 주를 넘기고, 날짜를 누르면 그날 기록을 펼친다 (이슈 #132)
+  const [weekOffset, setWeekOffset] = useState(0)
+  const [picked, setPicked] = useState<string | null>(null)
 
   const counts: Partial<Record<string, number>> = {
     hub: hub.links.length || undefined,
   }
 
-  const days = weekDays(today)
+  const days = weekDays(shiftDate(today, weekOffset * 7))
   const weekCounts = days.map((d) => activity.counts.get(d) ?? 0)
   // 한 주 안에서만 비교하면 늘 최고 단계가 되므로 최근 4주 최댓값을 기준으로 한다
   const weekMax = Math.max(...Array.from({ length: 28 }, (_, i) => activity.counts.get(shiftDate(today, -i)) ?? 0))
   const weekTotal = weekCounts.reduce((a, b) => a + b, 0)
   const streak = currentStreak(activity.counts, today)
+  const weekLabel =
+    weekOffset === 0
+      ? '이번 주 기록'
+      : weekOffset === -1
+        ? '지난 주 기록'
+        : `${formatShortDate(days[0])} ~ ${formatShortDate(days[6])}`
+  const pickedItems = picked ? activityOn(activity.sources, picked) : []
+  const moveWeek = (d: number) => {
+    setWeekOffset((w) => Math.min(0, w + d))
+    setPicked(null)
+  }
 
   const courseRows = pknu.courses.map((c, i) => ({ course: c, color: courseColor(i) }))
   const credits = pknu.courses.reduce((sum, c) => sum + c.credit, 0)
@@ -65,24 +86,26 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
   return (
     <nav aria-label="주 메뉴" className={s.nav}>
       <div className={s.band}>
-        <div className={s.logo} aria-hidden="true">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-          >
-            <path d="M6 4v16M18 4v16M6 12h12" />
-          </svg>
-        </div>
-        <div className={s.repo}>
-          <span>Jun3610</span>
-          <span>/</span>
-          <b>HubDash</b>
-        </div>
+        <Link to="/" className={s.home} aria-label="홈으로">
+          <div className={s.logo} aria-hidden="true">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+            >
+              <path d="M6 4v16M18 4v16M6 12h12" />
+            </svg>
+          </div>
+          <div className={s.repo}>
+            <span>Jun3610</span>
+            <span>/</span>
+            <b>HubDash</b>
+          </div>
+        </Link>
         <div ref={menuRef} style={{ position: 'relative' }}>
           <button
             type="button"
@@ -119,18 +142,36 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
 
           <div className={s.week}>
             <div className={s.weekHead}>
-              <span>이번 주 기록</span>
-              <span>{weekTotal}건</span>
+              <button type="button" className={s.weekNav} aria-label="이전 주" onClick={() => moveWeek(-1)}>
+                <ChevronLeft size={12} strokeWidth={2.2} />
+              </button>
+              <span>{weekLabel}</span>
+              <button
+                type="button"
+                className={s.weekNav}
+                aria-label="다음 주"
+                disabled={weekOffset === 0}
+                onClick={() => moveWeek(1)}
+              >
+                <ChevronRight size={12} strokeWidth={2.2} />
+              </button>
+              <span className={s.weekTotal}>{weekTotal}건</span>
             </div>
-            <div className={s.weekGrid} aria-label="이번 주 요일별 기록 수" role="img">
+            <div className={s.weekGrid} aria-label={`${weekLabel} 요일별 기록 수`}>
               {days.map((d, i) => (
-                <span
+                <button
+                  type="button"
                   key={d}
                   className={s.weekCell}
                   data-level={d > today ? 0 : heatLevel(weekCounts[i], weekMax)}
                   data-today={d === today}
                   data-future={d > today}
+                  data-picked={d === picked}
+                  disabled={d > today}
+                  aria-pressed={d === picked}
+                  aria-label={`${d} ${weekCounts[i]}건`}
                   title={`${d} · ${weekCounts[i]}건`}
+                  onClick={() => setPicked((p) => (p === d ? null : d))}
                 />
               ))}
             </div>
@@ -139,6 +180,23 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
                 <span key={d}>{d}</span>
               ))}
             </div>
+            {picked && (
+              <div className={s.dayList} aria-live="polite">
+                <span className={s.dayTitle}>{formatHeaderDate(picked)}</span>
+                {pickedItems.length === 0 ? (
+                  <span className={s.subEmpty} style={{ padding: 0 }}>
+                    기록이 없어요
+                  </span>
+                ) : (
+                  pickedItems.map((it, i) => (
+                    <Link key={i} to={it.to} className={s.dayItem}>
+                      <span className={s.dayDomain}>{ACTIVITY_LABEL[it.domain]}</span>
+                      <span className="ellipsis">{it.text}</span>
+                    </Link>
+                  ))
+                )}
+              </div>
+            )}
             <div className={s.streak}>
               <b>{streak}일</b> 연속 기록 중
             </div>
@@ -146,7 +204,7 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
         </div>
 
         <ul className={s.menu}>
-          {NAV.map((n) => {
+          {orderedNav(navOrder).map((n) => {
             const active = n.to === '/' ? pathname === '/' : pathname.startsWith(n.to)
             const count = counts[n.key]
             const Icon = n.icon
@@ -173,9 +231,24 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
             onClick={() => setSemOpen((v) => !v)}
           >
             <ChevronDown size={12} strokeWidth={2.2} aria-hidden="true" />
-            {pknu.semester?.name ?? '현재 학기'}
+            학기
             {pknu.courses.length > 0 && <span className={s.sectionMeta}>{credits}학점</span>}
           </button>
+          {pknu.semesters.length > 0 && (
+            <select
+              className={s.semSelect}
+              aria-label="사이드바에 보여 줄 학기"
+              value={semPick != null && pknu.semester?.id === semPick ? String(semPick) : ''}
+              onChange={(e) => sidebarSemesterStore.set(e.target.value ? Number(e.target.value) : null)}
+            >
+              <option value="">현재 학기{semPick == null && pknu.semester ? ` (${pknu.semester.name})` : ''}</option>
+              {pknu.semesters.map((sem) => (
+                <option key={sem.id} value={sem.id}>
+                  {sem.name}
+                </option>
+              ))}
+            </select>
+          )}
           {semOpen &&
             (courseRows.length === 0 ? (
               <span className={s.subEmpty}>{pknu.isLoading ? '불러오는 중…' : '등록된 과목이 없어요'}</span>
@@ -204,7 +277,7 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
               <span className={s.subEmpty}>허브에서 링크를 고정해 보세요</span>
             ) : (
               pinnedLinks.map((l) => (
-                <a key={l.id} href={l.url} target="_blank" rel="noreferrer" className={s.subItem}>
+                <a key={l.id} href={browserUrl(l.url)} target="_blank" rel="noopener noreferrer" className={s.subItem}>
                   <BookMarked size={14} strokeWidth={1.8} color="var(--sb-muted)" aria-hidden="true" />
                   <span className={s.subLabel}>{l.title}</span>
                 </a>

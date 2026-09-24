@@ -113,11 +113,12 @@
 }
 .weekHead {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  gap: 4px;
   font-size: 11.5px;
   color: var(--sb-muted);
 }
-.weekHead span:last-child {
+.weekTotal {
   margin-left: auto;
   font-family: var(--font-mono);
   color: var(--accent);
@@ -130,6 +131,69 @@
 .weekCell {
   height: 16px;
   border-radius: 3px;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.weekCell:disabled {
+  cursor: default;
+}
+.weekCell[data-picked='true'] {
+  outline: 2px solid var(--sb-text-strong);
+  outline-offset: 1px;
+}
+.weekNav {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--sb-muted);
+}
+.weekNav:hover:not(:disabled) {
+  color: var(--sb-text-strong);
+  background: var(--sb-active);
+}
+.weekNav:disabled {
+  opacity: 0.35;
+}
+.dayList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 6px;
+  border-top: 1px solid var(--sb-border);
+  font-size: 12px;
+}
+.dayTitle {
+  font-size: 11px;
+  color: var(--sb-muted);
+  font-family: var(--font-mono);
+  padding-bottom: 2px;
+}
+.dayItem {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  min-width: 0;
+  padding: 2px 4px;
+  margin: 0 -4px;
+  border-radius: 4px;
+  color: var(--sb-text);
+  text-decoration: none;
+}
+.dayItem:hover {
+  background: var(--sb-active);
+  color: var(--sb-text-strong);
+}
+.dayDomain {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  color: var(--accent);
 }
 .weekCell[data-level='0'] {
   background: var(--sb-heat-0);
@@ -390,4 +454,27 @@
 }
 .conn span:last-child {
   margin-left: auto;
+}
+
+.home {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-grow: 1;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 6px;
+}
+.home:hover .repo b {
+  color: var(--accent);
+}
+.semSelect {
+  margin: 0 8px 6px;
+  padding: 4px 6px;
+  font-size: 12px;
+  background: var(--sb-band);
+  color: var(--sb-text);
+  border: 1px solid var(--sb-border);
+  border-radius: 5px;
 }

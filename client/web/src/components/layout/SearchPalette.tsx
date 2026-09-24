@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { memos } from '../../api/memo'
 import { BIG_PAGE, useList } from '../../api/resource'
 import { hostOf, useAllHubLinks } from '../../hooks/useHub'
+import { browserUrl } from '../../lib/url'
 import s from './Search.module.css'
 
 interface Hit {
@@ -57,7 +58,7 @@ function Palette({ onClose }: { onClose: () => void }) {
           title: l.title,
           meta: hostOf(l.url),
           run: () => {
-            window.open(l.url, '_blank', 'noopener')
+            window.open(browserUrl(l.url), '_blank', 'noopener')
             onClose()
           },
         })
