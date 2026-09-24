@@ -31,6 +31,8 @@ const router = createBrowserRouter(
         { path: '/schedule', element: <SchedulePage /> },
         { path: '/memo', element: <MemoPage /> },
         { path: '/hub', element: <HubPage /> },
+        // 카테고리는 세부 페이지 (이슈 #152)
+        { path: '/hub/:id', element: <HubPage /> },
         // 리마인더는 화면에서 뺐다(이슈 #135) — 예전 주소는 홈으로
         { path: '/reminders', element: <Navigate to="/" replace /> },
         { path: '/settings', element: <SettingsRedirect /> },
