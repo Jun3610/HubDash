@@ -6,15 +6,15 @@ import { connectionStatus } from '../../api/client'
 import { useProfile } from '../../api/user'
 import { connectionStore, displayHost } from '../../config/connection'
 import { pinnedLinksStore, sidebarSemesterStore } from '../../config/prefs'
-import { ACTIVITY_LABEL, useActivity } from '../../hooks/useActivity'
+import { useAllEvents } from '../../hooks/useEvents'
 import { useAllHubLinks } from '../../hooks/useHub'
 import { useSemesterBundle, useSemesters } from '../../hooks/usePknu'
 import { useToday } from '../../hooks/useToday'
 import { formatHeaderDate, formatShortDate, shiftDate, weekDays } from '../../lib/date'
 import { initials } from '../../lib/format'
 import { browserUrl } from '../../lib/url'
-import { currentStreak, heatLevel } from '../../lib/heatmap'
-import { activityOn } from '../../lib/select/activity'
+import { heatLevel } from '../../lib/heatmap'
+import { eventsOn } from '../../lib/select/schedule'
 import { useStore } from '../../lib/storage'
 import { SemesterModal } from '../../pages/PknuPage'
 import { cx } from '../ui'
@@ -39,7 +39,8 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
   // 저장해 둔 학기가 지워졌으면 현재 학기로
   const pknu = useSemesterBundle(semPick != null && semList?.some((x) => x.id === semPick) ? semPick : null)
   const hub = useAllHubLinks()
-  const activity = useActivity()
+  // This Week은 일정만 (이슈 #179) — 일정 화면과 같은 쿼리라 캐시를 같이 쓴다
+  const eventList = useAllEvents().data?.content ?? []
 
   const [semOpen, setSemOpen] = useState(true)
   const [pinOpen, setPinOpen] = useState(true)
@@ -53,20 +54,24 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
   const counts: Partial<Record<string, number>> = {}
 
   const days = weekDays(shiftDate(today, weekOffset * 7))
-  const weekCounts = days.map((d) => activity.counts.get(d) ?? 0)
-  // 한 주 안에서만 비교하면 늘 최고 단계가 되므로 최근 4주 최댓값을 기준으로 한다
-  const weekMax = Math.max(...Array.from({ length: 28 }, (_, i) => activity.counts.get(shiftDate(today, -i)) ?? 0))
+  const weekCounts = days.map((d) => eventsOn(eventList, d).length)
+  // 한 주 안에서만 비교하면 늘 최고 단계가 되므로 그 주 앞 3주까지 합쳐 최댓값을 기준으로 한다
+  const weekMax = Math.max(
+    1,
+    ...Array.from({ length: 28 }, (_, i) => eventsOn(eventList, shiftDate(days[6], -i)).length),
+  )
   const weekTotal = weekCounts.reduce((a, b) => a + b, 0)
-  const streak = currentStreak(activity.counts, today)
   const weekLabel =
     weekOffset === 0
-      ? '이번 주 기록'
+      ? 'This Week'
       : weekOffset === -1
-        ? '지난 주 기록'
-        : `${formatShortDate(days[0])} ~ ${formatShortDate(days[6])}`
-  const pickedItems = picked ? activityOn(activity.sources, picked) : []
+        ? 'Last Week'
+        : weekOffset === 1
+          ? 'Next Week'
+          : `${formatShortDate(days[0])} ~ ${formatShortDate(days[6])}`
+  const pickedItems = picked ? eventsOn(eventList, picked) : []
   const moveWeek = (d: number) => {
-    setWeekOffset((w) => Math.min(0, w + d))
+    setWeekOffset((w) => w + d)
     setPicked(null)
   }
 
@@ -147,28 +152,22 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
                 <ChevronLeft size={12} strokeWidth={2.2} />
               </button>
               <span>{weekLabel}</span>
-              <button
-                type="button"
-                className={s.weekNav}
-                aria-label="다음 주"
-                disabled={weekOffset === 0}
-                onClick={() => moveWeek(1)}
-              >
+              <button type="button" className={s.weekNav} aria-label="다음 주" onClick={() => moveWeek(1)}>
                 <ChevronRight size={12} strokeWidth={2.2} />
               </button>
-              <span className={s.weekTotal}>{weekTotal}건</span>
+              <span className={s.weekTotal} title="이 주 일정 수">
+                {weekTotal}
+              </span>
             </div>
-            <div className={s.weekGrid} aria-label={`${weekLabel} 요일별 기록 수`}>
+            <div className={s.weekGrid} aria-label={`${weekLabel} 요일별 일정 수`}>
               {days.map((d, i) => (
                 <button
                   type="button"
                   key={d}
                   className={s.weekCell}
-                  data-level={d > today ? 0 : heatLevel(weekCounts[i], weekMax)}
+                  data-level={heatLevel(weekCounts[i], weekMax)}
                   data-today={d === today}
-                  data-future={d > today}
                   data-picked={d === picked}
-                  disabled={d > today}
                   aria-pressed={d === picked}
                   aria-label={`${d} ${weekCounts[i]}건`}
                   title={`${d} · ${weekCounts[i]}건`}
@@ -177,8 +176,8 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
               ))}
             </div>
             <div className={s.weekDays} aria-hidden="true">
-              {['월', '화', '수', '목', '금', '토', '일'].map((d) => (
-                <span key={d}>{d}</span>
+              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+                <span key={i}>{d}</span>
               ))}
             </div>
             {picked && (
@@ -186,21 +185,18 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
                 <span className={s.dayTitle}>{formatHeaderDate(picked)}</span>
                 {pickedItems.length === 0 ? (
                   <span className={s.subEmpty} style={{ padding: 0 }}>
-                    기록이 없어요
+                    일정이 없어요
                   </span>
                 ) : (
-                  pickedItems.map((it, i) => (
-                    <Link key={i} to={it.to} className={s.dayItem}>
-                      <span className={s.dayDomain}>{ACTIVITY_LABEL[it.domain]}</span>
-                      <span className="ellipsis">{it.text}</span>
+                  pickedItems.map((e) => (
+                    <Link key={e.id} to={`/schedule?date=${picked}&event=${e.id}`} className={s.dayItem}>
+                      <span className={s.dayDomain}>{e.allDay ? '종일' : e.startAt.slice(11, 16)}</span>
+                      <span className="ellipsis">{e.title}</span>
                     </Link>
                   ))
                 )}
               </div>
             )}
-            <div className={s.streak}>
-              <b>{streak}일</b> 연속 기록 중
-            </div>
           </div>
         </div>
 
