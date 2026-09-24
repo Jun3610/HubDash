@@ -502,3 +502,19 @@
   border: 1px solid var(--sb-border);
   border-radius: 5px;
 }
+
+/* 메뉴 옆 ⌘ 번호 (이슈 #211) — 마우스를 올리거나 현재 메뉴일 때만 또렷하게 */
+.hotkey {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--sb-muted);
+  opacity: 0.45;
+}
+.item:hover .hotkey,
+.itemActive .hotkey {
+  opacity: 0.9;
+}
+.count + .hotkey {
+  margin-left: 6px;
+}

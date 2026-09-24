@@ -7,7 +7,9 @@ import { formatHeaderDate } from '../../lib/date'
 import { cx } from '../ui'
 import { GlobalBanners } from './Banners'
 import s from './Layout.module.css'
-import { NAV, SETTINGS_NAV } from './nav'
+import { NAV, orderedNav, SETTINGS_NAV } from './nav'
+import { navOrderStore } from '../../config/prefs'
+import { useStore } from '../../lib/storage'
 import { QuickRecordProvider } from './QuickRecord'
 import { useQuickRecord } from './quickContext'
 import { SearchPalette } from './SearchPalette'
@@ -30,18 +32,21 @@ export function AppLayout() {
   const openSearch = useCallback(() => setSearchOpen(true), [])
   const closeSearch = useCallback(() => setSearchOpen(false), [])
   useSearchHotkey(openSearch)
-  // ⌘/Ctrl + . → 홈 (이슈 #201)
+  // ⌘/Ctrl + 1~6 → 사이드바에 보이는 순서대로 이동 (이슈 #211, 설정의 메뉴 순서를 따른다)
   const navigate = useNavigate()
+  const navOrder = useStore(navOrderStore)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key === '.') {
-        e.preventDefault()
-        navigate('/')
-      }
+      if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return
+      const n = Number(e.key)
+      const items = orderedNav(navOrder)
+      if (!Number.isInteger(n) || n < 1 || n > items.length) return
+      e.preventDefault()
+      navigate(items[n - 1].to)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [navigate])
+  }, [navigate, navOrder])
 
   return (
     <QuickRecordProvider>
