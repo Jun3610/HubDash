@@ -18,7 +18,8 @@ export function openable(label: string, onOpen: () => void) {
       if (!inner(e)) onOpen()
     },
     onKeyDown: (e: KeyboardEvent) => {
-      if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
+      // ⌘/Ctrl + Enter는 빠른 기록 단축키라 카드 열기로 쓰지 않는다
+      if ((e.key === 'Enter' || e.key === ' ') && !e.metaKey && !e.ctrlKey && e.target === e.currentTarget) {
         e.preventDefault()
         onOpen()
       }
