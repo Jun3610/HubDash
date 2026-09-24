@@ -6,7 +6,6 @@ import { memos } from '../api/memo'
 import { assignments } from '../api/pknu'
 import { reminders } from '../api/reminder'
 import { BIG_PAGE, useList, useListsByParent, useUpdate } from '../api/resource'
-import { events } from '../api/schedule'
 import { studyProgresses, studyTopics } from '../api/study'
 import { MEAL_TYPE_KO, MEAL_TYPES, type Assignment, type StudyProgress } from '../api/types'
 import { useProfile } from '../api/user'
@@ -34,6 +33,7 @@ import { pledgesStore } from '../config/prefs'
 import { ACTIVITY_LABEL, useActivity, YEAR_PAGE, type ActivityDomain } from '../hooks/useActivity'
 import { useAllHubLinks } from '../hooks/useHub'
 import { logOn, useHabitsWithLogs, useToggleHabit } from '../hooks/useLife'
+import { useAllEvents } from '../hooks/useEvents'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { useOptimistic } from '../hooks/useOptimistic'
 import { useSemesterBundle } from '../hooks/usePknu'
@@ -325,7 +325,7 @@ function ActivitySplit({ range }: { range: YearRange }) {
 
 function EventsCard() {
   const today = useToday()
-  const list = useList(events, { size: BIG_PAGE, sort: 'startAt,desc' })
+  const list = useAllEvents()
   const todays = eventsOn(list.data?.content ?? [], today)
   return (
     <Card>
