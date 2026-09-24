@@ -482,7 +482,7 @@ function HubCard() {
       >
         <div className={s.hubGrid}>
           {hub.categories.slice(0, 9).map((c) => (
-            <Link key={c.id} to={`/hub?category=${c.id}`} className={s.hubItem}>
+            <Link key={c.id} to={`/hub/${c.id}`} className={s.hubItem}>
               <span className={s.abbr}>{abbr(c.name)}</span>
               <span className="ellipsis" style={{ flexGrow: 1 }}>
                 {c.name}

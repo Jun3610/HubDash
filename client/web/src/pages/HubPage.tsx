@@ -1,6 +1,6 @@
 import { MoreHorizontal, Pin, Plus, Search, X } from 'lucide-react'
 import { useRef, useState, type FormEvent } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { hubCategories, hubLinks } from '../api/hub'
 import { useCreate, useRemove, useUpdate } from '../api/resource'
 import type { HubCategory, HubLink } from '../api/types'
@@ -36,8 +36,14 @@ function abbr(name: string): string {
   return (latin.length >= 2 ? latin.slice(0, 2) : name.slice(0, 2)).toUpperCase()
 }
 
+/**
+ * 허브 (이슈 #152): 첫 화면(/hub)은 카테고리 상자, 상자를 누르면 카테고리 세부 페이지(/hub/:id)에서 링크를 보고
+ * 링크를 누르면 노션이 열린다. 허브 카테고리는 '하위 화면은 작은 창' 원칙의 예외로 페이지다.
+ */
 export default function HubPage() {
   const [params, setParams] = useSearchParams()
+  const navigate = useNavigate()
+  const { id } = useParams()
   const hub = useAllHubLinks()
   const view = useStore(viewStore)
   const pinned = useStore(pinnedLinksStore)
@@ -49,8 +55,9 @@ export default function HubPage() {
   const formRef = useRef<HTMLFormElement>(null)
   const remove = useRemove(hubLinks)
 
-  const catId = Number(params.get('category')) || null
+  const catId = Number(id) || null
   const category = hub.categories.find((c) => c.id === catId) ?? null
+  const missing = catId !== null && !category && !hub.isLoading
   const showForm = formOpen || params.get('new') === '1'
 
   const setParam = (k: string, v: string | null) =>
@@ -90,9 +97,13 @@ export default function HubPage() {
   const togglePin = (l: HubLink) =>
     pinnedLinksStore.set((xs) => (xs.includes(l.id) ? xs.filter((x) => x !== l.id) : [...xs, l.id]))
 
+  // 예전 주소(/hub?category=3)는 세부 페이지로
+  const legacy = params.get('category')
+  if (legacy) return <Navigate to={`/hub/${legacy}`} replace />
+
   return (
     <>
-      <PageHeader title="Hub" sub={category?.name ?? '전체'}>
+      <PageHeader title="Hub" titleTo={category ? '/hub' : undefined} sub={category?.name}>
         <label className={s.search}>
           <Search size={14} />
           <input
@@ -116,63 +127,12 @@ export default function HubPage() {
         </Button>
       </PageHeader>
 
-      <div className={s.layout}>
-        <nav aria-label="카테고리" className={s.cats}>
-          <div className={s.catsHead}>
-            카테고리<span>{hub.categories.length}</span>
-          </div>
-          <button type="button" className={s.cat} aria-current={!category} onClick={() => setParam('category', null)}>
-            <span className={s.badge}>*</span>
-            <span style={{ flexGrow: 1 }}>전체</span>
-            <span className={s.catCount}>{hub.links.length}</span>
-          </button>
-          {hub.categories.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              className={s.cat}
-              aria-current={c.id === catId}
-              onClick={() => setParam('category', String(c.id))}
-            >
-              <span className={s.badge}>{abbr(c.name)}</span>
-              <span className="ellipsis" style={{ flexGrow: 1 }}>
-                {c.name}
-              </span>
-              <span className={s.catCount}>{hub.linksByCategory.get(c.id)?.length ?? 0}</span>
-            </button>
-          ))}
-        </nav>
-
-        <section className={s.main}>
-          <div className={s.head}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-              <h1>{category?.name ?? '전체'}</h1>
-              <span className="muted">
-                {category
-                  ? (category.description ?? '설명이 없어요')
-                  : `${hub.categories.length}개 카테고리의 모든 링크`}
-              </span>
-            </div>
-            <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-              {category && (
-                <Button size="sm" onClick={() => setCatDialog({ category })}>
-                  카테고리 수정
-                </Button>
-              )}
-              <Segmented
-                label="보기"
-                value={view}
-                onChange={(v) => viewStore.set(v)}
-                items={[
-                  { key: 'card', label: '카드' },
-                  { key: 'list', label: '목록' },
-                ]}
-              />
-            </span>
-          </div>
-
+      <section className={s.main}>
+        {missing ? (
+          <EmptyState title="카테고리를 찾을 수 없어요" action={<Link to="/hub">허브로</Link>} />
+        ) : !category && !needle ? (
           <QueryState
-            loading={hub.isLoading && hub.links.length === 0}
+            loading={hub.isLoading && hub.categories.length === 0}
             error={hub.error}
             onRetry={hub.refetch}
             empty={hub.categories.length === 0}
@@ -190,111 +150,186 @@ export default function HubPage() {
               </div>
             }
           >
-            {view === 'card' ? (
-              <div className={s.cards}>
-                {links.map((l) => (
-                  <LinkCard
-                    key={l.id}
-                    link={l}
-                    pinned={pinned.includes(l.id)}
-                    categoryName={category ? undefined : catName.get(l.categoryId)}
-                    onEdit={() => setEditLink(l)}
-                    onDelete={() => setDelLink(l)}
-                    onPin={() => togglePin(l)}
-                  />
-                ))}
-                {!needle && (
-                  <button type="button" className={s.addCard} onClick={openForm}>
-                    <Plus size={14} />
-                    {category ? '이 카테고리에 링크 추가' : '링크 추가'}
-                  </button>
-                )}
-                {needle && links.length === 0 && <EmptyState compact title="검색 결과가 없어요" />}
-              </div>
-            ) : links.length === 0 ? (
-              <div className={s.box}>
-                <EmptyState
-                  title={needle ? '검색 결과가 없어요' : '링크가 없어요'}
-                  action={<Button onClick={openForm}>링크 추가</Button>}
-                />
-              </div>
-            ) : (
-              <div className={s.box}>
-                <Table>
-                  <thead>
-                    <tr>
-                      <th scope="col">제목</th>
-                      <th scope="col" className={s.hideMobile}>
-                        주소
-                      </th>
-                      {!category && <th scope="col">카테고리</th>}
-                      <th scope="col" className={s.hideMobile}>
-                        추가일
-                      </th>
-                      <th scope="col">
-                        <span className="sr-only">동작</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {links.map((l) => (
-                      <tr key={l.id} className="hover-row">
-                        <td>
-                          {pinned.includes(l.id) && (
-                            <Pin size={11} style={{ marginRight: 4, color: 'var(--accent)' }} aria-label="고정됨" />
-                          )}
-                          <a
-                            href={browserUrl(l.url)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ color: 'var(--text)' }}
-                          >
-                            {l.title}
-                          </a>
-                        </td>
-                        <td className={`${s.hideMobile} mono muted`} style={{ fontSize: 12 }}>
-                          {shortUrl(l.url)}
-                        </td>
-                        {!category && <td className="muted">{catName.get(l.categoryId)}</td>}
-                        <td className={`${s.hideMobile} mono muted`} style={{ fontSize: 12 }}>
-                          {formatShortDate(datePart(l.createdAt))}
-                        </td>
-                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                          <IconButton
-                            label={pinned.includes(l.id) ? `${l.title} 고정 해제` : `${l.title} 고정`}
-                            size="sm"
-                            onClick={() => togglePin(l)}
-                          >
-                            <Pin size={13} />
-                          </IconButton>
-                          <RowActions label={l.title} onEdit={() => setEditLink(l)} onDelete={() => setDelLink(l)} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-            )}
+            <div className={s.catGrid}>
+              {hub.categories.map((c) => {
+                const list = sortBy(hub.linksByCategory.get(c.id) ?? [], (l) => l.createdAt, 'desc')
+                return (
+                  <Link key={c.id} to={`/hub/${c.id}`} className={s.catCard}>
+                    <div className={s.catCardHead}>
+                      <span className={s.badge}>{abbr(c.name)}</span>
+                      <span className={s.catName}>{c.name}</span>
+                      <span className={s.catCount}>{list.length}</span>
+                    </div>
+                    {c.description && <span className={s.catDesc}>{c.description}</span>}
+                    <ul className={s.catLinks}>
+                      {list.slice(0, 3).map((l) => (
+                        <li key={l.id} className="ellipsis">
+                          {l.title}
+                        </li>
+                      ))}
+                      {list.length === 0 && <li className="muted">링크가 없어요</li>}
+                    </ul>
+                  </Link>
+                )
+              })}
+              <button type="button" className={s.addCard} onClick={() => setCatDialog({})}>
+                <Plus size={14} />
+                카테고리 추가
+              </button>
+            </div>
           </QueryState>
+        ) : (
+          <>
+            <div className={s.head}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+                <h1>{category?.name ?? '전체'}</h1>
+                <span className="muted">
+                  {category ? (category.description ?? '설명이 없어요') : `"${q.trim()}" 검색 결과 · 모든 카테고리`}
+                </span>
+              </div>
+              <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+                {category && (
+                  <Button size="sm" onClick={() => setCatDialog({ category })}>
+                    카테고리 수정
+                  </Button>
+                )}
+                <Segmented
+                  label="보기"
+                  value={view}
+                  onChange={(v) => viewStore.set(v)}
+                  items={[
+                    { key: 'card', label: '카드' },
+                    { key: 'list', label: '목록' },
+                  ]}
+                />
+              </span>
+            </div>
 
-          {showForm && hub.categories.length > 0 && (
-            <LinkForm
-              formRef={formRef}
-              categories={hub.categories}
-              defaultCategoryId={category?.id ?? hub.categories[0].id}
-              onClose={closeForm}
-            />
-          )}
-        </section>
-      </div>
+            <QueryState
+              loading={hub.isLoading && hub.links.length === 0}
+              error={hub.error}
+              onRetry={hub.refetch}
+              empty={hub.categories.length === 0}
+              emptyView={
+                <div className={s.box}>
+                  <EmptyState
+                    title="카테고리가 없어요"
+                    description="링크를 모을 카테고리를 먼저 만들어 보세요."
+                    action={
+                      <Button variant="primary" onClick={() => setCatDialog({})}>
+                        카테고리 추가
+                      </Button>
+                    }
+                  />
+                </div>
+              }
+            >
+              {view === 'card' ? (
+                <div className={s.cards}>
+                  {links.map((l) => (
+                    <LinkCard
+                      key={l.id}
+                      link={l}
+                      pinned={pinned.includes(l.id)}
+                      categoryName={category ? undefined : catName.get(l.categoryId)}
+                      onEdit={() => setEditLink(l)}
+                      onDelete={() => setDelLink(l)}
+                      onPin={() => togglePin(l)}
+                    />
+                  ))}
+                  {!needle && (
+                    <button type="button" className={s.addCard} onClick={openForm}>
+                      <Plus size={14} />
+                      {category ? '이 카테고리에 링크 추가' : '링크 추가'}
+                    </button>
+                  )}
+                  {needle && links.length === 0 && <EmptyState compact title="검색 결과가 없어요" />}
+                </div>
+              ) : links.length === 0 ? (
+                <div className={s.box}>
+                  <EmptyState
+                    title={needle ? '검색 결과가 없어요' : '링크가 없어요'}
+                    action={<Button onClick={openForm}>링크 추가</Button>}
+                  />
+                </div>
+              ) : (
+                <div className={s.box}>
+                  <Table>
+                    <thead>
+                      <tr>
+                        <th scope="col">제목</th>
+                        <th scope="col" className={s.hideMobile}>
+                          주소
+                        </th>
+                        {!category && <th scope="col">카테고리</th>}
+                        <th scope="col" className={s.hideMobile}>
+                          추가일
+                        </th>
+                        <th scope="col">
+                          <span className="sr-only">동작</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {links.map((l) => (
+                        <tr key={l.id} className="hover-row">
+                          <td>
+                            {pinned.includes(l.id) && (
+                              <Pin size={11} style={{ marginRight: 4, color: 'var(--accent)' }} aria-label="고정됨" />
+                            )}
+                            <a
+                              href={browserUrl(l.url)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: 'var(--text)' }}
+                            >
+                              {l.title}
+                            </a>
+                          </td>
+                          <td className={`${s.hideMobile} mono muted`} style={{ fontSize: 12 }}>
+                            {shortUrl(l.url)}
+                          </td>
+                          {!category && <td className="muted">{catName.get(l.categoryId)}</td>}
+                          <td className={`${s.hideMobile} mono muted`} style={{ fontSize: 12 }}>
+                            {formatShortDate(datePart(l.createdAt))}
+                          </td>
+                          <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                            <IconButton
+                              label={pinned.includes(l.id) ? `${l.title} 고정 해제` : `${l.title} 고정`}
+                              size="sm"
+                              onClick={() => togglePin(l)}
+                            >
+                              <Pin size={13} />
+                            </IconButton>
+                            <RowActions label={l.title} onEdit={() => setEditLink(l)} onDelete={() => setDelLink(l)} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </div>
+              )}
+            </QueryState>
+          </>
+        )}
+
+        {showForm && hub.categories.length > 0 && (
+          <LinkForm
+            formRef={formRef}
+            categories={hub.categories}
+            defaultCategoryId={category?.id ?? hub.categories[0].id}
+            onClose={closeForm}
+          />
+        )}
+      </section>
 
       {catDialog && (
         <CategoryModal
           category={catDialog.category}
           linkCount={catDialog.category ? (hub.linksByCategory.get(catDialog.category.id)?.length ?? 0) : 0}
           onClose={() => setCatDialog(null)}
-          onSaved={(c) => setParam('category', String(c.id))}
-          onDeleted={() => setParam('category', null)}
+          onSaved={(c) => navigate(`/hub/${c.id}`)}
+          onDeleted={() => navigate('/hub')}
         />
       )}
       {editLink && <LinkModal link={editLink} categories={hub.categories} onClose={() => setEditLink(null)} />}
