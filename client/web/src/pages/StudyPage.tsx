@@ -585,7 +585,7 @@ function QuickForm({
         disabled={create.isPending || !topics.length}
         style={{ height: 30, fontSize: 13 }}
       >
-        {create.isPending ? '저장 중…' : '기록 저장'}
+        {create.isPending ? 'Saving…' : 'Save Log'}
       </Button>
     </form>
   )
