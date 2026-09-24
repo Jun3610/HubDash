@@ -19,6 +19,7 @@ import {
   ProgressBar,
   QueryState,
   SectionHeader,
+  Sparkline,
   Tag,
   YearHeatmap,
   barVar,
@@ -42,6 +43,7 @@ import { dayTotals, dietRows, goalState, mealsOn, ruleText } from '../lib/select
 import { withinDates } from '../lib/select/range'
 import { eventsOn, eventTimeLabel } from '../lib/select/schedule'
 import { useStore } from '../lib/storage'
+import { useBodyLogs } from './health/data'
 import s from './home/Home.module.css'
 
 export default function HomePage() {
@@ -77,7 +79,11 @@ export default function HomePage() {
             </div>
             <div className={s.row3}>
               <EventsCard />
-              <HabitsCard />
+              {/* 습관 칸을 위아래로 나눠 아래에 오늘 몸무게 (이슈 #220) */}
+              <div className={s.stack}>
+                <HabitsCard />
+                <WeightCard />
+              </div>
               <MemosCard />
             </div>
             <DietCard />
@@ -389,6 +395,54 @@ function HabitsCard() {
 }
 
 // ---- 오늘 식단 ----
+
+/** 오늘 몸무게: 오늘 마지막 측정(없으면 가장 최근) + 전날 대비, 14일 흐름 (이슈 #220) */
+function WeightCard() {
+  const today = useToday()
+  const logs = (useBodyLogs().data?.content ?? []).filter((l) => l.weightKg != null)
+  // 날짜별 마지막 측정
+  const byDay = new Map<string, number>()
+  for (const l of [...logs].sort((a, b) => (a.recordedAt < b.recordedAt ? -1 : 1)))
+    byDay.set(datePart(l.recordedAt), l.weightKg!)
+  const days = [...byDay.keys()].sort()
+  const lastDay = days[days.length - 1]
+  const current = lastDay ? byDay.get(lastDay)! : null
+  const prev = days.length > 1 ? byDay.get(days[days.length - 2])! : null
+  const delta = current !== null && prev !== null ? current - prev : null
+  const spark = Array.from({ length: 14 }, (_, i) => byDay.get(shiftDate(today, i - 13)) ?? null)
+  return (
+    <Card>
+      <SectionHeader
+        title="Today's Weight"
+        meta={lastDay && lastDay !== today ? `last ${lastDay.slice(5).replace('-', '.')}` : undefined}
+        actions={<Link to="/health?tab=body">Health</Link>}
+      />
+      {current === null ? (
+        <EmptyState compact title="No weight yet" action={<Link to="/health?tab=body">Add</Link>} />
+      ) : (
+        <div className={s.weightRow}>
+          <span className={s.weightValue}>
+            {num(current, 1)}
+            <small>kg</small>
+          </span>
+          {delta !== null && (
+            <span
+              className={s.weightDelta}
+              style={{ color: delta <= 0 ? 'var(--green)' : 'var(--orange)' }}
+              title="직전 측정일 대비"
+            >
+              {delta > 0 ? '+' : delta < 0 ? '−' : '±'}
+              {Math.abs(delta).toFixed(1)}
+            </span>
+          )}
+          <div className={s.weightSpark}>
+            <Sparkline values={spark} color="green" label="최근 14일 체중" />
+          </div>
+        </div>
+      )}
+    </Card>
+  )
+}
 
 function DietCard() {
   const today = useToday()

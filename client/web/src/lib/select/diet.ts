@@ -111,8 +111,8 @@ export function macroShare(m: Macros): Record<MacroKey, number> {
 
 /** "140g 이하" / "목표 없음" */
 export function ruleText(goal: number | null, rule: GoalRule, unit: string): string {
-  if (goal === null) return '목표 없음'
-  return `${goal.toLocaleString('ko-KR')}${unit} ${rule === 'AT_MOST' ? '이하' : '이상'}`
+  if (goal === null) return 'No goal'
+  return `${rule === 'AT_MOST' ? 'max' : 'min'} ${goal.toLocaleString('ko-KR')}${unit}`
 }
 
 export interface DietRow {

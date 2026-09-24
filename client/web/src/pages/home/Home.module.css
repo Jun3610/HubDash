@@ -334,3 +334,41 @@
   border-radius: 3px;
   border: 1px dashed var(--border);
 }
+
+/* 습관 + 오늘 몸무게 세로 반반 (이슈 #220) */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.stack > * {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+}
+.weightRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.weightValue {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+}
+.weightValue small {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: 3px;
+}
+.weightDelta {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.weightSpark {
+  flex: 1 1 auto;
+  min-width: 60px;
+}

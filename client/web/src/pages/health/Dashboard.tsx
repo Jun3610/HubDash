@@ -101,7 +101,7 @@ function DietTrend({
         <StackedBarChart
           label="최근 14일 날짜별 칼로리(지방·탄수·단백질)"
           goal={goal.data?.calories ?? null}
-          goalLabel={goal.data?.calories ? `권장 ${num(goal.data.calories)}` : undefined}
+          goalLabel={goal.data?.calories ? `goal ${num(goal.data.calories)}` : undefined}
           data={days.map((d) => ({
             key: d.date,
             title: `${d.date} · ${num(d.kcal)} kcal (지 ${num(d.fatG)}g · 탄 ${num(d.carbsG)}g · 단 ${num(d.proteinG)}g)`,
@@ -126,7 +126,7 @@ function DietTrend({
           onClick={onGoals}
           style={{ alignSelf: 'flex-start' }}
         >
-          권장 칼로리를 정하면 그래프에 기준선이 보여요
+          Set a calorie goal to see a guide line
         </Button>
       )}
     </Card>
@@ -177,7 +177,7 @@ function MacroAverages({
         meta={`${days.length} days logged`}
         actions={
           <Button size="sm" variant="link" onClick={onGoals}>
-            목표
+            Goal
           </Button>
         }
       />
@@ -365,8 +365,8 @@ function WorkoutWeek({ today, onOpen }: { today: LocalDate; onOpen: () => void }
         empty={items.length === 0}
         emptyView={<EmptyState compact title="운동 기록이 없어요" />}
       >
-        <ProgressBar value={pct(minutes, 150)} color="orange" label="권장 150분 대비" thin />
-        <span className={s.limit}>권장 주 150분</span>
+        <ProgressBar value={pct(minutes, 150)} color="orange" label="vs 150 min goal" thin />
+        <span className={s.limit}>goal 150 min / week</span>
         {items.slice(0, 4).map((w) => (
           <div key={w.id} className={s.wrow} style={{ gridTemplateColumns: '44px minmax(0, 1fr) auto' }}>
             <span className={s.mono}>{formatShortDate(w.performedAt)}</span>
