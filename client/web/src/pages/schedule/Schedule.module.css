@@ -217,7 +217,8 @@
   opacity: 0.45;
 }
 .monthCell[data-today='true'] {
-  background: var(--surface);
+  /* 오늘은 형광펜처럼 연하게 칠한다 (이슈 #185) */
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 .monthNum {
   font-family: var(--font-mono);
@@ -487,4 +488,39 @@
   font-family: var(--font-mono);
   color: var(--text);
   font-weight: 600;
+}
+
+/* 지금 보기 안 검색 필터 안내 (이슈 #185) */
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--divider);
+}
+.searchBar b {
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+.searchBar button {
+  margin-left: auto;
+  background: none;
+  border: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+.searchBar button:hover {
+  color: var(--text);
+}
+
+.searchWord {
+  color: var(--text);
+  margin-right: 4px;
+}
+/* List의 오늘 줄도 형광펜처럼 (이슈 #185) */
+.listDay[data-today='true'] {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }

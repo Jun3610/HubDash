@@ -47,7 +47,7 @@ import {
   upcoming,
 } from '../lib/select/schedule'
 import { hasErrors, maxLen, optStr, required, type Errors } from '../lib/validate'
-import { sortBy } from '../lib/select/range'
+import { overlapsDate, sortBy } from '../lib/select/range'
 import s from './schedule/Schedule.module.css'
 
 type View = 'month' | 'week' | 'list'
@@ -97,22 +97,17 @@ export default function SchedulePage() {
       setAnchor(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`)
     }
   }
-  // 검색 결과를 누르면 그 날짜로 가서 선택 (주소를 한 번에 바꾼다)
-  const jumpTo = (e: ScheduleEvent) => {
-    setParams(
-      (p) => {
-        const n = new URLSearchParams(p)
-        n.set('date', datePart(e.startAt))
-        n.set('event', String(e.id))
-        if (n.get('view') === 'list') n.delete('view')
-        return n
-      },
-      { replace: true },
-    )
-    setQ('')
-  }
-  const found = searchEvents(all, q)
+  // 검색은 지금 보기 안의 필터: List는 전체, W는 그 주, M은 그 달에서 맞는 일정만 (이슈 #185)
+  const searching = q.trim() !== ''
+  const total = list.data?.totalElements ?? all.length
+  const shown = searching ? searchEvents(all, q) : all
   const days = weekDays(anchor)
+  const inRange =
+    view === 'week'
+      ? shown.filter((e) => days.some((d) => overlapsDate(e.startAt, e.endAt, d))).length
+      : view === 'month'
+        ? shown.filter((e) => datePart(e.startAt).slice(0, 7) === anchor.slice(0, 7)).length
+        : shown.length
   const rangeLabel =
     view === 'week'
       ? `${days[0].replaceAll('-', '.')} – ${formatShortDate(days[6])}`
@@ -127,15 +122,11 @@ export default function SchedulePage() {
             <Segmented<View>
               label="보기"
               value={view as View}
-              onChange={(v) => {
-                // 검색 결과가 보기를 가리고 있으면 보기를 바꿀 때 검색을 끝낸다 (이슈 #183)
-                setQ('')
-                setView(v)
-              }}
+              onChange={setView}
               items={[
                 { key: 'month', label: 'M', title: '월' },
                 { key: 'week', label: 'W', title: '주' },
-                { key: 'list', label: 'List', title: '전체 일정 (최신순)' },
+                { key: 'list', label: 'L', title: '전체 일정 (최신순)' },
               ]}
             />
             {/* List는 전체 일정이라 날짜 이동이 필요 없다 (이슈 #177) */}
@@ -180,7 +171,7 @@ export default function SchedulePage() {
               if (e.key === 'Escape' && q) {
                 e.stopPropagation()
                 setQ('')
-              } else if (e.key === 'Enter' && found[0]) jumpTo(found[0])
+              }
             }}
           />
           {q && (
@@ -200,22 +191,41 @@ export default function SchedulePage() {
           className={s.cal}
         >
           <QueryState loading={list.isLoading} error={list.error} onRetry={() => void list.refetch()} lines={8}>
-            {q.trim() && <SearchResults query={q} events={found} onPick={jumpTo} />}
-            {!q.trim() && view === 'week' && (
+            {/* 개수 줄: 검색하지 않아도 이 주·이 달·전체 개수를 보여 준다 (이슈 #185) */}
+            <div className={s.searchBar} role="status">
+              {searching && <span className={s.searchWord}>"{q.trim()}"</span>}
+              {view === 'week' ? '이 주' : view === 'month' ? '이 달' : searching ? '검색' : '총'}{' '}
+              <b>{inRange.toLocaleString()}</b>
+              {view === 'list' && !searching ? '개 일정' : '건'}
+              {/* List는 전체라 DB 개수와 겹치지 않게: 검색 안 하면 생략, 검색하면 DB 개수만 */}
+              {!(view === 'list' && !searching) && (
+                <span className="muted">
+                  {' '}
+                  · {searching && view !== 'list' ? `검색 전체 ${shown.length}건 / ` : ''}DB 전체{' '}
+                  {total.toLocaleString()}개
+                </span>
+              )}
+              {searching && (
+                <button type="button" onClick={() => setQ('')}>
+                  검색 지우기
+                </button>
+              )}
+            </div>
+            {view === 'week' && (
               <WeekView
                 days={days}
                 today={today}
                 now={now}
-                events={all}
+                events={shown}
                 selectedId={selected?.id}
                 onSelect={(e) => setSelectedId(String(e.id))}
               />
             )}
-            {!q.trim() && view === 'month' && (
+            {view === 'month' && (
               <MonthView
                 anchor={anchor}
                 today={today}
-                events={all}
+                events={shown}
                 selectedId={selected?.id}
                 onSelect={(e) => setSelectedId(String(e.id))}
                 onDay={(d) => {
@@ -224,11 +234,11 @@ export default function SchedulePage() {
                 }}
               />
             )}
-            {!q.trim() && view === 'list' && (
+            {view === 'list' && (
               <ListView
                 today={today}
-                events={all}
-                total={list.data?.totalElements ?? all.length}
+                events={shown}
+                searching={searching}
                 selectedId={selected?.id}
                 onSelect={(e) => setSelectedId(String(e.id))}
               />
@@ -445,14 +455,13 @@ function MonthView({
 function ListView({
   today,
   events: list,
-  total,
+  searching,
   selectedId,
   onSelect,
 }: {
   today: LocalDate
   events: ScheduleEvent[]
-  /** DB에 있는 일정 전체 개수 (서버 totalElements, 이슈 #181) */
-  total: number
+  searching: boolean
   selectedId?: number
   onSelect: (e: ScheduleEvent) => void
 }) {
@@ -464,14 +473,11 @@ function ListView({
   const rows = [...byDay.entries()]
     .sort((a, b) => (a[0] < b[0] ? 1 : -1))
     .map(([d, on]) => ({ d, on: sortBy(on, (e) => (e.allDay ? '0' : '1') + e.startAt) }))
-  if (rows.length === 0) return <EmptyState title="일정이 없어요" />
+  if (rows.length === 0) return <EmptyState title={searching ? '찾는 일정이 없어요' : '일정이 없어요'} />
   return (
     <div>
-      <div className={s.listTotal}>
-        총 <b>{total.toLocaleString()}</b>개 일정 · {rows.length.toLocaleString()}일
-      </div>
       {rows.map(({ d, on }) => (
-        <div key={d} className={s.listDay}>
+        <div key={d} className={s.listDay} data-today={d === today}>
           <span className={s.listDate} data-today={d === today}>
             {d.slice(0, 4) !== today.slice(0, 4) && `${d.slice(2, 4)}.`}
             {formatShortDate(d)} {weekdayKo(d)}
@@ -497,52 +503,6 @@ function ListView({
           </div>
         </div>
       ))}
-    </div>
-  )
-}
-
-// ---- 검색 결과 (이슈 #160) ----
-
-function SearchResults({
-  query,
-  events,
-  onPick,
-}: {
-  query: string
-  events: ScheduleEvent[]
-  onPick: (e: ScheduleEvent) => void
-}) {
-  return (
-    <div className={s.box}>
-      <div className={s.boxHead}>
-        <h2>"{query.trim()}" 검색</h2>
-        <span className="muted" style={{ marginLeft: 'auto', fontSize: 12 }}>
-          {events.length}건 · 누르면 그 날짜로
-        </span>
-      </div>
-      {events.length === 0 ? (
-        <div style={{ padding: 14 }}>
-          <EmptyState compact title="찾는 일정이 없어요" />
-        </div>
-      ) : (
-        <ul className={s.results}>
-          {events.slice(0, 100).map((e) => {
-            const d = datePart(e.startAt)
-            return (
-              <li key={e.id}>
-                <button type="button" className={s.result} onClick={() => onPick(e)}>
-                  <span className="mono muted">
-                    {d.replaceAll('-', '.')} {weekdayKo(d)}
-                  </span>
-                  <span className="mono muted">{e.allDay ? '종일' : timeRange(e)}</span>
-                  <span className={s.resultTitle}>{e.title}</span>
-                  {e.location && <span className="muted ellipsis">{e.location}</span>}
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-      )}
     </div>
   )
 }
