@@ -3,7 +3,7 @@ import { datePart, shiftDate, type LocalDate } from '../date'
 
 /** 표시·입력 순서: 지방 → 탄수 → 단백질 → 칼로리 (사용자 요청, 이슈 #131 → #148에서 지방을 앞으로) */
 export const MACROS = [
-  { key: 'fatG', label: 'Fat', unit: 'g', kcalPerG: 9, color: 'orange' },
+  { key: 'fatG', label: 'Fat', unit: 'g', kcalPerG: 9, color: 'red' }, // 탄수(노랑)와 구분되게 빨강 (이슈 #203)
   { key: 'carbsG', label: 'Carbs', unit: 'g', kcalPerG: 4, color: 'yellow' },
   { key: 'proteinG', label: 'Protein', unit: 'g', kcalPerG: 4, color: 'green' },
 ] as const
@@ -122,7 +122,7 @@ export interface DietRow {
   value: number
   goal: number | null
   rule: GoalRule
-  color: 'yellow' | 'orange' | 'green' | 'blue'
+  color: 'red' | 'yellow' | 'orange' | 'green' | 'blue'
 }
 
 /** 목표 대비 표시 줄: 지방 → 탄수 → 단백질 → 칼로리 (목표가 없으면 goal=null) */
@@ -135,7 +135,7 @@ export function dietRows(goal: DietGoal | undefined, t: Macros & { kcal: number 
       value: t.fatG,
       goal: goal?.fatG ?? null,
       rule: goal?.fatRule ?? 'AT_MOST',
-      color: 'orange',
+      color: 'red',
     },
     {
       key: 'carbsG',
