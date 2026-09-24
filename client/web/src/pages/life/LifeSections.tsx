@@ -194,6 +194,19 @@ export function LifeSection({ section }: { section: LifeSectionKey }) {
   )
 }
 
+/** 메모 대시보드의 습관 카드: 오늘 체크 (누르면 습관 창, 이슈 #148) */
+export function HabitsSummary() {
+  const today = useToday()
+  const life = useHabitsWithLogs()
+  return <TodayCheck habits={life.habits} logsByHabit={life.logsByHabit} today={today} loading={life.isLoading} />
+}
+
+/** 메모 대시보드의 독서 카드: 읽는 중인 책 */
+export function ReadingSummary({ onOpen }: { onOpen: () => void }) {
+  const books = useList(readingLogs, { size: BIG_PAGE, sort: 'startedAt,desc' })
+  return <ReadingNow book={sortBooks(books.data?.content ?? []).find((b) => !b.finishedAt)} onEdit={onOpen} />
+}
+
 function Pledges() {
   const peekTo = usePeekTo()
   const pledges = useStore(pledgesStore)

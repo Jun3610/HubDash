@@ -20,7 +20,9 @@ import {
   RowActions,
   Select,
   Table,
-  Tabs,
+  Peek,
+  openable,
+  openClass,
   Tag,
   Textarea,
   barVar,
@@ -30,7 +32,6 @@ import {
 } from '../components/ui'
 import { YEAR_PAGE } from '../hooks/useActivity'
 import { useToday } from '../hooks/useToday'
-import { useUrlState } from '../hooks/useUrlState'
 import { formatMinutes, formatShortDate, shiftDate, weekStartOf, type LocalDate } from '../lib/date'
 import { sortBy, withinDates } from '../lib/select/range'
 import { longestStreak, studyStreak, weeklyMinutes } from '../lib/select/study'
@@ -43,7 +44,7 @@ import { usePeekTo } from '../components/layout/peek'
 const TOPIC_COLORS: (BarColor & Tone)[] = ['green', 'orange', 'purple', 'blue', 'yellow', 'accent', 'red']
 const colorOf = (i: number) => TOPIC_COLORS[i % TOPIC_COLORS.length]
 
-type Tab = 'topics' | 'logs' | 'stats'
+/** 작은 창: ?tab=logs 전체 기록, ?tab=stats 주간 통계, ?topic=<id> 주제 (이슈 #148) */
 
 function useStudyData() {
   const topics = useList(studyTopics, { size: BIG_PAGE, sort: 'createdAt,asc' })
@@ -69,32 +70,36 @@ function useStudyData() {
 
 export default function StudyPage() {
   const today = useToday()
-  const [tab, setTab] = useUrlState('tab', 'topics')
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
+  const tab = params.get('tab')
+  const topicId = Number(params.get('topic')) || null
   const [topicDialog, setTopicDialog] = useState<{ topic?: StudyTopic } | null>(null)
   const [editLog, setEditLog] = useState<StudyProgress | null>(null)
   const formRef = useRef<HTMLSelectElement>(null)
   const data = useStudyData()
   const colorIdx = new Map(data.topics.map((t, i) => [t.id, i]))
+  const peekTopic = data.topics.find((t) => t.id === topicId)
+  const openPeek = (key: 'tab' | 'topic', value: string) =>
+    setParams((p) => {
+      const n = new URLSearchParams(p)
+      n.set(key, value)
+      return n
+    })
+  const closePeek = () =>
+    setParams(
+      (p) => {
+        const n = new URLSearchParams(p)
+        n.delete('tab')
+        n.delete('topic')
+        return n
+      },
+      { replace: true },
+    )
+  const byDate = (list: StudyProgress[]) => sortBy(list, (p) => p.studiedAt + p.createdAt, 'desc')
 
   return (
     <>
-      <PageHeader
-        title="Study"
-        tabs={
-          <Tabs<Tab>
-            inHeader
-            label="공부 탭"
-            value={tab as Tab}
-            onChange={setTab}
-            items={[
-              { key: 'topics', label: '주제', count: data.topics.length },
-              { key: 'logs', label: '기록', count: data.progresses.length },
-              { key: 'stats', label: '주간 통계' },
-            ]}
-          />
-        }
-      >
+      <PageHeader title="Study">
         <Button onClick={() => setTopicDialog({})}>주제 추가</Button>
         <Button
           variant="primary"
@@ -127,48 +132,35 @@ export default function StudyPage() {
               </div>
             }
           >
-            {tab === 'topics' && (
-              <>
-                <Kpis progresses={data.progresses} topics={data.topics} today={today} />
-                <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div className={s.sectionHead}>
-                    <h2>주제</h2>
-                    <span className="muted" style={{ fontSize: 12 }}>
-                      막대 = 최근 8주 공부 시간
-                    </span>
-                  </div>
-                  <div className={s.topics}>
-                    {data.topics.map((t, i) => (
-                      <TopicCard
-                        key={t.id}
-                        topic={t}
-                        color={colorOf(i)}
-                        list={data.byTopic.get(t.id) ?? []}
-                        today={today}
-                        onEdit={() => setTopicDialog({ topic: t })}
-                      />
-                    ))}
-                  </div>
-                </section>
-                <LogTable
-                  title="최근 기록"
-                  list={sortBy(data.progresses, (p) => p.studiedAt + p.createdAt, 'desc').slice(0, 8)}
-                  topics={data.topics}
-                  colorIdx={colorIdx}
-                  onEdit={setEditLog}
-                />
-              </>
-            )}
-            {tab === 'logs' && (
-              <LogTable
-                title="전체 기록"
-                list={sortBy(data.progresses, (p) => p.studiedAt + p.createdAt, 'desc')}
-                topics={data.topics}
-                colorIdx={colorIdx}
-                onEdit={setEditLog}
-              />
-            )}
-            {tab === 'stats' && <WeeklyStatsTable topics={data.topics} colorIdx={colorIdx} />}
+            <Kpis progresses={data.progresses} topics={data.topics} today={today} />
+            <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className={s.sectionHead}>
+                <h2>주제</h2>
+                <span className="muted" style={{ fontSize: 12 }}>
+                  막대 = 최근 8주 공부 시간 · 누르면 주제 기록
+                </span>
+              </div>
+              <div className={s.topics}>
+                {data.topics.map((t, i) => (
+                  <TopicCard
+                    key={t.id}
+                    topic={t}
+                    color={colorOf(i)}
+                    list={data.byTopic.get(t.id) ?? []}
+                    today={today}
+                    onOpen={() => openPeek('topic', String(t.id))}
+                  />
+                ))}
+              </div>
+            </section>
+            <LogTable
+              title="최근 기록"
+              list={byDate(data.progresses).slice(0, 8)}
+              topics={data.topics}
+              colorIdx={colorIdx}
+              onEdit={setEditLog}
+              onOpen={() => openPeek('tab', 'logs')}
+            />
           </QueryState>
         </section>
 
@@ -180,9 +172,56 @@ export default function StudyPage() {
             selectRef={formRef}
             autoFocus={params.get('new') === '1'}
           />
-          <WeekSplit topics={data.topics} byTopic={data.byTopic} today={today} />
+          <WeekSplit
+            topics={data.topics}
+            byTopic={data.byTopic}
+            today={today}
+            onOpen={() => openPeek('tab', 'stats')}
+          />
         </aside>
       </div>
+
+      {tab === 'logs' && (
+        <Peek label="전체 공부 기록" onClose={closePeek}>
+          <LogTable
+            title="전체 기록"
+            list={byDate(data.progresses)}
+            topics={data.topics}
+            colorIdx={colorIdx}
+            onEdit={setEditLog}
+          />
+        </Peek>
+      )}
+      {tab === 'stats' && (
+        <Peek label="주간 통계" onClose={closePeek}>
+          <WeeklyStatsTable topics={data.topics} colorIdx={colorIdx} />
+        </Peek>
+      )}
+      {peekTopic && (
+        <Peek
+          label={`${peekTopic.name} 주제`}
+          onClose={closePeek}
+          actions={
+            <Button size="sm" onClick={() => setTopicDialog({ topic: peekTopic })}>
+              주제 수정
+            </Button>
+          }
+        >
+          <TopicCard
+            topic={peekTopic}
+            color={colorOf(colorIdx.get(peekTopic.id) ?? 0)}
+            list={data.byTopic.get(peekTopic.id) ?? []}
+            today={today}
+          />
+          <LogTable
+            title="이 주제 기록"
+            list={byDate(data.byTopic.get(peekTopic.id) ?? [])}
+            topics={data.topics}
+            colorIdx={colorIdx}
+            onEdit={setEditLog}
+          />
+        </Peek>
+      )}
 
       {topicDialog && <TopicModal topic={topicDialog.topic} onClose={() => setTopicDialog(null)} />}
       {editLog && <ProgressModal log={editLog} topics={data.topics} onClose={() => setEditLog(null)} />}
@@ -238,13 +277,14 @@ function TopicCard({
   color,
   list,
   today,
-  onEdit,
+  onOpen,
 }: {
   topic: StudyTopic
   color: BarColor
   list: StudyProgress[]
   today: LocalDate
-  onEdit: () => void
+  /** 목록에서는 누르면 주제 창, 창 안에서는 없음 */
+  onOpen?: () => void
 }) {
   const weeks = weeklyMinutes(list, today, 8)
   const max = Math.max(1, ...weeks.map((w) => w.minutes))
@@ -252,12 +292,13 @@ function TopicCard({
   const thisWeek = weeks[weeks.length - 1]
   const sessions = list.filter((p) => weekStartOf(p.studiedAt) === thisWeek.weekStart).length
   return (
-    <article className={s.topic}>
+    <article
+      {...(onOpen ? openable(`${topic.name} 주제 열기`, onOpen) : {})}
+      className={onOpen ? `${s.topic} ${openClass}` : s.topic}
+    >
       <div className={s.topicHead}>
         <span className={s.dot} style={{ background: barVar(color) }} />
-        <button type="button" className={s.topicName} onClick={onEdit} title="주제 수정">
-          {topic.name}
-        </button>
+        <span className={s.topicName}>{topic.name}</span>
         {topic.notionUrl && <NotionLink url={topic.notionUrl} label={`${topic.name} 노션 필기`} />}
         <span className={s.total}>{total >= 60 ? `${Math.round(total / 60)}h` : `${total}m`}</span>
       </div>
@@ -292,18 +333,24 @@ function LogTable({
   topics,
   colorIdx,
   onEdit,
+  onOpen,
 }: {
   title: string
   list: StudyProgress[]
   topics: StudyTopic[]
   colorIdx: Map<number, number>
   onEdit: (p: StudyProgress) => void
+  /** 대시보드의 최근 기록은 누르면 전체 기록 창 */
+  onOpen?: () => void
 }) {
   const remove = useRemove(studyProgresses)
   const [del, setDel] = useState<StudyProgress | null>(null)
   const name = new Map(topics.map((t) => [t.id, t.name]))
   return (
-    <section className={s.box}>
+    <section
+      {...(onOpen ? openable('전체 공부 기록 열기', onOpen) : {})}
+      className={onOpen ? `${s.box} ${openClass}` : s.box}
+    >
       <div className={s.boxHead}>
         <h2>{title}</h2>
         <span className="mono muted" style={{ fontSize: 12 }}>
@@ -546,10 +593,12 @@ function WeekSplit({
   topics,
   byTopic,
   today,
+  onOpen,
 }: {
   topics: StudyTopic[]
   byTopic: Map<number, StudyProgress[]>
   today: LocalDate
+  onOpen: () => void
 }) {
   const from = weekStartOf(today)
   const rows = sortBy(
@@ -564,7 +613,11 @@ function WeekSplit({
     'desc',
   )
   return (
-    <div className={s.box} style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div
+      {...openable('주간 통계 열기', onOpen)}
+      className={`${s.box} ${openClass}`}
+      style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}
+    >
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>이번 주 주제별</h2>
         <span className="mono muted" style={{ marginLeft: 'auto', fontSize: 11.5 }}>

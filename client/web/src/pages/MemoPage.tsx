@@ -1,21 +1,18 @@
-import { ChevronLeft, MoreHorizontal, Plus, Save, Search, X } from 'lucide-react'
+import { MoreHorizontal, Plus, Save, Search, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { memos } from '../api/memo'
 import { BIG_PAGE, useCreate, useList, useRemove, useUpdate } from '../api/resource'
 import type { Memo } from '../api/types'
 import { PageHeader } from '../components/layout/PageHeader'
-import { Button, ConfirmDialog, EmptyState, IconButton, QueryState, Segmented, Tabs } from '../components/ui'
-import { useIsMobile } from '../hooks/useMediaQuery'
+import { Button, ConfirmDialog, EmptyState, IconButton, openable, Peek, QueryState, Segmented } from '../components/ui'
 import { useNow } from '../hooks/useToday'
 import { datePart, formatShortDate, parseLocalDateTime } from '../lib/date'
 import { joinTags, splitTags } from '../lib/format'
 import { Markdown } from '../components/ui/Markdown'
 import { plainSnippet } from '../lib/markdown'
-import { LifeSection } from './life/LifeSections'
+import { HabitsSummary, LifeSection, ReadingSummary, type LifeSectionKey } from './life/LifeSections'
 import s from './memo/Memo.module.css'
-
-type MemoTab = 'memo' | 'habits' | 'reading'
 
 const LIMITS = { title: 200, content: 5000, tags: 300 }
 
@@ -29,9 +26,12 @@ function relTime(at: string, now: Date): string {
   return formatShortDate(datePart(at))
 }
 
+/**
+ * 메모: 페이지는 목록 한 화면, 메모 편집·습관·독서는 작은 창 (이슈 #148).
+ * 주소: ?id=<메모> / ?new=1 새 메모 / ?tab=habits|reading
+ */
 export default function MemoPage() {
   const now = useNow()
-  const isMobile = useIsMobile()
   const [params, setParams] = useSearchParams()
   const [q, setQ] = useState('')
   const [tag, setTag] = useState<string | null>(null)
@@ -52,16 +52,13 @@ export default function MemoPage() {
   )
 
   const tabParam = params.get('tab')
-  const tab: MemoTab = tabParam === 'habits' || tabParam === 'reading' ? tabParam : 'memo'
+  const life: LifeSectionKey | null = tabParam === 'habits' || tabParam === 'reading' ? tabParam : null
   const isNew = params.get('new') === '1'
   const idParam = params.get('id')
   // 새 메모가 처음 저장돼 주소가 ?id=로 바뀌어도 같은 편집기를 유지한다 (다시 그리면 입력 중이던 내용이 끊김)
   const [createdId, setCreatedId] = useState<string | null>(null)
   const continuing = !!createdId && createdId === idParam
-  // 데스크톱은 선택이 없으면 가장 최근 메모를 연다. 모바일은 목록부터
-  const selected = isNew
-    ? null
-    : (all.find((m) => String(m.id) === idParam) ?? (isMobile || idParam ? null : all[0]) ?? null)
+  const selected = isNew ? null : (all.find((m) => String(m.id) === idParam) ?? null)
   const open = isNew || continuing || !!selected
 
   const pick = (next: { id?: number; new?: boolean } | null) => {
@@ -78,155 +75,135 @@ export default function MemoPage() {
         if (next?.new) n.set('new', '1')
         return n
       },
-      { replace: !next },
+      { replace: !next || continuing },
     )
-
-  const tabs = (
-    <Tabs<MemoTab>
-      inHeader
-      label="메모 탭"
-      value={tab}
-      onChange={(k) =>
-        setParams(
-          (p) => {
-            const n = new URLSearchParams()
-            if (k !== 'memo') n.set('tab', k)
-            else if (p.get('id')) n.set('id', p.get('id')!)
-            return n
-          },
-          { replace: true },
-        )
-      }
-      items={[
-        { key: 'memo', label: '메모', count: all.length || undefined },
-        { key: 'habits', label: '습관' },
-        { key: 'reading', label: '독서' },
-      ]}
-    />
-  )
-
-  // 습관·독서 탭 (생활·습관 메뉴를 메모로 합침, 이슈 #136)
-  if (tab !== 'memo') {
-    return (
-      <>
-        <PageHeader title="Memo" sub={tab === 'habits' ? '습관' : '독서'} tabs={tabs} />
-        <LifeSection section={tab} />
-      </>
+  const setLife = (k: LifeSectionKey | null) =>
+    setParams(
+      (p) => {
+        const n = new URLSearchParams(p)
+        if (k) n.set('tab', k)
+        else n.delete('tab')
+        return n
+      },
+      { replace: !k },
     )
-  }
 
   return (
     <>
-      <PageHeader title="Memo" sub={isNew ? '새 메모' : selected?.title} tabs={tabs}>
+      <PageHeader title="Memo">
         <Button variant="primary" icon={<Plus size={14} />} onClick={() => pick({ new: true })}>
           새 메모
         </Button>
       </PageHeader>
-      <div className={s.layout} data-open={open}>
-        <section aria-label="메모 목록" className={s.list}>
-          <div className={s.filters}>
-            <label className={s.search}>
-              <Search size={14} />
-              <input
-                type="text"
-                placeholder="제목 · 내용 검색"
-                aria-label="메모 검색"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-              />
-              {q && (
-                <IconButton label="검색어 지우기" size="sm" onClick={() => setQ('')}>
-                  <X size={13} />
-                </IconButton>
-              )}
-            </label>
-            {allTags.length > 0 && (
-              <div className={s.tagFilters} role="group" aria-label="태그 필터">
-                <button type="button" className={s.tagFilter} aria-pressed={!tag} onClick={() => setTag(null)}>
-                  전체
-                </button>
-                {allTags.map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    className={s.tagFilter}
-                    aria-pressed={tag === t}
-                    onClick={() => setTag(tag === t ? null : t)}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-            )}
+      <div className={s.board}>
+        <div className={s.lifeRow}>
+          <div {...openable('습관 열기', () => setLife('habits'))}>
+            <HabitsSummary />
           </div>
-          <div className={s.items}>
-            <QueryState
-              loading={list.isLoading}
-              error={list.error}
-              onRetry={() => void list.refetch()}
-              empty={shown.length === 0}
-              emptyView={
-                <EmptyState
-                  title={all.length ? '조건에 맞는 메모가 없어요' : '메모가 없어요'}
-                  action={
-                    all.length ? undefined : (
-                      <Button variant="primary" onClick={() => pick({ new: true })}>
-                        새 메모
-                      </Button>
-                    )
-                  }
-                />
-              }
-            >
-              {shown.map((m) => (
+          <div {...openable('독서 열기', () => setLife('reading'))}>
+            <ReadingSummary onOpen={() => setLife('reading')} />
+          </div>
+        </div>
+
+        <div className={s.filters}>
+          <label className={s.search}>
+            <Search size={14} />
+            <input
+              type="text"
+              placeholder="제목 · 내용 검색"
+              aria-label="메모 검색"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+            {q && (
+              <IconButton label="검색어 지우기" size="sm" onClick={() => setQ('')}>
+                <X size={13} />
+              </IconButton>
+            )}
+          </label>
+          {allTags.length > 0 && (
+            <div className={s.tagFilters} role="group" aria-label="태그 필터">
+              <button type="button" className={s.tagFilter} aria-pressed={!tag} onClick={() => setTag(null)}>
+                전체
+              </button>
+              {allTags.map((t) => (
                 <button
-                  key={m.id}
+                  key={t}
                   type="button"
-                  className={s.item}
-                  aria-current={m.id === selected?.id}
-                  onClick={() => pick({ id: m.id })}
+                  className={s.tagFilter}
+                  aria-pressed={tag === t}
+                  onClick={() => setTag(tag === t ? null : t)}
                 >
-                  <div className={s.itemHead}>
-                    <span className={s.itemTitle}>{m.title}</span>
-                    <span className={s.itemAt}>{relTime(m.updatedAt, now)}</span>
-                  </div>
-                  <span className={s.snippet}>{plainSnippet(m.content) || ' '}</span>
-                  {splitTags(m.tags).length > 0 && (
-                    <span className={s.chips}>
-                      {splitTags(m.tags).map((t) => (
-                        <span key={t} className={s.chip}>
-                          {t}
-                        </span>
-                      ))}
-                    </span>
-                  )}
+                  {t}
                 </button>
               ))}
-            </QueryState>
-          </div>
-        </section>
-
-        <article className={s.editorWrap}>
-          {open ? (
-            <Editor
-              key={isNew || continuing ? 'new' : selected!.id}
-              memo={selected ?? undefined}
-              now={now}
-              onCreated={(m) => {
-                setCreatedId(String(m.id))
-                go({ id: m.id })
-              }}
-              onDeleted={() => {
-                setCreatedId(null)
-                go(null)
-              }}
-              onBack={() => pick(null)}
-            />
-          ) : (
-            !list.isLoading && <EmptyState title="메모를 고르거나 새로 만들어 보세요" />
+            </div>
           )}
-        </article>
+        </div>
+
+        <QueryState
+          loading={list.isLoading}
+          error={list.error}
+          onRetry={() => void list.refetch()}
+          empty={shown.length === 0}
+          emptyView={
+            <EmptyState
+              title={all.length ? '조건에 맞는 메모가 없어요' : '메모가 없어요'}
+              action={
+                all.length ? undefined : (
+                  <Button variant="primary" onClick={() => pick({ new: true })}>
+                    새 메모
+                  </Button>
+                )
+              }
+            />
+          }
+        >
+          <section aria-label="메모 목록" className={s.cards}>
+            {shown.map((m) => (
+              <button key={m.id} type="button" className={s.card} onClick={() => pick({ id: m.id })}>
+                <div className={s.itemHead}>
+                  <span className={s.itemTitle}>{m.title}</span>
+                  <span className={s.itemAt}>{relTime(m.updatedAt, now)}</span>
+                </div>
+                <span className={s.snippet}>{plainSnippet(m.content) || ' '}</span>
+                {splitTags(m.tags).length > 0 && (
+                  <span className={s.chips}>
+                    {splitTags(m.tags).map((t) => (
+                      <span key={t} className={s.chip}>
+                        {t}
+                      </span>
+                    ))}
+                  </span>
+                )}
+              </button>
+            ))}
+          </section>
+        </QueryState>
       </div>
+
+      {open && (
+        <Peek label={isNew ? '새 메모' : (selected?.title ?? '메모')} onClose={() => pick(null)}>
+          <Editor
+            key={isNew || continuing ? 'new' : selected!.id}
+            memo={selected ?? undefined}
+            now={now}
+            onCreated={(m) => {
+              setCreatedId(String(m.id))
+              go({ id: m.id })
+            }}
+            onDeleted={() => {
+              setCreatedId(null)
+              go(null)
+            }}
+          />
+        </Peek>
+      )}
+      {life && (
+        <Peek label={life === 'habits' ? '습관' : '독서'} onClose={() => setLife(null)}>
+          <LifeSection section={life} />
+        </Peek>
+      )}
     </>
   )
 }
@@ -239,13 +216,11 @@ function Editor({
   now,
   onCreated,
   onDeleted,
-  onBack,
 }: {
   memo?: Memo
   now: Date
   onCreated: (m: Memo) => void
   onDeleted: () => void
-  onBack: () => void
 }) {
   const [d, setD] = useState<Draft>({
     title: memo?.title ?? '',
@@ -372,9 +347,6 @@ function Editor({
   return (
     <div className={s.editor}>
       <div className={s.meta}>
-        <IconButton label="목록으로" size="sm" className={s.back} onClick={onBack}>
-          <ChevronLeft size={15} />
-        </IconButton>
         <span className="mono">
           {memo
             ? `생성 ${formatShortDate(datePart(memo.createdAt))} · 수정 ${relTime(memo.updatedAt, now)}`

@@ -1,5 +1,4 @@
 import { Target } from 'lucide-react'
-import type { KeyboardEvent, MouseEvent } from 'react'
 import { useDietGoal } from '../../api/health'
 import type { MealRecord } from '../../api/types'
 import {
@@ -13,6 +12,8 @@ import {
   SectionHeader,
   StackedBarChart,
   barVar,
+  openable,
+  openClass,
 } from '../../components/ui'
 import { datePart, formatShortDate, shiftDate, weekStartOf, type LocalDate } from '../../lib/date'
 import { num, pct } from '../../lib/format'
@@ -41,7 +42,7 @@ export function HealthDashboard({
   const todayMeals = records.filter((r) => datePart(r.consumedAt) === today)
   return (
     <div className={s.statsGrid}>
-      <div {...openable('오늘 식단 열기', () => onOpen('meal'))} className={`${s.spanAll} ${s.openable}`}>
+      <div {...openable('오늘 식단 열기', () => onOpen('meal'))} className={`${s.spanAll} ${openClass}`}>
         <DaySummary records={todayMeals} date={today} onGoals={onGoals} />
       </div>
       <DietTrend records={records} loading={loading} today={today} onGoals={onGoals} onOpen={onOpen} />
@@ -52,24 +53,6 @@ export function HealthDashboard({
       <WorkoutWeek today={today} onOpen={() => onOpen('workout')} />
     </div>
   )
-}
-
-/** 카드 전체를 눌러 작은 창을 연다. 카드 안의 버튼(목표, 날짜 칸)은 제 일만 한다 */
-function openable(label: string, onOpen: () => void) {
-  const inner = (e: MouseEvent | KeyboardEvent) => (e.target as HTMLElement).closest('button, a') !== null
-  return {
-    role: 'button',
-    tabIndex: 0,
-    'aria-label': label,
-    className: s.openable,
-    onClick: (e: MouseEvent) => !inner(e) && onOpen(),
-    onKeyDown: (e: KeyboardEvent) => {
-      if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
-        e.preventDefault()
-        onOpen()
-      }
-    },
-  }
 }
 
 function Legend() {
@@ -103,7 +86,7 @@ function DietTrend({
   const logged = days.filter((d) => d.meals > 0)
   const avg = logged.length ? Math.round(logged.reduce((a, d) => a + d.kcal, 0) / logged.length) : 0
   return (
-    <Card {...openable('식단 기록 열기', () => onOpen('meal'))} className={`${s.span2} ${s.openable}`}>
+    <Card {...openable('식단 기록 열기', () => onOpen('meal'))} className={`${s.span2} ${openClass}`}>
       <SectionHeader
         title="최근 14일 식단"
         meta={logged.length ? `기록한 날 평균 ${num(avg)} kcal` : undefined}
@@ -248,7 +231,7 @@ function WeightTrend({ today, onOpen }: { today: LocalDate; onOpen: () => void }
   const first = vals[0]?.value ?? null
   const delta = last !== null && first !== null && vals.length > 1 ? last - first : null
   return (
-    <Card {...openable('체중 · 수면 기록 열기', onOpen)} className={`${s.span2} ${s.openable}`}>
+    <Card {...openable('체중 · 수면 기록 열기', onOpen)} className={`${s.span2} ${openClass}`}>
       <SectionHeader
         title="체중 추이"
         meta="최근 30일"
@@ -331,7 +314,7 @@ function WeeklyAverages({ onOpen }: { onOpen: () => void }) {
   const stats = useMealStats()
   const weeks = sortBy(stats.data?.content ?? [], (w) => w.weekStart)
   return (
-    <Card {...openable('식단 기록 열기', onOpen)} className={`${s.span2} ${s.openable}`}>
+    <Card {...openable('식단 기록 열기', onOpen)} className={`${s.span2} ${openClass}`}>
       <SectionHeader title="주간 평균 칼로리" meta="최근 8주 · 주간 통계" />
       <QueryState
         loading={stats.isLoading}

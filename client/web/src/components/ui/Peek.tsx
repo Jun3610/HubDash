@@ -30,8 +30,9 @@ export function Peek({
     const prev = document.activeElement as HTMLElement | null
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      // 창 안에서 연 모달(끼니 입력, 과목 수정 등)이 있으면 그것만 닫히게 둔다
-      if (document.querySelectorAll('[role="dialog"]').length > 1) return
+      // 맨 위 창만 닫는다 — 창 안에서 연 모달(끼니 입력 등)이나 겹쳐 연 창(설정)이 있으면 그것만
+      const dialogs = document.querySelectorAll('[role="dialog"]')
+      if (dialogs[dialogs.length - 1] !== ref.current) return
       closeRef.current()
     }
     document.addEventListener('keydown', onKey)
