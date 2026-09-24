@@ -348,3 +348,16 @@ a.infoValue {
     display: none;
   }
 }
+
+/* 과목 창: 메모 칸이 아래 여백까지 늘어난다 (이슈 #168) */
+.memoCard {
+  flex: 1 0 auto;
+}
+.memoCard > div:has(> .memoEditor) {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+.memoEditor {
+  flex: 1 0 auto;
+}
