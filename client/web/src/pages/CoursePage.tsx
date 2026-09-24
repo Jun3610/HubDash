@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pencil } from 'lucide-react'
+import { Pencil, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { courseBody, courses } from '../api/pknu'
@@ -24,6 +24,7 @@ import { useAllCourses } from '../hooks/usePknu'
 import { useToday } from '../hooks/useToday'
 import { formatGpa, GRADE_POINT, GRADES, gpaOf, gradeTone } from '../lib/grade'
 import { semesterStatus } from '../lib/select/pknu'
+import { joinTags, splitTags } from '../lib/format'
 import { useStore } from '../lib/storage'
 import { CourseModal } from './pknu/CourseModal'
 import s from './pknu/Pknu.module.css'
@@ -190,6 +191,7 @@ function CourseDashboard({
           </Tag>
         )}
         {course.notionUrl && <NotionLink url={course.notionUrl} label={`${course.name} 노션 필기`} />}
+        <CourseTags course={course} />
         <div className={s.credits}>
           <span>
             학기 평점 <b>{formatGpa(sem.gpa)}</b>
@@ -293,5 +295,65 @@ function CourseDashboard({
         <FormError error={update.error} />
       </Card>
     </>
+  )
+}
+
+/** 과목 태그: 누르면 바로 저장, 색은 강조색 (이슈 #175) */
+function CourseTags({ course }: { course: Course }) {
+  const update = useUpdate(courses)
+  const qc = useQueryClient()
+  const tags = splitTags(course.tags)
+  const [adding, setAdding] = useState(false)
+  const [draft, setDraft] = useState('')
+  const saveTags = (next: string[]) => {
+    const value = joinTags(next) || null
+    // 메모 저장과 같은 과목을 고치므로 캐시를 먼저 바꿔 두고 보낸다
+    qc.setQueryData<Course>([courses.path, 'one', course.id], (old) => (old ? { ...old, tags: value } : old))
+    update.mutate({ id: course.id, body: courseBody({ ...course, tags: value }) })
+  }
+  const add = () => {
+    const t = draft.trim().replace(/,/g, '')
+    if (t && !tags.includes(t) && joinTags([...tags, t]).length <= 300) saveTags([...tags, t])
+    setDraft('')
+    setAdding(false)
+  }
+  return (
+    <span className={s.courseTags}>
+      {tags.map((t) => (
+        <span key={t} className={s.courseTag}>
+          {t}
+          <button type="button" aria-label={`${t} 태그 빼기`} onClick={() => saveTags(tags.filter((x) => x !== t))}>
+            <X size={11} />
+          </button>
+        </span>
+      ))}
+      {adding ? (
+        <input
+          className={s.courseTagInput}
+          aria-label="새 태그"
+          autoFocus
+          maxLength={30}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={add}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              add()
+            } else if (e.key === 'Escape') {
+              // 창까지 닫히지 않게 입력만 취소
+              e.stopPropagation()
+              e.nativeEvent.stopImmediatePropagation()
+              setDraft('')
+              setAdding(false)
+            }
+          }}
+        />
+      ) : (
+        <button type="button" className={s.courseTagAdd} onClick={() => setAdding(true)}>
+          + 태그
+        </button>
+      )}
+    </span>
   )
 }

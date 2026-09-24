@@ -28,6 +28,7 @@ import { type LocalDate } from '../lib/date'
 import { semesterStatus, weekNumber } from '../lib/select/pknu'
 import { sortBy } from '../lib/select/range'
 import { formatGpa, gpaOf, gradeTone } from '../lib/grade'
+import { splitTags } from '../lib/format'
 import { useStore } from '../lib/storage'
 import { hasErrors, maxLen, required, type Errors } from '../lib/validate'
 import s from './pknu/Pknu.module.css'
@@ -248,6 +249,11 @@ function CoursesTable({
                   </Link>{' '}
                   {c.notionUrl && <NotionLink url={c.notionUrl} label={`${c.name} 노션 필기`} />}
                   {categories[c.id] && <Tag tone={toneFor(categories[c.id])}>{categories[c.id]}</Tag>}
+                  {splitTags(c.tags).map((t) => (
+                    <span key={t} className={s.courseTag}>
+                      {t}
+                    </span>
+                  ))}
                   <span className="sr-only">색 {i + 1}</span>
                 </td>
                 <td className={`${s.hideMobile} muted`}>{c.professor ?? '—'}</td>

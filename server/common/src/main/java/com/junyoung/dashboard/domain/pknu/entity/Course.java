@@ -47,6 +47,10 @@ public class Course extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String memo;
 
+    // 과목 태그, 쉼표 구분 (이슈 #175)
+    @Column(length = 300)
+    private String tags;
+
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Assignment> assignments = new ArrayList<>();
 
@@ -71,5 +75,9 @@ public class Course extends BaseEntity {
     public void changeGradeAndMemo(String grade, String memo) {
         this.grade = grade;
         this.memo = memo;
+    }
+
+    public void changeTags(String tags) {
+        this.tags = tags;
     }
 }

@@ -15,6 +15,13 @@ public record CourseRequest(
         @Size(max = 1000) String notionUrl,
         // 4.5 만점 등급. 수정 요청에서 빠지면 null로 지워지므로 클라이언트는 항상 보낸다
         @Pattern(regexp = "A\\+|A0|B\\+|B0|C\\+|C0|D\\+|D0|F", message = "성적은 A+, A0, B+, B0, C+, C0, D+, D0, F 중 하나여야 합니다") String grade,
-        @Size(max = 5000) String memo
+        @Size(max = 5000) String memo,
+        // 쉼표 구분 태그 (이슈 #175). 수정 요청에서 빠지면 지워지므로 클라이언트는 항상 보낸다
+        @Size(max = 300) String tags
 ) {
+    /** 태그 이전 요청 모양 (테스트·이관 도구 호환) */
+    public CourseRequest(Long semesterId, String name, String professor, Integer credit, String notionUrl,
+                         String grade, String memo) {
+        this(semesterId, name, professor, credit, notionUrl, grade, memo, null);
+    }
 }

@@ -30,6 +30,7 @@ public class CourseService {
         Course course = new Course(semester, request.name(), request.professor(), request.credit());
         course.changeNotionUrl(request.notionUrl());
         course.changeGradeAndMemo(request.grade(), request.memo());
+        course.changeTags(normalizeTags(request.tags()));
         Course saved = courseRepository.save(course);
         return CourseResponse.from(saved);
     }
@@ -50,6 +51,7 @@ public class CourseService {
         course.update(semester, request.name(), request.professor(), request.credit());
         course.changeNotionUrl(request.notionUrl());
         course.changeGradeAndMemo(request.grade(), request.memo());
+        course.changeTags(normalizeTags(request.tags()));
         return CourseResponse.from(course);
     }
 
@@ -66,5 +68,18 @@ public class CourseService {
     private Semester getSemesterOrThrow(Long semesterId) {
         return semesterRepository.findById(semesterId)
                 .orElseThrow(() -> EntityNotFoundException.of(Semester.class, semesterId));
+    }
+
+    /** "  컴공, 시험 ,,컴공" → "컴공,시험" (공백 정리·빈 값·중복 제거), 없으면 null */
+    static String normalizeTags(String tags) {
+        if (tags == null) {
+            return null;
+        }
+        String joined = java.util.Arrays.stream(tags.split(","))
+                .map(String::strip)
+                .filter(s -> !s.isEmpty())
+                .distinct()
+                .collect(java.util.stream.Collectors.joining(","));
+        return joined.isEmpty() ? null : joined;
     }
 }
