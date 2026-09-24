@@ -155,21 +155,22 @@ function SemesterBlock({
         <IconButton label={`${semester.name} 학기 수정`} size="sm" onClick={onEdit}>
           <MoreHorizontal size={15} />
         </IconButton>
-        <div className={s.credits}>
-          {[...byCat.entries()].map(([cat, n]) => (
-            <span key={cat}>
-              {cat} <b>{n}</b>
-            </span>
-          ))}
-          <span>
-            합계 <b>{total}</b>학점
-          </span>
-          <span>
-            학기 평점 <b>{formatGpa(semGpa.gpa)}</b>
-          </span>
-        </div>
       </section>
       <CoursesTable courseList={courseList} loading={loading} error={null} onAdd={onAddCourse} />
+      {/* 학점·평점은 표 아래 (이슈 #172) */}
+      <div className={`${s.credits} ${s.semTotals}`}>
+        {[...byCat.entries()].map(([cat, n]) => (
+          <span key={cat}>
+            {cat} <b>{n}</b>
+          </span>
+        ))}
+        <span>
+          합계 <b>{total}</b>학점
+        </span>
+        <span>
+          학기 평점 <b>{formatGpa(semGpa.gpa)}</b>
+        </span>
+      </div>
     </article>
   )
 }
