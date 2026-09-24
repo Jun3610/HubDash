@@ -47,6 +47,11 @@ export function shiftDate(value: LocalDate, days: number): LocalDate {
   return toLocalDate(addDays(parseLocalDate(value), days))
 }
 
+/** from에서 to까지 며칠 (같은 날 0) */
+export function daysBetween(from: LocalDate, to: LocalDate): number {
+  return differenceInCalendarDays(parseLocalDate(to), parseLocalDate(from))
+}
+
 /** 서버 주간 통계와 같은 기준: 월요일 시작 */
 export function weekStartOf(value: LocalDate): LocalDate {
   const d = parseLocalDate(value)

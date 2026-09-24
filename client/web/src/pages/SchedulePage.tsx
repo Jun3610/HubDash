@@ -26,6 +26,7 @@ import { useNow, useToday } from '../hooks/useToday'
 import { useUrlState } from '../hooks/useUrlState'
 import {
   datePart,
+  daysBetween,
   formatShortDate,
   formatTime,
   shiftDate,
@@ -42,6 +43,7 @@ import {
   GRID_START_HOUR,
   monthGrid,
   placeDay,
+  timeRange,
   upcoming,
 } from '../lib/select/schedule'
 import { hasErrors, maxLen, optStr, required, type Errors } from '../lib/validate'
@@ -301,9 +303,11 @@ function WeekView({
                     key={p.event.id}
                     type="button"
                     className={s.event}
+                    // 30분 이하 칸은 "10:00 제목" 한 줄로
+                    data-short={p.height <= 30}
                     aria-pressed={p.event.id === selectedId}
                     onClick={() => onSelect(p.event)}
-                    title={`${p.event.title} ${formatTime(p.event.startAt)}–${formatTime(p.event.endAt)}`}
+                    title={`${p.event.title} ${timeRange(p.event)}`}
                     style={{
                       top: p.top * PX_PER_MIN,
                       height: Math.max(p.height * PX_PER_MIN - 2, 18),
@@ -313,10 +317,9 @@ function WeekView({
                       borderBottomStyle: p.clippedBottom ? 'dashed' : undefined,
                     }}
                   >
+                    {p.height <= 30 && <span className={s.eventTime}>{timeRange(p.event)}</span>}
                     <span className={s.eventTitle}>{p.event.title}</span>
-                    <span className={s.eventTime}>
-                      {formatTime(p.event.startAt)}–{formatTime(p.event.endAt)}
-                    </span>
+                    {p.height > 30 && <span className={s.eventTime}>{timeRange(p.event)}</span>}
                     {p.event.location && <span className={s.eventLoc}>{p.event.location}</span>}
                   </button>
                 )
@@ -426,7 +429,11 @@ function ListView({
                 onClick={() => onSelect(e)}
               >
                 <span className="mono muted" style={{ fontSize: 12 }}>
-                  {e.allDay ? '종일' : `${eventTimeLabel(e, d)}–${formatTime(e.endAt)}`}
+                  {e.allDay
+                    ? '종일'
+                    : e.endAt
+                      ? `${eventTimeLabel(e, d)}–${formatTime(e.endAt)}`
+                      : eventTimeLabel(e, d)}
                 </span>
                 <span className="ellipsis" style={{ color: 'var(--text-strong)' }}>
                   {e.title}
@@ -447,14 +454,16 @@ function Detail({ event, onEdit, onDeleted }: { event: ScheduleEvent; onEdit: ()
   const [confirm, setConfirm] = useState(false)
   const remove = useRemove(events)
   const sd = datePart(event.startAt)
-  const ed = datePart(event.endAt)
+  const ed = datePart(event.endAt ?? event.startAt)
   const time = event.allDay
     ? sd === ed
       ? `${formatShortDate(sd)} ${weekdayKo(sd)} 종일`
       : `${formatShortDate(sd)} – ${formatShortDate(ed)} 종일`
-    : sd === ed
-      ? `${formatShortDate(sd)} ${weekdayKo(sd)} ${formatTime(event.startAt)} – ${formatTime(event.endAt)}`
-      : `${formatShortDate(sd)} ${formatTime(event.startAt)} – ${formatShortDate(ed)} ${formatTime(event.endAt)}`
+    : !event.endAt
+      ? `${formatShortDate(sd)} ${weekdayKo(sd)} ${formatTime(event.startAt)}`
+      : sd === ed
+        ? `${formatShortDate(sd)} ${weekdayKo(sd)} ${formatTime(event.startAt)} – ${formatTime(event.endAt)}`
+        : `${formatShortDate(sd)} ${formatTime(event.startAt)} – ${formatShortDate(ed)} ${formatTime(event.endAt)}`
   return (
     <section className={s.detail} aria-label="선택한 일정">
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -554,13 +563,15 @@ function EventModal({
   onClose: () => void
   onSaved: (e: ScheduleEvent) => void
 }) {
+  // 여러 날에 걸친 기존 일정(추석 연휴 등)은 기간을 그대로 둔다. 새 일정은 시작 + 필요하면 끝 시각만 (이슈 #156)
+  const span = event?.endAt ? daysBetween(datePart(event.startAt), datePart(event.endAt)) : 0
   const [d, setD] = useState({
     title: event?.title ?? '',
     allDay: event?.allDay ?? false,
     startDate: event ? datePart(event.startAt) : date,
     startTime: event && !event.allDay ? formatTime(event.startAt) : '10:00',
-    endDate: event ? datePart(event.endAt) : date,
-    endTime: event && !event.allDay ? formatTime(event.endAt) : '11:00',
+    hasEnd: !!event?.endAt && !event.allDay,
+    endTime: event?.endAt && !event.allDay ? formatTime(event.endAt) : '11:00',
     location: event?.location ?? '',
     description: event?.description ?? '',
   })
@@ -569,13 +580,23 @@ function EventModal({
   const update = useUpdate(events)
   const m = event ? update : create
   const startAt = `${d.startDate}T${d.allDay ? '00:00' : d.startTime}:00`
-  const endAt = `${d.endDate}T${d.allDay ? '23:59' : d.endTime}:00`
+  // 끝 시각이 시작보다 이르거나 같으면 다음 날로 본다 (23:00 → 01:00)
+  const endNextDay = !d.allDay && d.hasEnd && span === 0 && d.endTime <= d.startTime
+  const endAt = d.allDay
+    ? span > 0
+      ? `${shiftDate(d.startDate, span)}T${event!.endAt!.slice(11, 19)}`
+      : null
+    : d.hasEnd
+      ? `${shiftDate(d.startDate, span || (endNextDay ? 1 : 0))}T${d.endTime}:00`
+      : span > 0
+        ? `${shiftDate(d.startDate, span)}T${event!.endAt!.slice(11, 19)}`
+        : null
   const submit = (e: FormEvent) => {
     e.preventDefault()
     const errs = {
       title: required(d.title, '제목') ?? maxLen(d.title, 200),
-      startDate: required(d.startDate, '시작일'),
-      endDate: required(d.endDate, '종료일') ?? (endAt <= startAt ? '끝나는 시각이 시작보다 늦어야 해요' : undefined),
+      startDate:
+        required(d.startDate, '날짜') ?? (endAt && endAt <= startAt ? '끝나는 시각이 시작보다 늦어야 해요' : undefined),
       location: maxLen(d.location, 200),
       description: maxLen(d.description, 2000),
     }
@@ -596,12 +617,8 @@ function EventModal({
     if (event) update.mutate({ id: event.id, body }, { onSuccess: done })
     else create.mutate(body, { onSuccess: done })
   }
-  const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const v = e.target.value
-    // 시작일을 바꾸면 종료일이 앞서지 않게 같이 옮긴다
-    if (k === 'startDate' && d.endDate < v) setD({ ...d, startDate: v, endDate: v })
-    else setD({ ...d, [k]: v })
-  }
+  const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setD({ ...d, [k]: e.target.value })
   return (
     <Modal
       open
@@ -623,7 +640,7 @@ function EventModal({
         <div className={s.full}>
           <Checkbox checked={d.allDay} onChange={(v) => setD({ ...d, allDay: v })} label="종일" />
         </div>
-        <Field label="시작일" required error={errors.startDate}>
+        <Field label="날짜" required error={errors.startDate}>
           <Input type="date" mono value={d.startDate} onChange={set('startDate')} />
         </Field>
         {!d.allDay ? (
@@ -633,15 +650,33 @@ function EventModal({
         ) : (
           <span />
         )}
-        <Field label="종료일" required error={errors.endDate}>
-          <Input type="date" mono value={d.endDate} onChange={set('endDate')} />
-        </Field>
-        {!d.allDay ? (
-          <Field label="종료 시각" required>
-            <TimeField value={d.endTime} onChange={(v) => setD({ ...d, endTime: v })} />
-          </Field>
-        ) : (
-          <span />
+        {!d.allDay &&
+          (d.hasEnd ? (
+            <Field
+              label="끝 시각"
+              hint={endNextDay ? '시작보다 이르면 다음 날로 저장돼요' : undefined}
+              className={s.full}
+            >
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <div style={{ flex: '0 1 50%' }}>
+                  <TimeField value={d.endTime} onChange={(v) => setD({ ...d, endTime: v })} />
+                </div>
+                <Button size="sm" variant="link" onClick={() => setD({ ...d, hasEnd: false })}>
+                  끝 시각 빼기
+                </Button>
+              </div>
+            </Field>
+          ) : (
+            <div className={s.full}>
+              <Button size="sm" icon={<Plus size={13} />} onClick={() => setD({ ...d, hasEnd: true })}>
+                끝 시각 추가
+              </Button>
+            </div>
+          ))}
+        {span > 0 && (
+          <span className={`${s.full} muted`} style={{ fontSize: 12 }}>
+            여러 날 일정이에요 · {formatShortDate(shiftDate(d.startDate, span))}까지 (날짜를 바꾸면 기간째 옮겨져요)
+          </span>
         )}
         <Field label="장소" error={errors.location} className={s.full}>
           <Input value={d.location} onChange={set('location')} />

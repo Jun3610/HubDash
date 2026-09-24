@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { ScheduleEvent } from '../../api/types'
-import { allDayOn, monthGrid, placeDay, upcoming } from './schedule'
+import { allDayOn, eventsOn, monthGrid, placeDay, timeRange, upcoming } from './schedule'
 
-const ev = (id: number, startAt: string, endAt: string, allDay = false): ScheduleEvent => ({
+const ev = (id: number, startAt: string, endAt: string | null, allDay = false): ScheduleEvent => ({
   id,
   title: `e${id}`,
   startAt,
@@ -88,5 +88,21 @@ describe('월 보기 · 다가오는 일정', () => {
       ev(4, '2026-10-01T10:00:00', '2026-10-01T11:00:00'), // 8일째
     ]
     expect(upcoming(list, `${D}T14:00:00`).map((e) => e.id)).toEqual([2, 3])
+  })
+})
+
+describe('끝 시각 없는 일정 (이슈 #156)', () => {
+  const e = ev(9, `${D}T19:00:00`, null)
+  it('시작한 날에만 보이고 시각은 시작만', () => {
+    expect(eventsOn([e], D)).toHaveLength(1)
+    expect(eventsOn([e], '2026-09-24')).toHaveLength(0)
+    expect(timeRange(e)).toBe('19:00')
+    expect(timeRange(ev(1, `${D}T10:00:00`, `${D}T11:30:00`))).toBe('10:00–11:30')
+  })
+  it('주 보기에는 30분 칸, 다가오는 일정은 시작 기준', () => {
+    const [p] = placeDay([e], D)
+    expect(p.height).toBe(30)
+    expect(upcoming([e], `${D}T18:00:00`)).toHaveLength(1)
+    expect(upcoming([e], `${D}T20:00:00`)).toHaveLength(0)
   })
 })

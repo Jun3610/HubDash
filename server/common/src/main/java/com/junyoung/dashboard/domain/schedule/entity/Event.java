@@ -22,7 +22,8 @@ public class Event extends BaseEntity {
     @Column(name = "start_at", nullable = false)
     private LocalDateTime startAt;
 
-    @Column(name = "end_at", nullable = false)
+    /** 끝나는 시각은 선택 (이슈 #156) */
+    @Column(name = "end_at")
     private LocalDateTime endAt;
 
     @Column(length = 200)

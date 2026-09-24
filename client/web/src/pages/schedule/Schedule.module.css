@@ -135,6 +135,15 @@
   border: 1px solid var(--border);
   min-width: 0;
 }
+.event[data-short='true'] {
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 6px;
+}
+.event[data-short='true'] .eventLoc {
+  display: none;
+}
 .event:hover {
   border-color: var(--text-muted);
 }

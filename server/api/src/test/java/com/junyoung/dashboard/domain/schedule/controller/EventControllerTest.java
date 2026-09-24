@@ -58,6 +58,22 @@ class EventControllerTest {
     }
 
     @Test
+    void createsEventWithoutEndAt() throws Exception {
+        // 끝나는 시각은 선택 (이슈 #156)
+        EventRequest request = new EventRequest("운동", LocalDateTime.of(2026, 9, 16, 19, 0),
+                null, null, null, false);
+        EventResponse response = new EventResponse(2L, "운동", LocalDateTime.of(2026, 9, 16, 19, 0),
+                null, null, null, false, LocalDateTime.now(), LocalDateTime.now());
+        when(eventService.create(request)).thenReturn(response);
+
+        mockMvc.perform(post("/api/schedule/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.endAt").doesNotExist());
+    }
+
+    @Test
     void rejectsEndAtBeforeStartAt() throws Exception {
         EventRequest invalid = new EventRequest("잘못된 일정", LocalDateTime.of(2026, 9, 16, 11, 0),
                 LocalDateTime.of(2026, 9, 16, 10, 0), null, null, false);
