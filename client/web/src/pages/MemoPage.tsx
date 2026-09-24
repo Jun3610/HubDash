@@ -1,18 +1,21 @@
-import { ChevronLeft, MoreHorizontal, Plus, Search, X } from 'lucide-react'
+import { ChevronLeft, MoreHorizontal, Plus, Save, Search, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { memos } from '../api/memo'
 import { BIG_PAGE, useCreate, useList, useRemove, useUpdate } from '../api/resource'
 import type { Memo } from '../api/types'
 import { PageHeader } from '../components/layout/PageHeader'
-import { Button, ConfirmDialog, EmptyState, IconButton, QueryState, Segmented } from '../components/ui'
+import { Button, ConfirmDialog, EmptyState, IconButton, QueryState, Segmented, Tabs } from '../components/ui'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { useNow } from '../hooks/useToday'
 import { datePart, formatShortDate, parseLocalDateTime } from '../lib/date'
 import { joinTags, splitTags } from '../lib/format'
 import { Markdown } from '../components/ui/Markdown'
 import { plainSnippet } from '../lib/markdown'
+import { LifeSection } from './life/LifeSections'
 import s from './memo/Memo.module.css'
+
+type MemoTab = 'memo' | 'habits' | 'reading'
 
 const LIMITS = { title: 200, content: 5000, tags: 300 }
 
@@ -48,6 +51,8 @@ export default function MemoPage() {
       (!needle || m.title.toLowerCase().includes(needle) || m.content.toLowerCase().includes(needle)),
   )
 
+  const tabParam = params.get('tab')
+  const tab: MemoTab = tabParam === 'habits' || tabParam === 'reading' ? tabParam : 'memo'
   const isNew = params.get('new') === '1'
   const idParam = params.get('id')
   // 새 메모가 처음 저장돼 주소가 ?id=로 바뀌어도 같은 편집기를 유지한다 (다시 그리면 입력 중이던 내용이 끊김)
@@ -76,9 +81,43 @@ export default function MemoPage() {
       { replace: !next },
     )
 
+  const tabs = (
+    <Tabs<MemoTab>
+      inHeader
+      label="메모 탭"
+      value={tab}
+      onChange={(k) =>
+        setParams(
+          (p) => {
+            const n = new URLSearchParams()
+            if (k !== 'memo') n.set('tab', k)
+            else if (p.get('id')) n.set('id', p.get('id')!)
+            return n
+          },
+          { replace: true },
+        )
+      }
+      items={[
+        { key: 'memo', label: '메모', count: all.length || undefined },
+        { key: 'habits', label: '습관' },
+        { key: 'reading', label: '독서' },
+      ]}
+    />
+  )
+
+  // 습관·독서 탭 (생활·습관 메뉴를 메모로 합침, 이슈 #136)
+  if (tab !== 'memo') {
+    return (
+      <>
+        <PageHeader title="메모" sub={tab === 'habits' ? '습관' : '독서'} tabs={tabs} />
+        <LifeSection section={tab} />
+      </>
+    )
+  }
+
   return (
     <>
-      <PageHeader title="메모" sub={isNew ? '새 메모' : selected?.title}>
+      <PageHeader title="메모" sub={isNew ? '새 메모' : selected?.title} tabs={tabs}>
         <Button variant="primary" icon={<Plus size={14} />} onClick={() => pick({ new: true })}>
           새 메모
         </Button>
@@ -240,11 +279,19 @@ function Editor({
   const current = key(d)
   const dirty = current !== savedKey
 
+  // 방금 보낸 내용 — 저장 중 표시가 풀린 뒤 저장됨 표시가 늦게 갱신되는 사이에 같은 내용을 또 보내지 않도록 (이슈 #136)
+  const sentKey = useRef(savedKey)
+
   const save = (draft: Draft) => {
     const body = { title: draft.title.trim(), content: draft.content, tags: joinTags(draft.tags) || null }
     const k = key(draft)
+    if (k === sentKey.current) return
+    sentKey.current = k
+    const failed = () => {
+      sentKey.current = ''
+    }
     if (idRef.current) {
-      update.mutate({ id: idRef.current, body }, { onSuccess: () => setSavedKey(k) })
+      update.mutate({ id: idRef.current, body }, { onSuccess: () => setSavedKey(k), onError: failed })
     } else if (!create.isPending) {
       create.mutate(body, {
         onSuccess: (m) => {
@@ -252,6 +299,7 @@ function Editor({
           setSavedKey(k)
           onCreated(m)
         },
+        onError: failed,
       })
     }
   }
@@ -264,9 +312,24 @@ function Editor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current, problem, pending])
 
-  // 다른 메모로 바꾸거나 화면을 떠날 때 저장하지 않은 내용이 있으면 바로 저장
   const latest = useRef({ d, dirty, problem })
   latest.current = { d, dirty, problem }
+
+  // ⌘S / Ctrl+S로 바로 저장
+  useEffect(() => {
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault()
+        const l = latest.current
+        if (l.dirty && !l.problem) save(l.d)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // 다른 메모로 바꾸거나 화면을 떠날 때 저장하지 않은 내용이 있으면 바로 저장
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => {
       if (latest.current.dirty) e.preventDefault()
@@ -303,7 +366,7 @@ function Editor({
       : dirty
         ? problem
           ? { color: 'var(--text-muted)', text: problem }
-          : { color: 'var(--yellow)', text: '편집 중' }
+          : { color: 'var(--yellow)', text: '저장 안 됨 · 곧 자동 저장' }
         : { color: 'var(--green)', text: '저장됨' }
 
   return (
@@ -326,7 +389,18 @@ function Editor({
             </Button>
           )}
         </span>
-        <span style={{ marginLeft: 'auto' }}>
+        <Button
+          size="sm"
+          variant="primary"
+          icon={<Save size={13} />}
+          style={{ marginLeft: 'auto' }}
+          disabled={!dirty || !!problem || pending}
+          title="⌘S"
+          onClick={() => save(d)}
+        >
+          저장
+        </Button>
+        <span>
           <Segmented
             label="모드"
             value={mode}

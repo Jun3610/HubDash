@@ -7,11 +7,10 @@ import {
   House,
   Link2,
   Settings,
-  Sun,
   type LucideIcon,
 } from 'lucide-react'
 
-export type NavKey = 'home' | 'hub' | 'study' | 'pknu' | 'health' | 'life' | 'schedule' | 'memo' | 'settings'
+export type NavKey = 'home' | 'hub' | 'study' | 'pknu' | 'health' | 'schedule' | 'memo' | 'settings'
 
 export interface NavItem {
   key: NavKey
@@ -28,9 +27,8 @@ export const NAV: NavItem[] = [
   { key: 'study', label: '공부', crumb: '공부', to: '/study', icon: BookOpen },
   { key: 'pknu', label: '학업 · PKNU', crumb: '학업 · PKNU', to: '/pknu', icon: GraduationCap },
   { key: 'health', label: '건강', crumb: '건강', to: '/health', icon: Heart },
-  { key: 'life', label: '생활 · 습관', crumb: '생활 · 습관', to: '/life', icon: Sun },
   { key: 'schedule', label: '일정', crumb: '일정', to: '/schedule', icon: CalendarDays },
-  { key: 'memo', label: '메모', crumb: '메모', to: '/memo', icon: FileText },
+  { key: 'memo', label: '메모 · 습관', crumb: '메모', to: '/memo', icon: FileText },
 ]
 
 export const SETTINGS_NAV: NavItem = { key: 'settings', label: '설정', crumb: '설정', to: '/settings', icon: Settings }
