@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 // health(HealthLog) 주간 체중/수면 평균 집계 — life 파일럿(이슈 #54)의 패턴을 재사용하되,
@@ -65,8 +66,8 @@ public class HealthLogWeeklyStatJobConfig {
     @StepScope
     public ItemReader<LocalDate> healthWeekReader(@Value("#{jobParameters['weekStart']}") String weekStartParam) {
         LocalDate weekStart = LocalDate.parse(weekStartParam);
-        LocalDate weekEnd = weekStart.plusDays(6);
-        boolean hasLogs = healthLogRepository.countByRecordedAtBetween(weekStart, weekEnd) > 0;
+        boolean hasLogs = healthLogRepository.countByRecordedAtGreaterThanEqualAndRecordedAtLessThan(
+                weekStart.atStartOfDay(), weekStart.plusDays(7).atStartOfDay()) > 0;
         return new ListItemReader<>(hasLogs ? List.of(weekStart) : List.of());
     }
 
@@ -74,10 +75,11 @@ public class HealthLogWeeklyStatJobConfig {
     @StepScope
     public ItemProcessor<LocalDate, HealthLogWeeklyStat> healthLogWeeklyStatProcessor() {
         return weekStart -> {
-            LocalDate weekEnd = weekStart.plusDays(6);
-            int logCount = (int) healthLogRepository.countByRecordedAtBetween(weekStart, weekEnd);
-            Double avgWeightKg = healthLogRepository.averageWeightKgBetween(weekStart, weekEnd);
-            Double avgSleepHours = healthLogRepository.averageSleepHoursBetween(weekStart, weekEnd);
+            LocalDateTime from = weekStart.atStartOfDay();
+            LocalDateTime to = weekStart.plusDays(7).atStartOfDay();
+            int logCount = (int) healthLogRepository.countByRecordedAtGreaterThanEqualAndRecordedAtLessThan(from, to);
+            Double avgWeightKg = healthLogRepository.averageWeightKgBetween(from, to);
+            Double avgSleepHours = healthLogRepository.averageSleepHoursBetween(from, to);
 
             return healthLogWeeklyStatRepository.findByWeekStart(weekStart)
                     .map(existing -> {

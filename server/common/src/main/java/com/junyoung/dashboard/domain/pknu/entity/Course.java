@@ -39,6 +39,14 @@ public class Course extends BaseEntity {
     @Column(length = 1000)
     private String notionUrl;
 
+    // 성적(4.5 만점 등급: A+, A0 … D0, F). 아직 안 나왔으면 null (이슈 #134)
+    @Column(length = 2)
+    private String grade;
+
+    // 과목 메모 (이슈 #134)
+    @Column(columnDefinition = "TEXT")
+    private String memo;
+
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Assignment> assignments = new ArrayList<>();
 
@@ -58,5 +66,10 @@ public class Course extends BaseEntity {
 
     public void changeNotionUrl(String notionUrl) {
         this.notionUrl = notionUrl;
+    }
+
+    public void changeGradeAndMemo(String grade, String memo) {
+        this.grade = grade;
+        this.memo = memo;
     }
 }

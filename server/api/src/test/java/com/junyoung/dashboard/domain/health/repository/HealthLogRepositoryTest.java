@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,7 +24,7 @@ class HealthLogRepositoryTest {
     @Test
     void savesAndAssignsIdAndTimestamps() {
         HealthLog saved = healthLogRepository.save(
-                new HealthLog(LocalDate.of(2026, 9, 1), 70.5, 7.5, null));
+                new HealthLog(LocalDateTime.of(2026, 9, 1, 7, 30), 70.5, 7.5, null));
 
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getCreatedAt()).isNotNull();

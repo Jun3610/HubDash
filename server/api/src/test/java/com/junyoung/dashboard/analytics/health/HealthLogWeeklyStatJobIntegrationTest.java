@@ -53,11 +53,11 @@ class HealthLogWeeklyStatJobIntegrationTest {
     void averagesWeightAndSleepWithinTargetWeek() throws Exception {
         LocalDate weekStart = LocalDate.of(2026, 9, 14); // 월요일
 
-        healthLogRepository.save(new HealthLog(weekStart, 70.0, 6.0, null));
-        healthLogRepository.save(new HealthLog(weekStart.plusDays(3), 72.0, 8.0, null));
+        healthLogRepository.save(new HealthLog(weekStart.atTime(9, 0), 70.0, 6.0, null));
+        healthLogRepository.save(new HealthLog(weekStart.plusDays(3).atTime(9, 0), 72.0, 8.0, null));
         // 대상 주 밖 — 집계에 포함되면 안 됨.
-        healthLogRepository.save(new HealthLog(weekStart.minusDays(1), 100.0, 1.0, null));
-        healthLogRepository.save(new HealthLog(weekStart.plusDays(7), 100.0, 1.0, null));
+        healthLogRepository.save(new HealthLog(weekStart.minusDays(1).atTime(9, 0), 100.0, 1.0, null));
+        healthLogRepository.save(new HealthLog(weekStart.plusDays(7).atTime(9, 0), 100.0, 1.0, null));
 
         JobExecution execution = jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
@@ -73,8 +73,8 @@ class HealthLogWeeklyStatJobIntegrationTest {
         LocalDate weekStart = LocalDate.of(2026, 8, 3);
 
         // 체중은 한 건만 있고, 수면은 전부 null인 주.
-        healthLogRepository.save(new HealthLog(weekStart, 68.0, null, null));
-        healthLogRepository.save(new HealthLog(weekStart.plusDays(1), null, null, "체중 미측정"));
+        healthLogRepository.save(new HealthLog(weekStart.atTime(9, 0), 68.0, null, null));
+        healthLogRepository.save(new HealthLog(weekStart.plusDays(1).atTime(9, 0), null, null, "체중 미측정"));
 
         jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
@@ -88,12 +88,12 @@ class HealthLogWeeklyStatJobIntegrationTest {
     void rerunningSameWeekUpdatesExistingStatInsteadOfCreatingDuplicate() throws Exception {
         LocalDate weekStart = LocalDate.of(2026, 7, 6);
 
-        healthLogRepository.save(new HealthLog(weekStart, 70.0, 7.0, null));
+        healthLogRepository.save(new HealthLog(weekStart.atTime(9, 0), 70.0, 7.0, null));
         jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 
         Long statId = healthLogWeeklyStatRepository.findByWeekStart(weekStart).orElseThrow().getId();
 
-        healthLogRepository.save(new HealthLog(weekStart.plusDays(1), 72.0, 5.0, null));
+        healthLogRepository.save(new HealthLog(weekStart.plusDays(1).atTime(9, 0), 72.0, 5.0, null));
         jobOperatorTestUtils.startJob(weekParams(weekStart, 2L));
 
         HealthLogWeeklyStat secondRun = healthLogWeeklyStatRepository.findByWeekStart(weekStart).orElseThrow();
@@ -104,9 +104,25 @@ class HealthLogWeeklyStatJobIntegrationTest {
     }
 
     @Test
+    void countsWholeWeekByTimeRangeIncludingSundayNight() throws Exception {
+        LocalDate weekStart = LocalDate.of(2026, 5, 4);
+        // 기록 시각이 날짜+시각이라 [월 00:00, 다음 월 00:00) 범위로 센다 (이슈 #137)
+        healthLogRepository.save(new HealthLog(weekStart.atStartOfDay(), 70.0, 7.0, null));
+        healthLogRepository.save(new HealthLog(weekStart.plusDays(6).atTime(23, 59), 72.0, 7.0, null));
+        healthLogRepository.save(new HealthLog(weekStart.plusDays(7).atStartOfDay(), 100.0, 1.0, null));
+        healthLogRepository.save(new HealthLog(weekStart.minusDays(1).atTime(23, 59), 100.0, 1.0, null));
+
+        jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
+
+        HealthLogWeeklyStat stat = healthLogWeeklyStatRepository.findByWeekStart(weekStart).orElseThrow();
+        assertThat(stat.getLogCount()).isEqualTo(2);
+        assertThat(stat.getAvgWeightKg()).isCloseTo(71.0, within(0.001));
+    }
+
+    @Test
     void weekWithNoLogsProducesNoStat() throws Exception {
         LocalDate weekStart = LocalDate.of(2026, 6, 1);
-        healthLogRepository.save(new HealthLog(weekStart.minusWeeks(1), 70.0, 7.0, null));
+        healthLogRepository.save(new HealthLog(weekStart.minusWeeks(1).atTime(9, 0), 70.0, 7.0, null));
 
         jobOperatorTestUtils.startJob(weekParams(weekStart, 1L));
 

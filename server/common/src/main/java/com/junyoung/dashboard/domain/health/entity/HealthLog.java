@@ -8,7 +8,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -17,7 +17,7 @@ import java.time.LocalDate;
 public class HealthLog extends BaseEntity {
 
     @Column(name = "recorded_at", nullable = false)
-    private LocalDate recordedAt;
+    private LocalDateTime recordedAt;
 
     @Column(name = "weight_kg")
     private Double weightKg;
@@ -28,14 +28,14 @@ public class HealthLog extends BaseEntity {
     @Column(length = 500)
     private String notes;
 
-    public HealthLog(LocalDate recordedAt, Double weightKg, Double sleepHours, String notes) {
+    public HealthLog(LocalDateTime recordedAt, Double weightKg, Double sleepHours, String notes) {
         this.recordedAt = recordedAt;
         this.weightKg = weightKg;
         this.sleepHours = sleepHours;
         this.notes = notes;
     }
 
-    public void update(LocalDate recordedAt, Double weightKg, Double sleepHours, String notes) {
+    public void update(LocalDateTime recordedAt, Double weightKg, Double sleepHours, String notes) {
         this.recordedAt = recordedAt;
         this.weightKg = weightKg;
         this.sleepHours = sleepHours;
