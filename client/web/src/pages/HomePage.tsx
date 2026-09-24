@@ -441,8 +441,7 @@ function HabitsCard() {
                 style={{ accentColor: 'var(--green)' }}
                 checked={done}
                 onChange={() => {
-                  opt.set(h.id, !done)
-                  toggle(h, logs, today, { onSettled: () => opt.clear(h.id) })
+                  if (toggle(h, logs, today, { onSettled: () => opt.clear(h.id) })) opt.set(h.id, !done)
                 }}
               />
               <span className={cx(s.title, 'ellipsis')} style={{ flexGrow: 1 }}>

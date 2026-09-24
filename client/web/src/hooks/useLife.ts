@@ -32,13 +32,31 @@ export function logOn(logs: HabitLog[] | undefined, date: LocalDate): HabitLog |
   return same.find((l) => l.completed) ?? same[0]
 }
 
+/** 저장 중인 (습관, 날짜). 재조회 전에 또 누르면 같은 날 기록이 두 번 만들어지므로 막는다 */
+const inFlight = new Set<string>()
+
 /** 체크 토글: 그날 기록이 있으면 completed를 뒤집고, 없으면 완료 기록을 만든다 */
 export function useToggleHabit() {
   const create = useCreate(habitLogs)
   const update = useUpdate(habitLogs)
   return {
     isPending: create.isPending || update.isPending,
-    toggle: (habit: Habit, logs: HabitLog[] | undefined, date: LocalDate, opts?: { onSettled?: () => void }) => {
+    /** 이미 저장 중이면 false를 돌려주고 아무것도 하지 않는다 */
+    toggle: (
+      habit: Habit,
+      logs: HabitLog[] | undefined,
+      date: LocalDate,
+      opts?: { onSettled?: () => void },
+    ): boolean => {
+      const key = `${habit.id}:${date}`
+      if (inFlight.has(key)) return false
+      inFlight.add(key)
+      const settled = {
+        onSettled: () => {
+          inFlight.delete(key)
+          opts?.onSettled?.()
+        },
+      }
       const log = logOn(logs, date)
       if (log) {
         update.mutate(
@@ -46,11 +64,12 @@ export function useToggleHabit() {
             id: log.id,
             body: { habitId: habit.id, performedAt: log.performedAt, completed: !log.completed, notes: log.notes },
           },
-          opts,
+          settled,
         )
       } else {
-        create.mutate({ habitId: habit.id as Id, performedAt: date, completed: true, notes: null }, opts)
+        create.mutate({ habitId: habit.id as Id, performedAt: date, completed: true, notes: null }, settled)
       }
+      return true
     },
   }
 }
