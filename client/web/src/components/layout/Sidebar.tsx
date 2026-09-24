@@ -181,7 +181,7 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
               <span className={s.subEmpty}>{pknu.isLoading ? '불러오는 중…' : '등록된 과목이 없어요'}</span>
             ) : (
               courseRows.map(({ course, color }) => (
-                <Link key={course.id} to="/pknu" className={s.subItem}>
+                <Link key={course.id} to={`/pknu/courses/${course.id}`} className={s.subItem}>
                   <span className={s.dot} style={{ background: color }} />
                   <span className={s.subLabel}>{course.name}</span>
                 </Link>

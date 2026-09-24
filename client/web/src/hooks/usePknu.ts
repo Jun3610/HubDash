@@ -1,7 +1,8 @@
+import { useQueries } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { courses, semesters } from '../api/pknu'
-import { BIG_PAGE, useList } from '../api/resource'
-import type { Id, Semester } from '../api/types'
+import { BIG_PAGE, listKey, useList } from '../api/resource'
+import type { Course, Id, Semester } from '../api/types'
 import { inRange, type LocalDate } from '../lib/date'
 import { useToday } from './useToday'
 
@@ -45,4 +46,23 @@ export function useSemesterBundle(semesterId?: Id | null) {
 /** 과목 색 점: 과목 순서대로 --course-1..6 */
 export function courseColor(index: number): string {
   return `var(--course-${(index % 6) + 1})`
+}
+
+/** 모든 학기의 과목 (전체 평점 계산용). useCourses와 같은 쿼리 키라 캐시를 같이 쓴다 */
+export function useAllCourses() {
+  const sems = useSemesters()
+  const list = useMemo(() => sems.data?.content ?? [], [sems.data])
+  const results = useQueries({
+    queries: list.map((sem) => {
+      const q = { semesterId: sem.id, size: BIG_PAGE }
+      return { queryKey: listKey(courses.path, q), queryFn: () => courses.list(q) }
+    }),
+  })
+  const all: Course[] = results.flatMap((r) => r.data?.content ?? [])
+  return {
+    semesters: list,
+    courses: all,
+    isLoading: sems.isLoading || results.some((r) => r.isLoading),
+    error: sems.error ?? results.find((r) => r.error)?.error ?? null,
+  }
 }

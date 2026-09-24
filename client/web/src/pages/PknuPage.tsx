@@ -1,7 +1,7 @@
 import { MoreHorizontal, Plus } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { courses, semesters } from '../api/pknu'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { semesters } from '../api/pknu'
 import { useCreate, useRemove, useUpdate } from '../api/resource'
 import type { Course, Semester } from '../api/types'
 import { PageContent, PageHeader } from '../components/layout/PageHeader'
@@ -15,7 +15,6 @@ import {
   Input,
   Modal,
   QueryState,
-  Select,
   Table,
   Tabs,
   Tag,
@@ -23,14 +22,16 @@ import {
 } from '../components/ui'
 import { NotionLink } from '../components/ui/NotionLink'
 import { courseCategoryStore } from '../config/prefs'
-import { pickCurrentSemester, useSemesterBundle } from '../hooks/usePknu'
+import { pickCurrentSemester, useAllCourses, useSemesterBundle } from '../hooks/usePknu'
 import { useToday } from '../hooks/useToday'
 import { type LocalDate } from '../lib/date'
 import { semesterStatus, weekNumber } from '../lib/select/pknu'
 import { sortBy } from '../lib/select/range'
+import { formatGpa, gpaOf, gradeTone } from '../lib/grade'
 import { useStore } from '../lib/storage'
-import { hasErrors, isUrl, maxLen, numRange, optStr, required, type Errors } from '../lib/validate'
+import { hasErrors, maxLen, required, type Errors } from '../lib/validate'
 import s from './pknu/Pknu.module.css'
+import { CourseModal } from './pknu/CourseModal'
 
 type Dialog = { kind: 'semester'; semester?: Semester } | { kind: 'course'; course?: Course } | null
 
@@ -110,6 +111,8 @@ export default function PknuPage() {
             <>
               <SemesterSummary
                 semester={semester}
+                semesterList={sorted}
+                onSelect={select}
                 courseList={bundle.courses}
                 today={today}
                 onEdit={() => setDialog({ kind: 'semester', semester })}
@@ -119,7 +122,6 @@ export default function PknuPage() {
                 loading={bundle.isLoading}
                 error={bundle.error}
                 onAdd={() => setDialog({ kind: 'course' })}
-                onEdit={(course) => setDialog({ kind: 'course', course })}
               />
             </>
           )}
@@ -149,15 +151,22 @@ export default function PknuPage() {
 
 function SemesterSummary({
   semester,
+  semesterList,
   courseList,
   today,
   onEdit,
+  onSelect,
 }: {
   semester: Semester
+  semesterList: Semester[]
   courseList: Course[]
   today: LocalDate
   onEdit: () => void
+  onSelect: (id: string) => void
 }) {
+  const allCourses = useAllCourses()
+  const semGpa = gpaOf(courseList)
+  const totalGpa = gpaOf(allCourses.courses)
   const categories = useStore(courseCategoryStore)
   const status = semesterStatus(semester.startDate, semester.endDate, today)
   const wk = weekNumber(semester.startDate, semester.endDate, today)
@@ -168,29 +177,52 @@ function SemesterSummary({
     if (cat) byCat.set(cat, (byCat.get(cat) ?? 0) + c.credit)
   }
   return (
-    <section className={s.semHead}>
-      <h1>{semester.name}</h1>
-      <Tag size="lg" tone={status === '진행 중' ? 'neutral' : status === '예정' ? 'blue' : 'gray'}>
-        {status}
-      </Tag>
-      <span className={s.period}>
-        {semester.startDate.replaceAll('-', '.')} → {semester.endDate.replaceAll('-', '.')}
-        {wk && ` · ${wk}주차`}
-      </span>
-      <IconButton label="학기 수정" size="sm" onClick={onEdit}>
-        <MoreHorizontal size={15} />
-      </IconButton>
-      <div className={s.credits}>
-        {[...byCat.entries()].map(([cat, n]) => (
-          <span key={cat}>
-            {cat} <b>{n}</b>
-          </span>
+    <>
+      {/* 학기가 헤더의 작은 탭에만 있으면 잘 안 보여서 본문에도 크게 (이슈 #132) */}
+      <div className={s.semSwitch} role="tablist" aria-label="학기 선택">
+        {semesterList.map((x) => (
+          <button
+            key={x.id}
+            type="button"
+            role="tab"
+            aria-selected={x.id === semester.id}
+            onClick={() => onSelect(String(x.id))}
+          >
+            {x.name}
+            <small>{semesterStatus(x.startDate, x.endDate, today)}</small>
+          </button>
         ))}
-        <span>
-          합계 <b>{total}</b>학점
-        </span>
       </div>
-    </section>
+      <section className={s.semHead}>
+        <h1>{semester.name}</h1>
+        <Tag size="lg" tone={status === '진행 중' ? 'neutral' : status === '예정' ? 'blue' : 'gray'}>
+          {status}
+        </Tag>
+        <span className={s.period}>
+          {semester.startDate.replaceAll('-', '.')} → {semester.endDate.replaceAll('-', '.')}
+          {wk && ` · ${wk}주차`}
+        </span>
+        <IconButton label="학기 수정" size="sm" onClick={onEdit}>
+          <MoreHorizontal size={15} />
+        </IconButton>
+        <div className={s.credits}>
+          {[...byCat.entries()].map(([cat, n]) => (
+            <span key={cat}>
+              {cat} <b>{n}</b>
+            </span>
+          ))}
+          <span>
+            합계 <b>{total}</b>학점
+          </span>
+          <span>
+            학기 평점 <b>{formatGpa(semGpa.gpa)}</b>
+          </span>
+          <span>
+            전체 평점 <b>{formatGpa(totalGpa.gpa)}</b> / 4.5
+          </span>
+        </div>
+      </section>
+    </>
   )
 }
 
@@ -201,15 +233,14 @@ function CoursesTable({
   loading,
   error,
   onAdd,
-  onEdit,
 }: {
   courseList: Course[]
   loading: boolean
   error: unknown
   onAdd: () => void
-  onEdit: (c: Course) => void
 }) {
   const categories = useStore(courseCategoryStore)
+  const navigate = useNavigate()
   const ordered = courseList.map((c, i) => ({ c, i }))
   return (
     <section className={s.box}>
@@ -249,21 +280,34 @@ function CoursesTable({
               <th scope="col" className="num" style={{ width: 48 }}>
                 학점
               </th>
+              <th scope="col" className="num" style={{ width: 72 }}>
+                성적
+              </th>
             </tr>
           </thead>
           <tbody>
             {ordered.map(({ c, i }) => (
-              <tr key={c.id}>
+              <tr key={c.id} className={s.courseRow} onClick={() => navigate(`/pknu/courses/${c.id}`)}>
                 <td>
-                  <button type="button" className={s.courseName} onClick={() => onEdit(c)}>
+                  {/* 행 어디를 눌러도 과목 대시보드로 (이슈 #134) */}
+                  <Link to={`/pknu/courses/${c.id}`} className={s.courseName} onClick={(e) => e.stopPropagation()}>
                     {c.name}
-                  </button>{' '}
+                  </Link>{' '}
                   {c.notionUrl && <NotionLink url={c.notionUrl} label={`${c.name} 노션 필기`} />}
                   {categories[c.id] && <Tag tone={toneFor(categories[c.id])}>{categories[c.id]}</Tag>}
                   <span className="sr-only">색 {i + 1}</span>
                 </td>
                 <td className={`${s.hideMobile} muted`}>{c.professor ?? '—'}</td>
                 <td className="num mono">{c.credit}</td>
+                <td style={{ textAlign: 'right' }}>
+                  {c.grade ? (
+                    <Tag mono tone={gradeTone(c.grade)}>
+                      {c.grade}
+                    </Tag>
+                  ) : (
+                    <span className="muted">—</span>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -357,141 +401,6 @@ function SemesterModal({
         onConfirm={() =>
           semester && remove.mutate(semester.id, { onSuccess: onClose, onError: () => setConfirm(false) })
         }
-      />
-    </Modal>
-  )
-}
-
-function CourseModal({
-  semesterList,
-  semesterId,
-  course,
-  onClose,
-}: {
-  semesterList: Semester[]
-  semesterId: number
-  course?: Course
-  onClose: () => void
-}) {
-  const categories = useStore(courseCategoryStore)
-  const [d, setD] = useState({
-    semesterId: String(course?.semesterId ?? semesterId),
-    name: course?.name ?? '',
-    professor: course?.professor ?? '',
-    credit: String(course?.credit ?? 3),
-    category: course ? (categories[course.id] ?? '') : '',
-    notionUrl: course?.notionUrl ?? '',
-  })
-  const [errors, setErrors] = useState<Errors<keyof typeof d>>({})
-  const [confirm, setConfirm] = useState(false)
-  const create = useCreate(courses)
-  const update = useUpdate(courses)
-  const remove = useRemove(courses)
-  const m = course ? update : create
-  const knownCats = [...new Set(Object.values(categories))]
-  const saveCategory = (id: number) =>
-    courseCategoryStore.set((all) => {
-      const next = { ...all }
-      if (d.category.trim()) next[id] = d.category.trim()
-      else delete next[id]
-      return next
-    })
-  const submit = (e: FormEvent) => {
-    e.preventDefault()
-    const errs = {
-      name: required(d.name, '과목 이름') ?? maxLen(d.name, 100),
-      professor: maxLen(d.professor, 100),
-      credit: required(d.credit, '학점') ?? numRange(d.credit, 1, 6, true),
-      category: maxLen(d.category, 10),
-      notionUrl: d.notionUrl.trim() ? (isUrl(d.notionUrl.trim()) ?? maxLen(d.notionUrl, 1000)) : undefined,
-    }
-    setErrors(errs)
-    if (hasErrors(errs)) return
-    const body = {
-      semesterId: Number(d.semesterId),
-      name: d.name.trim(),
-      professor: optStr(d.professor),
-      credit: Number(d.credit),
-      // 수정할 때 빠뜨리면 서버가 기존 값을 지우므로 항상 보낸다
-      notionUrl: optStr(d.notionUrl),
-      grade: course?.grade ?? null,
-      memo: course?.memo ?? null,
-    }
-    const done = (x: Course) => {
-      saveCategory(x.id)
-      onClose()
-    }
-    if (course) update.mutate({ id: course.id, body }, { onSuccess: done })
-    else create.mutate(body, { onSuccess: done })
-  }
-  const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-    setD({ ...d, [k]: e.target.value })
-  return (
-    <Modal
-      open
-      onClose={onClose}
-      title={course ? '과목 수정' : '과목 추가'}
-      footer={
-        <>
-          {course && (
-            <Button variant="danger" style={{ marginRight: 'auto' }} onClick={() => setConfirm(true)}>
-              삭제
-            </Button>
-          )}
-          <Button onClick={onClose}>취소</Button>
-          <Button variant="primary" type="submit" form="course-form" disabled={m.isPending}>
-            저장
-          </Button>
-        </>
-      }
-    >
-      <form id="course-form" className={s.formGrid} onSubmit={submit} noValidate>
-        <Field label="과목 이름" required error={errors.name} className={s.full}>
-          <Input value={d.name} onChange={set('name')} />
-        </Field>
-        <Field label="교수">
-          <Input value={d.professor} onChange={set('professor')} />
-        </Field>
-        <Field label="학점 (1–6)" required error={errors.credit}>
-          <Input mono inputMode="numeric" value={d.credit} onChange={set('credit')} />
-        </Field>
-        <Field label="학기" required>
-          <Select value={d.semesterId} onChange={set('semesterId')}>
-            {semesterList.map((x) => (
-              <option key={x.id} value={x.id}>
-                {x.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field label="분류" hint="예: 시경, 컴공, 교양 · 이 브라우저에 저장" error={errors.category}>
-          <Input list="course-cats" value={d.category} onChange={set('category')} />
-        </Field>
-        <Field label="노션 필기 페이지" error={errors.notionUrl} className={s.full}>
-          <Input
-            mono
-            type="url"
-            placeholder="https://www.notion.so/…"
-            value={d.notionUrl}
-            onChange={set('notionUrl')}
-          />
-        </Field>
-        <datalist id="course-cats">
-          {knownCats.map((c) => (
-            <option key={c} value={c} />
-          ))}
-        </datalist>
-        <div className={s.full}>
-          <FormError error={m.error ?? remove.error} />
-        </div>
-      </form>
-      <ConfirmDialog
-        open={confirm}
-        title="과목 삭제"
-        message="이 과목을 지울까요? 성적과 메모도 함께 지워져요."
-        busy={remove.isPending}
-        onClose={() => setConfirm(false)}
-        onConfirm={() => course && remove.mutate(course.id, { onSuccess: onClose, onError: () => setConfirm(false) })}
       />
     </Modal>
   )

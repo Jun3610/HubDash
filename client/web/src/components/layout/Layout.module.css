@@ -33,16 +33,21 @@
   gap: 12px;
   white-space: nowrap;
 }
-.crumb span:nth-child(1) {
+.crumb > :nth-child(1) {
   color: var(--text-muted);
 }
-.crumb span:nth-child(2) {
+.crumb > :nth-child(2) {
   color: var(--border);
 }
-.crumb span:nth-child(3),
-.crumb span:last-child {
+.crumb > :nth-child(3),
+.crumb > :last-child {
   color: var(--text);
   font-weight: 500;
+}
+.crumbLink:hover {
+  color: var(--text) !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .crumb .crumbMid {
   color: var(--text-muted);
