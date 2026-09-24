@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>HubDash 홈</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans KR',system-ui,sans-serif;background:#191919;color:#cfcfcf}
+a{color:#529cca;text-decoration:none}a:hover{color:#7db8e0}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1180px; display: flex; background: #191919; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; color: #cfcfcf; font-size: 13px; overflow: hidden;">
+<dc-import name="Sidebar" active="home" height="{{sideH}}" hint-size="232px,1180px"></dc-import>
+
+<main style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+<header style="height: 44px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 20px; border-bottom: 1px solid #2a2a2a;">
+<span style="color: #8f8f8f;">HubDash</span><span style="color: #333333;">/</span><span style="color: #e6e6e6; font-weight: 500;">홈</span>
+<span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #8f8f8f;">2026.09.23 수</span>
+<button type="button" style="display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; background: #c4554d; color: #ffffff; border: 0; border-radius: 6px; font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer;">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>빠른 기록
+</button>
+</header>
+
+<div style="flex-grow: 1; padding: 20px 28px 24px; display: flex; flex-direction: column; gap: 14px; overflow: hidden;">
+<section style="display: flex; align-items: center; gap: 14px;">
+<div style="width: 40px; height: 40px; border-radius: 50%; background: #2383e2; color: #ffffff; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center;">PJ</div>
+<div style="display: flex; flex-direction: column; gap: 2px;">
+<h1 style="margin: 0; font-size: 18px; font-weight: 700; color: #e6e6e6; letter-spacing: -0.2px;">Park Jun Young</h1>
+<span style="font-size: 12.5px; color: #8f8f8f;">부경대 시스템경영안전공학부 · 기술데이터공학 전공 · WAP 백엔드</span>
+</div>
+<div style="margin-left: auto; display: flex; gap: 6px;">
+<span style="padding: 1px 9px; border-radius: 4px; background: #2f2f2f; color: #8f8f8f; font-size: 12px;">2026-2 · 16학점</span>
+<span style="padding: 1px 9px; border-radius: 4px; background: #243d30; color: #529e72; font-size: 12px;">주 3일 웨이트</span>
+<span style="padding: 1px 9px; border-radius: 4px; background: #4a3d24; color: #ca9849; font-size: 12px;">리눅스 마스터 2급 준비</span>
+</div>
+</section>
+
+<section aria-label="오늘 요약" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div style="padding: 12px 14px; border: 1px solid #333333; border-radius: 6px; background: #191919; display: flex; flex-direction: column; gap: 6px;">
+<span style="font-size: 12px; color: #8f8f8f;">{{k.label}}</span>
+<div style="display: flex; align-items: baseline; gap: 6px;">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 500; color: #e6e6e6;">{{k.value}}</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #8f8f8f;">{{k.unit}}</span>
+</div>
+<div style="height: 4px; border-radius: 2px; background: #2a2a2a; overflow: hidden;"><div style="{{k.bar}}"></div></div>
+</div>
+</sc-for>
+</section>
+
+<section style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+<div style="grid-column: span 2; border: 1px solid #333333; border-radius: 6px; background: #191919; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">최근 1년 기록 <span style="font-family: 'JetBrains Mono', monospace;">1,284</span>건</h2>
+<span style="font-size: 12px; color: #8f8f8f;">식단 · 운동 · 공부 · 습관 · 과제 기록을 하루 단위로 합산</span>
+<div style="margin-left: auto; display: flex; gap: 2px;">
+<button type="button" style="height: 24px; padding: 0 10px; border: 0; border-radius: 6px; background: #2383e2; color: #ffffff; font: inherit; font-size: 12px; cursor: pointer;">2026</button>
+<button type="button" style="height: 24px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: #8f8f8f; font: inherit; font-size: 12px; cursor: pointer;">2025</button>
+</div>
+</div>
+<div style="display: flex; gap: 6px;">
+<div style="display: grid; grid-template-rows: repeat(7, 10px); row-gap: 3px; padding-top: 16px; font-size: 10px; color: #8f8f8f; line-height: 10px;"><span></span><span>월</span><span></span><span>수</span><span></span><span>금</span><span></span></div>
+<div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1;">
+<div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); font-size: 10.5px; color: #8f8f8f;"><span>10월</span><span>11월</span><span>12월</span><span>1월</span><span>2월</span><span>3월</span><span>4월</span><span>5월</span><span>6월</span><span>7월</span><span>8월</span><span>9월</span></div>
+<div aria-label="최근 1년 일별 기록 수" style="display: grid; grid-template-rows: repeat(7, 10px); grid-auto-flow: column; grid-auto-columns: 10px; gap: 3px;">
+<sc-for list="{{heat}}" as="c" hint-placeholder-count="371"><span style="{{c}}"></span></sc-for>
+</div>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 4px; justify-content: flex-end; font-size: 11px; color: #8f8f8f;">적음<span style="width: 10px; height: 10px; border-radius: 2px; background: #252525; outline: 1px solid #2a2a2a;"></span><span style="width: 10px; height: 10px; border-radius: 2px; background: #3e2624;"></span><span style="width: 10px; height: 10px; border-radius: 2px; background: #6b3530;"></span><span style="width: 10px; height: 10px; border-radius: 2px; background: #9c4540;"></span><span style="width: 10px; height: 10px; border-radius: 2px; background: #e27a72;"></span>많음</div>
+</div>
+<div style="border: 1px solid #333333; border-radius: 6px; background: #191919; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">활동 개요</h2>
+<div role="img" aria-label="도메인별 기록 비율" style="display: flex; height: 8px; border-radius: 4px; overflow: hidden; gap: 2px;">
+<span style="width: 38%; background: #529e72;"></span><span style="width: 24%; background: #9d68d3;"></span><span style="width: 18%; background: #529cca;"></span><span style="width: 12%; background: #ca9849;"></span><span style="width: 8%; background: #c77d48;"></span>
+</div>
+<sc-for list="{{split}}" as="d" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px;"><span style="{{d.dot}}"></span><span style="flex-grow: 1; color: #cfcfcf;">{{d.name}}</span><span style="font-family: 'JetBrains Mono', monospace; color: #8f8f8f;">{{d.pct}}</span></div>
+</sc-for>
+</div>
+</section>
+
+<section style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+<div style="border: 1px solid #333333; border-radius: 6px; background: #191919; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">오늘 일정</h2>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8f8f8f;">3</span>
+<a href="Schedule.dc.html" style="margin-left: auto; font-size: 12px;">캘린더</a>
+</div>
+<sc-for list="{{events}}" as="e" hint-placeholder-count="3">
+<div style="display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 10px; padding: 6px 0; border-top: 1px solid #2a2a2a;">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #8f8f8f;">{{e.time}}</span>
+<div style="display: flex; flex-direction: column; gap: 1px; min-width: 0;">
+<span style="color: #dcdcdc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{e.title}}</span>
+<span style="font-size: 11.5px; color: #8f8f8f;">{{e.loc}}</span>
+</div>
+</div>
+</sc-for>
+</div>
+
+<div style="border: 1px solid #333333; border-radius: 6px; background: #191919; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">과제</h2>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8f8f8f;">4</span>
+<a href="Pknu.dc.html" style="margin-left: auto; font-size: 12px;">학업</a>
+</div>
+<sc-for list="{{assignments}}" as="a" hint-placeholder-count="4">
+<label style="display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid #2a2a2a; cursor: pointer;">
+<input type="checkbox" style="width: 14px; height: 14px; margin: 0; accent-color: #c4554d;" checked="{{a.done}}">
+<div style="display: flex; flex-direction: column; gap: 1px; min-width: 0; flex-grow: 1;">
+<span style="{{a.titleStyle}}">{{a.title}}</span>
+<span style="font-size: 11.5px; color: #8f8f8f;">{{a.course}}</span>
+</div>
+<span style="{{a.badge}}">{{a.due}}</span>
+</label>
+</sc-for>
+</div>
+
+<div style="border: 1px solid #333333; border-radius: 6px; background: #191919; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">오늘 습관</h2>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8f8f8f;">3/5</span>
+<a href="Life.dc.html" style="margin-left: auto; font-size: 12px;">생활</a>
+</div>
+<sc-for list="{{habits}}" as="h" hint-placeholder-count="5">
+<label style="display: flex; align-items: center; gap: 10px; padding: 5px 0; border-top: 1px solid #2a2a2a; cursor: pointer;">
+<input type="checkbox" style="width: 14px; height: 14px; margin: 0; accent-color: #529e72;" checked="{{h.done}}">
+<span style="flex-grow: 1; color: #dcdcdc;">{{h.name}}</span>
+<span aria-label="이번 주 기록" style="display: flex; gap: 3px;">
+<sc-for list="{{h.week}}" as="d" hint-placeholder-count="7"><span style="{{d}}"></span></sc-for>
+</span>
+</label>
+</sc-for>
+</div>
+</section>
+
+<section style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+<div style="grid-column: span 2; border: 1px solid #333333; border-radius: 6px; background: #191919; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">오늘 식단</h2>
+<span style="font-size: 12px; color: #8f8f8f;">목표 1,500 kcal · 단백질 160g 고정</span>
+<a href="Health.dc.html" style="margin-left: auto; font-size: 12px;">건강</a>
+</div>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px;">
+<sc-for list="{{macros}}" as="m" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 5px;">
+<div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #8f8f8f;">{{m.label}}</span><span style="font-family: 'JetBrains Mono', monospace; color: #cfcfcf;">{{m.val}}</span></div>
+<div style="height: 6px; border-radius: 3px; background: #2a2a2a; overflow: hidden;"><div style="{{m.bar}}"></div></div>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8f8f8f;">{{m.limit}}</span>
+</div>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;">
+<sc-for list="{{meals}}" as="m" hint-placeholder-count="4">
+<div style="padding: 8px 10px; border-radius: 6px; background: #252525; display: flex; flex-direction: column; gap: 3px;">
+<div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 12px; font-weight: 600; color: #cfcfcf;">{{m.type}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #e6e6e6;">{{m.kcal}}</span></div>
+<span style="font-size: 11.5px; color: #8f8f8f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{m.items}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="border: 1px solid #333333; border-radius: 6px; background: #191919; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">리마인더</h2>
+<a href="Reminder.dc.html" style="margin-left: auto; font-size: 12px;">전체</a>
+</div>
+<sc-for list="{{reminders}}" as="r" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid #2a2a2a;">
+<span style="{{r.dot}}"></span>
+<div style="display: flex; flex-direction: column; gap: 1px; min-width: 0; flex-grow: 1;">
+<span style="color: #dcdcdc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{r.title}}</span>
+<span style="font-size: 11.5px; color: #8f8f8f;">{{r.domain}}</span>
+</div>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8f8f8f;">{{r.at}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; flex-grow: 1; min-height: 0;">
+<div id="hub" style="grid-column: span 2; border: 1px solid #333333; border-radius: 6px; background: #191919; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">HUB</h2>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8f8f8f;">9 카테고리 · 42 링크</span>
+<button type="button" aria-label="링크 추가" style="margin-left: auto; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid #333333; border-radius: 5px; color: #8f8f8f; cursor: pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px;">
+<sc-for list="{{hub}}" as="c" hint-placeholder-count="9">
+<a href="Hub.dc.html" style="display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border-radius: 6px; background: #2a2a2a; color: #dcdcdc; font-size: 13px; font-weight: 500;">
+<span style="width: 20px; height: 20px; border-radius: 4px; background: #2c2c2c; color: #8f8f8f; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; display: flex; align-items: center; justify-content: center;">{{c.abbr}}</span>
+<span style="flex-grow: 1;">{{c.name}}</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8f8f8f;">{{c.count}}</span>
+</a>
+</sc-for>
+</div>
+</div>
+
+<div style="border: 1px solid #333333; border-radius: 6px; background: #191919; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">메모</h2>
+<a href="Memo.dc.html" style="margin-left: auto; font-size: 12px;">전체</a>
+</div>
+<sc-for list="{{memos}}" as="m" hint-placeholder-count="4">
+<a href="Memo.dc.html" style="display: flex; flex-direction: column; gap: 3px; padding: 6px 0; border-top: 1px solid #2a2a2a; color: #dcdcdc;">
+<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{m.title}}</span>
+<span style="display: flex; gap: 4px;"><sc-for list="{{m.tags}}" as="t" hint-placeholder-count="2"><span style="padding: 0 6px; border-radius: 3px; background: #252525; color: #8f8f8f; font-size: 11px;">{{t}}</span></sc-for></span>
+</a>
+</sc-for>
+</div>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const bar = (pct, color) => 'height: 100%; width: ' + Math.min(pct, 100) + '%; background: ' + color + '; border-radius: 3px;';
+    const badge = (tone) => {
+      const t = { red: ['#522e2a', '#df5453'], orange: ['#5c3b23', '#c77d48'], gray: ['#252525', '#8f8f8f'] }[tone];
+      return 'font-family: JetBrains Mono, monospace; font-size: 11px; padding: 1px 6px; border-radius: 4px; background: ' + t[0] + '; color: ' + t[1] + ';';
+    };
+    const dot = (on) => 'width: 7px; height: 7px; border-radius: 2px; background: ' + (on ? '#529e72' : '#2c2c2c') + ';';
+    const wk = (s) => s.split('').map((c) => dot(c === '1'));
+    const lv = ['#252525', '#3e2624', '#6b3530', '#9c4540', '#e27a72'];
+    let seed = 7;
+    const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    const heat = Array.from({ length: 371 }, (_, i) => {
+      const recent = i / 371;
+      const r = rnd() * (0.35 + recent * 0.9);
+      const l = i > 366 ? 0 : r > 0.95 ? 4 : r > 0.8 ? 3 : r > 0.62 ? 2 : r > 0.45 ? 1 : 0;
+      return 'width: 10px; height: 10px; border-radius: 2px; background: ' + lv[l] + ';' + (l === 0 ? ' outline: 1px solid #222222; outline-offset: -1px;' : '');
+    });
+    const sdot = (c) => 'width: 8px; height: 8px; border-radius: 50%; background: ' + c + ';';
+    return {
+      sideH: 1180,
+      heat,
+      split: [
+        { name: '식단', pct: '38%', dot: sdot('#529e72') },
+        { name: '공부', pct: '24%', dot: sdot('#9d68d3') },
+        { name: '습관', pct: '18%', dot: sdot('#529cca') },
+        { name: '운동', pct: '12%', dot: sdot('#ca9849') },
+        { name: '과제', pct: '8%', dot: sdot('#c77d48') }
+      ],
+      kpis: [
+        { label: '오늘 섭취', value: '1,240', unit: '/ 1,500 kcal', bar: bar(83, '#529cca') },
+        { label: '단백질', value: '128', unit: '/ 160 g', bar: bar(80, '#529e72') },
+        { label: '이번 주 공부', value: '6h 40m', unit: '12 세션', bar: bar(67, '#9d68d3') },
+        { label: '이번 주 과제 완료율', value: '60', unit: '% · 3/5', bar: bar(60, '#c77d48') }
+      ],
+      events: [
+        { time: '10:30', title: '알고리즘과자료구조', loc: '공학관 A-203' },
+        { time: '15:00', title: 'WAP 백엔드 회의', loc: '동아리방' },
+        { time: '19:00', title: '웨이트 — 등 + 이두', loc: '헬스장' }
+      ],
+      assignments: [
+        { title: '정렬 알고리즘 구현 과제', course: '알고리즘과자료구조', due: 'D-1', done: false, badge: badge('red'), titleStyle: 'color: #dcdcdc;' },
+        { title: 'ERD 설계 보고서', course: '데이터베이스응용', due: 'D-3', done: false, badge: badge('orange'), titleStyle: 'color: #dcdcdc;' },
+        { title: '포인터 실습 3', course: '실무전산II - C언어', due: 'D-6', done: false, badge: badge('gray'), titleStyle: 'color: #dcdcdc;' },
+        { title: '회귀분석 퀴즈', course: '통계적데이터분석', due: '완료', done: true, badge: badge('gray'), titleStyle: 'color: #8f8f8f; text-decoration: line-through;' }
+      ],
+      habits: [
+        { name: '물 2L 마시기', done: true, week: wk('1110110') },
+        { name: '유산균 챙기기', done: true, week: wk('1011100') },
+        { name: '유산소 30분', done: false, week: wk('1010100') },
+        { name: '7시간 이상 수면', done: true, week: wk('0110110') },
+        { name: '정제 탄수 줄이기', done: false, week: wk('1100100') }
+      ],
+      macros: [
+        { label: '칼로리', val: '1,240', limit: '목표 1,500', bar: bar(83, '#529cca') },
+        { label: '단백질', val: '128g', limit: '160 이상', bar: bar(80, '#529e72') },
+        { label: '탄수', val: '118g', limit: '140 이하', bar: bar(84, '#ca9849') },
+        { label: '지방', val: '38g', limit: '50 이하', bar: bar(76, '#c77d48') },
+        { label: '나트륨', val: '1,850', limit: '2,000mg 대', bar: bar(92, '#df5453') }
+      ],
+      meals: [
+        { type: '아침', kcal: '320', items: '그릭요거트, 바나나' },
+        { type: '점심', kcal: '610', items: '닭가슴살 덮밥, 계란 2' },
+        { type: '저녁', kcal: '—', items: '기록 없음' },
+        { type: '간식', kcal: '310', items: '프로틴 쉐이크, 아몬드' }
+      ],
+      reminders: [
+        { title: '정렬 과제 제출', domain: 'pknu · 과제', at: '내일 09:00', dot: 'width: 7px; height: 7px; border-radius: 50%; background: #df5453;' },
+        { title: '리눅스 마스터 접수', domain: 'schedule', at: '09.26', dot: 'width: 7px; height: 7px; border-radius: 50%; background: #c77d48;' },
+        { title: '주간 통계 확인', domain: 'health', at: '09.28', dot: 'width: 7px; height: 7px; border-radius: 50%; background: #333333;' }
+      ],
+      hub: [
+        { abbr: 'CI', name: 'CI/CD', count: 6 }, { abbr: 'NW', name: 'Network', count: 5 }, { abbr: 'CS', name: 'CS', count: 8 },
+        { abbr: 'SH', name: 'Scripts', count: 4 }, { abbr: 'JV', name: 'Java', count: 7 }, { abbr: 'CT', name: 'CT', count: 3 },
+        { abbr: 'DK', name: 'Docker', count: 4 }, { abbr: 'IF', name: 'Infra', count: 3 }, { abbr: 'LC', name: 'License', count: 2 }
+      ],
+      memos: [
+        { title: '전체적 공부 방향', tags: ['방향'] },
+        { title: '공부하면서 깃허브 방향', tags: ['github'] },
+        { title: 'CS 공부 방향', tags: ['CS', '방향'] },
+        { title: '활동 (클라우드)', tags: ['cloud'] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

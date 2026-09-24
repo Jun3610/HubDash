@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>모바일 홈</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans KR',system-ui,sans-serif;background:#191919;color:#cfcfcf}
+a{color:#529cca;text-decoration:none}a:hover{color:#7db8e0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; display: flex; flex-direction: column; background: #191919; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; color: #cfcfcf; font-size: 14px; overflow: hidden;">
+<header style="display: flex; align-items: center; gap: 10px; padding: 16px 16px 12px; background: #202020; border-bottom: 1px solid #333333;">
+<div style="width: 32px; height: 32px; border-radius: 50%; background: #2383e2; color: #ffffff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">PJ</div>
+<div style="display: flex; flex-direction: column;">
+<span style="font-size: 16px; font-weight: 600; color: #e6e6e6;">오늘</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8f8f8f;">2026.09.23 수</span>
+</div>
+<button type="button" aria-label="검색" style="margin-left: auto; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid #333333; border-radius: 6px; color: #cfcfcf; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg></button>
+<button type="button" aria-label="빠른 기록" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: #c4554d; border: 0; border-radius: 6px; color: #ffffff; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+</header>
+
+<div style="flex-grow: 1; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+<section aria-label="오늘 요약" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div style="padding: 10px 12px; border: 1px solid #333333; border-radius: 6px; display: flex; flex-direction: column; gap: 4px;">
+<span style="font-size: 12px; color: #8f8f8f;">{{k.label}}</span>
+<div style="display: flex; align-items: baseline; gap: 4px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 19px; color: #e6e6e6;">{{k.value}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8f8f8f;">{{k.unit}}</span></div>
+<div style="height: 4px; border-radius: 2px; background: #2a2a2a; overflow: hidden;"><div style="{{k.bar}}"></div></div>
+</div>
+</sc-for>
+</section>
+
+<section style="border: 1px solid #333333; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px;">
+<div style="display: flex; align-items: center;"><h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">최근 17주 기록</h2><span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8f8f8f;">412건</span></div>
+<div aria-label="최근 17주 일별 기록 수" style="display: grid; grid-template-rows: repeat(7, 14px); grid-auto-flow: column; grid-auto-columns: 14px; gap: 3px; justify-content: space-between;">
+<sc-for list="{{heat}}" as="c" hint-placeholder-count="119"><span style="{{c}}"></span></sc-for>
+</div>
+</section>
+
+<section style="border: 1px solid #333333; border-radius: 6px; overflow: hidden;">
+<div style="display: flex; align-items: center; padding: 10px 12px; background: #252525; border-bottom: 1px solid #333333;"><h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">마감 임박 과제</h2><a href="Pknu.dc.html" style="margin-left: auto; font-size: 13px;">전체</a></div>
+<sc-for list="{{assignments}}" as="a" hint-placeholder-count="3">
+<label style="display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 12px; border-top: 1px solid #2a2a2a;">
+<input type="checkbox" style="width: 18px; height: 18px; margin: 0; accent-color: #c4554d;">
+<div style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0;"><span style="color: #dcdcdc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{a.title}}</span><span style="font-size: 12px; color: #8f8f8f;">{{a.course}}</span></div>
+<span style="{{a.badge}}">{{a.due}}</span>
+</label>
+</sc-for>
+</section>
+
+<section style="border: 1px solid #333333; border-radius: 6px; overflow: hidden;">
+<div style="display: flex; align-items: center; padding: 10px 12px; background: #252525; border-bottom: 1px solid #333333;"><h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">오늘 습관</h2><span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #8f8f8f;">3/5</span></div>
+<sc-for list="{{habits}}" as="h" hint-placeholder-count="3">
+<label style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-top: 1px solid #2a2a2a;">
+<input type="checkbox" style="width: 18px; height: 18px; margin: 0; accent-color: #529e72;" checked="{{h.done}}">
+<span style="flex-grow: 1; color: #dcdcdc;">{{h.name}}</span>
+</label>
+</sc-for>
+</section>
+</div>
+
+<nav aria-label="하단 탭" style="height: 64px; flex-shrink: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: #202020; border-top: 1px solid #333333; padding-bottom: 6px;">
+<a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #e6e6e6; font-size: 11px; font-weight: 600;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21H3z"></path><path d="M9 21v-6h6v6"></path></svg>홈</a>
+<a href="Health.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #8f8f8f; font-size: 11px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"></path></svg>건강</a>
+<a href="Pknu.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #8f8f8f; font-size: 11px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5z"></path><path d="M6 11v5c3 2 9 2 12 0v-5"></path></svg>학업</a>
+<a href="Hub.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #8f8f8f; font-size: 11px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"></path><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"></path></svg>허브</a>
+<a href="Settings.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #8f8f8f; font-size: 11px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg>더보기</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const nbg = (c) => ({ '#529cca': '#1b3445', '#529e72': '#243d30', '#9d68d3': '#3c2d49', '#ca9849': '#4a3d24', '#c77d48': '#4f3423', '#df5453': '#4f2826', '#e27a72': '#4a2a27' }[c] || '#2f2f2f');
+    const bar = (pct, color) => 'height: 100%; width: ' + pct + '%; background: ' + color + '; border-radius: 2px;';
+    const lv = ['#252525', '#3e2624', '#6b3530', '#9c4540', '#e27a72'];
+    let seed = 11;
+    const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    const heat = Array.from({ length: 119 }, (_, i) => {
+      const r = rnd() * (0.6 + i / 119 * 0.6);
+      const l = i > 115 ? 0 : r > 0.95 ? 4 : r > 0.8 ? 3 : r > 0.6 ? 2 : r > 0.42 ? 1 : 0;
+      return 'width: 14px; height: 14px; border-radius: 3px; background: ' + lv[l] + ';';
+    });
+    const badge = (fg, bd) => 'font-family: JetBrains Mono, monospace; font-size: 12px; padding: 0 8px; border-radius: 4px; background: ' + nbg(fg) + '; color: ' + fg + ';';
+    return {
+      heat,
+      kpis: [
+        { label: '섭취', value: '1,240', unit: '/1,500', bar: bar(83, '#529cca') },
+        { label: '단백질', value: '128', unit: '/160g', bar: bar(80, '#529e72') },
+        { label: '이번 주 공부', value: '6h40m', unit: '', bar: bar(67, '#9d68d3') },
+        { label: '과제 완료율', value: '60', unit: '%', bar: bar(60, '#ca9849') }
+      ],
+      assignments: [
+        { title: '정렬 알고리즘 구현 과제', course: '알고리즘과자료구조', due: 'D-1', badge: badge('#df5453', '#a8403b') },
+        { title: 'ERD 설계 보고서', course: '데이터베이스응용', due: 'D-3', badge: badge('#ca9849', '#7a5a24') },
+        { title: '포인터 실습 3', course: '실무전산II - C언어', due: 'D-6', badge: badge('#8f8f8f', '#333333') }
+      ],
+      habits: [
+        { name: '물 2L 마시기', done: true },
+        { name: '7시간 이상 수면', done: true }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

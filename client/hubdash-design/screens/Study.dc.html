@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>공부</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans KR',system-ui,sans-serif;background:#191919;color:#cfcfcf}
+a{color:#529cca;text-decoration:none}a:hover{color:#7db8e0}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1024px; display: flex; background: #191919; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; color: #cfcfcf; font-size: 13px; overflow: hidden;">
+<dc-import name="Sidebar" active="study" hint-size="232px,1024px"></dc-import>
+
+<main style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+<header style="height: 44px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 20px; border-bottom: 1px solid #333333;">
+<span style="color: #8f8f8f;">HubDash</span><span style="color: #333333;">/</span><span style="color: #e6e6e6; font-weight: 500;">공부</span>
+<nav aria-label="공부 탭" style="display: flex; align-self: stretch; align-items: flex-end; gap: 4px; margin-left: 16px;">
+<a href="#topics" style="display: flex; align-items: center; gap: 6px; height: 43px; box-sizing: border-box; padding: 0 10px; border-bottom: 2px solid #e27a72; color: #e6e6e6; font-size: 13px; font-weight: 600;">주제<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 0 6px; border-radius: 10px; background: #333333; color: #cfcfcf;">6</span></a>
+<a href="#logs" style="display: flex; align-items: center; gap: 6px; height: 43px; box-sizing: border-box; padding: 0 10px; border-bottom: 2px solid transparent; color: #8f8f8f; font-size: 13px;">기록<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 0 6px; border-radius: 10px; background: #333333; color: #cfcfcf;">148</span></a>
+<a href="#stats" style="display: flex; align-items: center; height: 43px; box-sizing: border-box; padding: 0 10px; border-bottom: 2px solid transparent; color: #8f8f8f; font-size: 13px;">주간 통계</a>
+</nav>
+<button type="button" style="margin-left: auto; height: 28px; padding: 0 10px; background: #2c2c2c; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 12.5px; cursor: pointer;">주제 추가</button>
+<button type="button" style="display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; background: #c4554d; color: #ffffff; border: 0; border-radius: 6px; font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>공부 기록</button>
+</header>
+
+<div style="flex-grow: 1; padding: 20px 28px 24px; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; overflow: hidden;">
+<div style="display: flex; flex-direction: column; gap: 14px; min-width: 0;">
+<section aria-label="이번 주 요약" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div style="padding: 10px 14px; border: 1px solid #333333; border-radius: 6px; display: flex; flex-direction: column; gap: 2px;">
+<span style="font-size: 12px; color: #8f8f8f;">{{k.label}}</span>
+<div style="display: flex; align-items: baseline; gap: 6px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 500; color: #e6e6e6;">{{k.value}}</span><span style="font-size: 12px; color: #8f8f8f;">{{k.sub}}</span></div>
+</div>
+</sc-for>
+</section>
+
+<section id="topics" style="display: flex; flex-direction: column; gap: 8px;">
+<div style="display: flex; align-items: center; gap: 8px;"><h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">주제</h2><span style="font-size: 12px; color: #8f8f8f;">막대 = 최근 8주 공부 시간</span></div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+<sc-for list="{{topics}}" as="t" hint-placeholder-count="6">
+<div style="border: 1px solid #333333; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+<div style="display: flex; align-items: center; gap: 8px;"><span style="{{t.dot}}"></span><a href="#topic" style="font-weight: 600; font-size: 14px;">{{t.name}}</a><span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8f8f8f;">{{t.total}}</span></div>
+<span style="font-size: 12px; color: #8f8f8f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{t.desc}}</span>
+<div style="display: flex; align-items: flex-end; gap: 3px; height: 28px;">
+<sc-for list="{{t.weeks}}" as="w" hint-placeholder-count="8"><span style="{{w}}"></span></sc-for>
+</div>
+<div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #8f8f8f;"><span>이번 주 <b style="font-family: 'JetBrains Mono', monospace; font-weight: 500; color: #e6e6e6;">{{t.week}}</b></span><span>{{t.sessions}}</span></div>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section id="logs" style="border: 1px solid #333333; border-radius: 6px; overflow: hidden; min-height: 0;">
+<div style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #252525; border-bottom: 1px solid #333333;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">최근 기록</h2>
+<span style="margin-left: auto; font-size: 12px; color: #8f8f8f;">study/progresses</span>
+</div>
+<table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+<thead><tr style="color: #8f8f8f; font-size: 11.5px;">
+<th scope="col" style="text-align: left; font-weight: 500; padding: 7px 14px; width: 80px;">날짜</th>
+<th scope="col" style="text-align: left; font-weight: 500; padding: 7px 8px; width: 150px;">주제</th>
+<th scope="col" style="text-align: right; font-weight: 500; padding: 7px 8px; width: 60px;">분</th>
+<th scope="col" style="text-align: left; font-weight: 500; padding: 7px 14px;">메모</th>
+</tr></thead>
+<tbody>
+<sc-for list="{{logs}}" as="l" hint-placeholder-count="6">
+<tr style="border-top: 1px solid #2a2a2a;">
+<td style="padding: 7px 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #8f8f8f;">{{l.date}}</td>
+<td style="padding: 7px 8px;"><span style="{{l.label}}">{{l.topic}}</span></td>
+<td style="padding: 7px 8px; text-align: right; font-family: 'JetBrains Mono', monospace; color: #e6e6e6;">{{l.min}}</td>
+<td style="padding: 7px 14px; color: #cfcfcf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 1px;">{{l.note}}</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</section>
+</div>
+
+<aside style="display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+<form aria-label="공부 기록 추가" style="border: 1px solid #333333; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; margin: 0;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">빠른 기록</h2>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">주제
+<select style="height: 30px; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 13px;"><option>Spring</option><option>Java</option><option>운영체제</option></select>
+</label>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">날짜<input type="text" value="2026-09-23" style="height: 30px; box-sizing: border-box; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">분<input type="text" value="50" style="height: 30px; box-sizing: border-box; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;"></label>
+</div>
+<div style="display: flex; gap: 6px;">
+<button type="button" style="height: 24px; padding: 0 8px; background: #252525; color: #cfcfcf; border: 1px solid #333333; border-radius: 4px; font: inherit; font-size: 11.5px;">25분</button>
+<button type="button" style="height: 24px; padding: 0 8px; background: #252525; color: #cfcfcf; border: 1px solid #333333; border-radius: 4px; font: inherit; font-size: 11.5px;">50분</button>
+<button type="button" style="height: 24px; padding: 0 8px; background: #252525; color: #cfcfcf; border: 1px solid #333333; border-radius: 4px; font: inherit; font-size: 11.5px;">90분</button>
+</div>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f;">메모<textarea rows="2" style="padding: 6px 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 13px; resize: none;">트랜잭션 전파 속성 정리</textarea></label>
+<button type="submit" style="height: 30px; background: #c4554d; color: #ffffff; border: 0; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 500;">기록 저장</button>
+</form>
+
+<div id="stats" style="border: 1px solid #333333; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+<div style="display: flex; align-items: center;"><h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">이번 주 주제별</h2><span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8f8f8f;">09.21 주</span></div>
+<sc-for list="{{split}}" as="s" hint-placeholder-count="6">
+<div style="display: grid; grid-template-columns: 80px minmax(0, 1fr) 52px; align-items: center; gap: 8px; font-size: 12.5px;">
+<span style="color: #cfcfcf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{s.name}}</span>
+<div style="height: 8px; border-radius: 2px; background: #2a2a2a; overflow: hidden;"><div style="{{s.bar}}"></div></div>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8f8f8f; text-align: right;">{{s.time}}</span>
+</div>
+</sc-for>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1024}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const nbg = (c) => ({ '#529cca': '#1b3445', '#529e72': '#243d30', '#9d68d3': '#3c2d49', '#ca9849': '#4a3d24', '#c77d48': '#4f3423', '#df5453': '#4f2826', '#e27a72': '#4a2a27' }[c] || '#2f2f2f');
+    const P = { spring: '#529e72', java: '#c77d48', os: '#9d68d3', net: '#529cca', ct: '#ca9849', linux: '#e27a72' };
+    const dot = (c) => 'width: 10px; height: 10px; border-radius: 50%; background: ' + c + ';';
+    const wk = (arr, c) => arr.map((m, i) => 'flex-grow: 1; height: ' + Math.max(8, Math.round(m / 300 * 100)) + '%; border-radius: 2px; background: ' + (i === arr.length - 1 ? c : '#333333') + ';');
+    const label = (c) => 'font-size: 11.5px; padding: 0 8px; border-radius: 4px; background: ' + nbg(c) + '; color: ' + c + ';';
+    const bar = (m, c) => 'height: 100%; width: ' + Math.round(m / 150 * 100) + '%; background: ' + c + ';';
+    return {
+      kpis: [
+        { label: '이번 주', value: '6h 40m', sub: '지난주 +50m' },
+        { label: '세션', value: '12', sub: '평균 33분' },
+        { label: '연속 기록', value: '5일', sub: '최장 14일' },
+        { label: '주제', value: '6', sub: '활성 5' }
+      ],
+      topics: [
+        { name: 'Spring', desc: 'JPA · 트랜잭션 · Spring Batch', total: '38h', week: '2h 10m', sessions: '4 세션', dot: dot(P.spring), weeks: wk([120, 180, 90, 200, 160, 240, 150, 130], P.spring) },
+        { name: 'Java', desc: '컬렉션 · 동시성 · JVM 메모리', total: '52h', week: '1h 20m', sessions: '2 세션', dot: dot(P.java), weeks: wk([200, 150, 220, 180, 90, 120, 100, 80], P.java) },
+        { name: '운영체제', desc: 'CS 공부 방향 — 프로세스 · 메모리', total: '21h', week: '1h 30m', sessions: '3 세션', dot: dot(P.os), weeks: wk([0, 60, 90, 120, 60, 90, 110, 90], P.os) },
+        { name: '네트워크', desc: 'TCP/IP · HTTP · DNS', total: '17h', week: '40m', sessions: '1 세션', dot: dot(P.net), weeks: wk([90, 120, 60, 0, 60, 90, 30, 40], P.net) },
+        { name: 'CT', desc: '백준 · 프로그래머스 문제풀이', total: '44h', week: '1h', sessions: '2 세션', dot: dot(P.ct), weeks: wk([180, 150, 120, 90, 150, 120, 90, 60], P.ct) },
+        { name: '리눅스 마스터 2급', desc: '자격증 준비 — 필기', total: '9h', week: '0m', sessions: '—', dot: dot(P.linux), weeks: wk([0, 0, 0, 60, 90, 120, 60, 0], P.linux) }
+      ],
+      logs: [
+        { date: '09.23', topic: 'Spring', label: label(P.spring), min: 50, note: '트랜잭션 전파 속성 REQUIRED vs REQUIRES_NEW' },
+        { date: '09.22', topic: '운영체제', label: label(P.os), min: 30, note: '페이지 교체 알고리즘' },
+        { date: '09.22', topic: 'CT', label: label(P.ct), min: 60, note: 'BFS 3문제' },
+        { date: '09.21', topic: 'Spring', label: label(P.spring), min: 80, note: 'Spring Batch 주간 통계 Job 구조' },
+        { date: '09.21', topic: 'Java', label: label(P.java), min: 40, note: 'ConcurrentHashMap 내부 구조' },
+        { date: '09.20', topic: '네트워크', label: label(P.net), min: 40, note: 'TCP 3-way handshake' }
+      ],
+      split: [
+        { name: 'Spring', time: '2h 10m', bar: bar(130, P.spring) },
+        { name: '운영체제', time: '1h 30m', bar: bar(90, P.os) },
+        { name: 'Java', time: '1h 20m', bar: bar(80, P.java) },
+        { name: 'CT', time: '1h', bar: bar(60, P.ct) },
+        { name: '네트워크', time: '40m', bar: bar(40, P.net) },
+        { name: '리눅스 2급', time: '0m', bar: bar(0, P.linux) }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

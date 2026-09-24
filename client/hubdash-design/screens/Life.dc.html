@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>생활 · 습관</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans KR',system-ui,sans-serif;background:#191919;color:#cfcfcf}
+a{color:#529cca;text-decoration:none}a:hover{color:#7db8e0}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1024px; display: flex; background: #191919; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; color: #cfcfcf; font-size: 13px; overflow: hidden;">
+<dc-import name="Sidebar" active="life" hint-size="232px,1024px"></dc-import>
+
+<main style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+<header style="height: 44px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 20px; border-bottom: 1px solid #333333;">
+<span style="color: #8f8f8f;">HubDash</span><span style="color: #333333;">/</span><span style="color: #e6e6e6; font-weight: 500;">생활</span>
+<nav aria-label="생활 탭" style="display: flex; align-self: stretch; align-items: flex-end; gap: 4px; margin-left: 16px;">
+<a href="#habits" style="display: flex; align-items: center; gap: 6px; height: 43px; box-sizing: border-box; padding: 0 10px; border-bottom: 2px solid #e27a72; color: #e6e6e6; font-size: 13px; font-weight: 600;">습관<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 0 6px; border-radius: 10px; background: #333333; color: #cfcfcf;">5</span></a>
+<a href="#reading" style="display: flex; align-items: center; gap: 6px; height: 43px; box-sizing: border-box; padding: 0 10px; border-bottom: 2px solid transparent; color: #8f8f8f; font-size: 13px;">독서<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 0 6px; border-radius: 10px; background: #333333; color: #cfcfcf;">7</span></a>
+</nav>
+<button type="button" style="margin-left: auto; height: 28px; padding: 0 10px; background: #2c2c2c; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 12.5px; cursor: pointer;">책 추가</button>
+<button type="button" style="display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; background: #c4554d; color: #ffffff; border: 0; border-radius: 6px; font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>습관 추가</button>
+</header>
+
+<div style="flex-grow: 1; padding: 20px 28px 24px; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; overflow: hidden;">
+<div style="display: flex; flex-direction: column; gap: 14px; min-width: 0;">
+<section style="border: 1px solid #333333; border-radius: 6px; padding: 12px 16px; display: flex; flex-direction: column; gap: 6px; background: #252525;">
+<span style="font-size: 12px; color: #8f8f8f;">이번 학기 다짐</span>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+<span style="padding: 2px 10px; border-radius: 4px; background: #4a2a27; color: #e27a72; font-size: 12.5px;">이번 학기 집에서 롤 안 하기</span>
+<span style="padding: 2px 10px; border-radius: 4px; background: #2f2f2f; color: #cfcfcf; font-size: 12.5px;">컴공 복전 — 2027-1 끝나고 여름 방학에 신청</span>
+<span style="padding: 2px 10px; border-radius: 4px; background: #2f2f2f; color: #cfcfcf; font-size: 12.5px;">2026-2 끝나고 전과 생각해 보기</span>
+<span style="padding: 2px 10px; border-radius: 4px; background: #2f2f2f; color: #cfcfcf; font-size: 12.5px;">현재에 집중하기</span>
+</div>
+</section>
+
+<section id="habits" style="border: 1px solid #333333; border-radius: 6px; overflow: hidden;">
+<div style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #252525; border-bottom: 1px solid #333333;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">습관 트래커</h2>
+<span style="font-size: 12px; color: #8f8f8f;">최근 14일 · 칸을 누르면 그날 기록 토글</span>
+<span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #8f8f8f;">09.10 → 09.23</span>
+</div>
+<div style="display: grid; grid-template-columns: 170px repeat(14, 26px) minmax(0, 1fr); column-gap: 4px; align-items: center; padding: 8px 14px 4px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8f8f8f;">
+<span></span>
+<sc-for list="{{days}}" as="d" hint-placeholder-count="14"><span style="{{d.style}}">{{d.label}}</span></sc-for>
+<span style="text-align: right; font-family: 'IBM Plex Sans KR', sans-serif; font-size: 11.5px;">이번 주</span>
+</div>
+<sc-for list="{{habits}}" as="h" hint-placeholder-count="5">
+<div style="display: grid; grid-template-columns: 170px repeat(14, 26px) minmax(0, 1fr); column-gap: 4px; align-items: center; padding: 6px 14px; border-top: 1px solid #2a2a2a;">
+<div style="display: flex; flex-direction: column; min-width: 0;"><span style="color: #dcdcdc; font-weight: 500;">{{h.name}}</span><span style="font-size: 11.5px; color: #8f8f8f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{h.desc}}</span></div>
+<sc-for list="{{h.cells}}" as="c" hint-placeholder-count="14"><button type="button" aria-label="{{c.aria}}" style="{{c.style}}"></button></sc-for>
+<div style="display: flex; flex-direction: column; align-items: flex-end;"><span style="font-family: 'JetBrains Mono', monospace; color: #e6e6e6;">{{h.rate}}</span><span style="font-size: 11px; color: #8f8f8f;">{{h.streak}}</span></div>
+</div>
+</sc-for>
+</section>
+
+<section id="reading" style="border: 1px solid #333333; border-radius: 6px; overflow: hidden;">
+<div style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #252525; border-bottom: 1px solid #333333;">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">독서 기록</h2>
+<span style="font-size: 12px; color: #8f8f8f;">올해 완독 5권</span>
+</div>
+<table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+<thead><tr style="color: #8f8f8f; font-size: 11.5px;">
+<th scope="col" style="text-align: left; font-weight: 500; padding: 7px 14px;">제목</th>
+<th scope="col" style="text-align: left; font-weight: 500; padding: 7px 8px; width: 120px;">저자</th>
+<th scope="col" style="text-align: left; font-weight: 500; padding: 7px 8px; width: 160px;">기간</th>
+<th scope="col" style="text-align: left; font-weight: 500; padding: 7px 14px; width: 100px;">평점</th>
+</tr></thead>
+<tbody>
+<sc-for list="{{books}}" as="b" hint-placeholder-count="5">
+<tr style="border-top: 1px solid #2a2a2a;">
+<td style="padding: 7px 14px;"><a href="#book" style="color: #dcdcdc; font-weight: 500;">{{b.title}}</a> <span style="{{b.stateStyle}}">{{b.state}}</span></td>
+<td style="padding: 7px 8px; color: #8f8f8f;">{{b.author}}</td>
+<td style="padding: 7px 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #8f8f8f;">{{b.period}}</td>
+<td style="padding: 7px 14px; letter-spacing: 1px; color: #e27a72;" aria-label="{{b.aria}}">{{b.stars}}</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</section>
+</div>
+
+<aside style="display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+<div style="border: 1px solid #333333; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+<div style="display: flex; align-items: center;"><h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">오늘 체크</h2><span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #8f8f8f;">3/5</span></div>
+<sc-for list="{{today}}" as="t" hint-placeholder-count="5">
+<label style="display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid #2a2a2a;">
+<input type="checkbox" style="width: 15px; height: 15px; margin: 0; accent-color: #c4554d;" checked="{{t.done}}">
+<span style="flex-grow: 1; color: #dcdcdc;">{{t.name}}</span>
+</label>
+</sc-for>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #8f8f8f; margin-top: 4px;">오늘 한 줄 메모<input type="text" value="" placeholder="예: 유산소 못 함 — 비 옴" style="height: 30px; box-sizing: border-box; padding: 0 8px; background: #191919; color: #e6e6e6; border: 1px solid #333333; border-radius: 6px; font: inherit; font-size: 13px;"></label>
+</div>
+
+<div style="border: 1px solid #333333; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px;">
+<div style="display: flex; align-items: center;"><h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #e6e6e6;">주간 달성률</h2><span style="margin-left: auto; font-size: 11.5px; color: #8f8f8f;">habit-weekly-stats</span></div>
+<div style="display: flex; align-items: flex-end; gap: 8px; height: 100px; border-bottom: 1px solid #333333;">
+<sc-for list="{{rates}}" as="r" hint-placeholder-count="8"><div style="flex-grow: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 3px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #8f8f8f;">{{r.pct}}</span><div style="{{r.bar}}"></div></div></sc-for>
+</div>
+<div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8f8f8f;"><span>08.03</span><span>09.21</span></div>
+</div>
+
+<div style="border: 1px solid #333333; border-radius: 6px; padding: 12px 14px; display: flex; gap: 12px;">
+<div aria-hidden="true" style="width: 52px; height: 72px; flex-shrink: 0; border-radius: 4px; background: #2c2c2c; border: 1px solid #333333;"></div>
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+<span style="font-size: 11.5px; color: #8f8f8f;">읽는 중</span>
+<span style="color: #e6e6e6; font-weight: 600;">[책 제목]</span>
+<span style="font-size: 12px; color: #8f8f8f;">[저자] · 09.14 시작</span>
+<span style="font-size: 12px; color: #8f8f8f;">완독하면 평점과 메모를 남겨요</span>
+</div>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1024}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const nbg = (c) => ({ '#529cca': '#1b3445', '#529e72': '#243d30', '#9d68d3': '#3c2d49', '#ca9849': '#4a3d24', '#c77d48': '#4f3423', '#df5453': '#4f2826', '#e27a72': '#4a2a27' }[c] || '#2f2f2f');
+    const labels = ['10','11','12','13','14','15','16','17','18','19','20','21','22','23'];
+    const days = labels.map((l, i) => ({ label: l, style: 'text-align: center;' + (i === 13 ? ' color: #e27a72; font-weight: 500;' : '') }));
+    const cells = (s) => s.split('').map((c, i) => ({
+      aria: '09.' + labels[i] + (c === '1' ? ' 완료' : c === '-' ? ' 기록 없음' : ' 미완료'),
+      style: 'width: 26px; height: 26px; padding: 0; border-radius: 5px; cursor: pointer; ' + (c === '1' ? 'background: #9c4540; border: 1px solid #9c4540;' : c === '-' ? 'background: transparent; border: 1px dashed #333333;' : 'background: #252525; border: 1px solid #2a2a2a;') + (i === 13 ? ' outline: 1px solid #e27a72; outline-offset: 1px;' : '')
+    }));
+    const star = (n) => '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
+    const st = (c) => 'margin-left: 6px; font-size: 11px; padding: 0 7px; border-radius: 4px; background: ' + nbg(c) + '; color: ' + c + ';';
+    const rbar = (p) => 'width: 100%; height: ' + p + '%; border-radius: 2px 2px 0 0; background: ' + (p >= 70 ? '#9c4540' : '#6b3530') + ';';
+    return {
+      days,
+      habits: [
+        { name: '물 2L 마시기', desc: '물 많이 마시기', cells: cells('11101101110111'), rate: '5/7', streak: '연속 3일' },
+        { name: '유산균 챙기기', desc: '아침 식후', cells: cells('10111011011101'), rate: '5/7', streak: '연속 1일' },
+        { name: '유산소 30분', desc: '경사 10 · 5km', cells: cells('01010101010100'), rate: '3/7', streak: '—' },
+        { name: '7시간 이상 수면', desc: '일찍보다 규칙적으로', cells: cells('11011100110111'), rate: '5/7', streak: '연속 2일' },
+        { name: '정제 탄수 줄이기', desc: '밀가루 → 쌀·현미', cells: cells('1100110110010-'), rate: '3/6', streak: '—' }
+      ],
+      books: [
+        { title: '[읽는 중인 책]', state: '읽는 중', stateStyle: st('#529cca'), author: '[저자]', period: '09.14 → —', stars: '—', aria: '평점 없음' },
+        { title: '[완독한 책 1]', state: '완독', stateStyle: st('#9d68d3'), author: '[저자]', period: '08.20 → 09.10', stars: star(4), aria: '5점 만점에 4점' },
+        { title: '[완독한 책 2]', state: '완독', stateStyle: st('#9d68d3'), author: '[저자]', period: '07.28 → 08.15', stars: star(5), aria: '5점 만점에 5점' },
+        { title: '[완독한 책 3]', state: '완독', stateStyle: st('#9d68d3'), author: '[저자]', period: '06.30 → 07.20', stars: star(3), aria: '5점 만점에 3점' }
+      ],
+      today: [
+        { name: '물 2L 마시기', done: true },
+        { name: '유산균 챙기기', done: true },
+        { name: '유산소 30분', done: false },
+        { name: '7시간 이상 수면', done: true },
+        { name: '정제 탄수 줄이기', done: false }
+      ],
+      rates: [52, 58, 61, 55, 68, 72, 70, 66].map((p) => ({ pct: p, bar: rbar(p) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

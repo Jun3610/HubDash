@@ -16,6 +16,23 @@ docker compose down            # 끄기 — 데이터는 남는다. -v를 붙이
 | hubdash-db | PostgreSQL 16 | 5432 |
 | hubdash-kafka | Kafka (raw → ETL 이벤트) | 9092 |
 
+### 백업과 복원
+
+데이터는 도커 볼륨(`server_hubdash-db-data`)에만 있다. `docker compose down -v`나 Docker Desktop 초기화 한 번이면
+사라지니, 가끔 파일로 떠 둔다(레포 밖에 저장 — 개인 데이터라 커밋하지 않는다).
+
+```bash
+mkdir -p ~/hubdash-backups
+docker exec hubdash-db pg_dump -U hubdash -d hubdash -Fc > ~/hubdash-backups/hubdash-$(date +%Y%m%d).dump
+
+# 복원: API를 멈추고 덮어쓴 뒤 다시 켠다
+docker compose stop api
+docker exec -i hubdash-db pg_restore -U hubdash -d hubdash --clean --if-exists --no-owner < ~/hubdash-backups/hubdash-YYYYMMDD.dump
+docker compose start api
+```
+
+주간 통계는 매일 00:10과 **앱이 뜰 때** 지난주를 다시 집계한다(필요할 때만 켜서 쓰므로 00:10에 꺼져 있어도 통계가 빠지지 않게).
+
 개발 중에는 `docker compose up -d db kafka`만 띄우고 API는 `server/`에서 `./gradlew :api:bootRun`,
 웹은 `client/web/`에서 `npm run dev`로 띄운다. 자세한 건 [`server/README.md`](server/README.md),
 [`client/web/README.md`](client/web/README.md).

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>메모</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;font-family:'IBM Plex Sans KR',system-ui,sans-serif;background:#191919;color:#cfcfcf}
+a{color:#529cca;text-decoration:none}a:hover{color:#7db8e0}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1024px; display: flex; background: #191919; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; color: #cfcfcf; font-size: 13px; overflow: hidden;">
+<dc-import name="Sidebar" active="memo" hint-size="232px,1024px"></dc-import>
+
+<main style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+<header style="height: 44px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 20px; border-bottom: 1px solid #333333;">
+<span style="color: #8f8f8f;">HubDash</span><span style="color: #333333;">/</span><span style="color: #8f8f8f;">메모</span><span style="color: #333333;">/</span><span style="color: #e6e6e6; font-weight: 500;">식단 · 운동 원칙</span>
+<span style="margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 12px; color: #8f8f8f;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #529e72;"></span>저장됨</span>
+<button type="button" style="display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; background: #c4554d; color: #ffffff; border: 0; border-radius: 6px; font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>새 메모</button>
+</header>
+
+<div style="flex-grow: 1; display: grid; grid-template-columns: 320px minmax(0, 1fr); min-height: 0;">
+<section aria-label="메모 목록" style="border-right: 1px solid #333333; display: flex; flex-direction: column; min-height: 0;">
+<div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid #2a2a2a;">
+<label style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border: 1px solid #333333; border-radius: 6px; color: #8f8f8f;">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+<input type="text" placeholder="제목 · 내용 검색" aria-label="메모 검색" style="flex-grow: 1; min-width: 0; background: transparent; border: 0; color: #e6e6e6; font: inherit; font-size: 13px; outline: none;">
+</label>
+<div style="display: flex; gap: 6px; flex-wrap: wrap;">
+<sc-for list="{{tagFilters}}" as="t" hint-placeholder-count="6"><button type="button" aria-pressed="{{t.on}}" style="{{t.style}}">{{t.name}}</button></sc-for>
+</div>
+</div>
+<sc-for list="{{memos}}" as="m" hint-placeholder-count="7">
+<a href="#memo" style="{{m.style}}">
+<div style="display: flex; align-items: baseline; gap: 8px;"><span style="color: #e6e6e6; font-weight: 600; flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{m.title}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8f8f8f;">{{m.at}}</span></div>
+<span style="font-size: 12px; color: #8f8f8f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{m.snippet}}</span>
+<span style="display: flex; gap: 4px;"><sc-for list="{{m.tags}}" as="t" hint-placeholder-count="2"><span style="padding: 0 7px; border-radius: 4px; background: #2f2f2f; color: #8f8f8f; font-size: 11px;">{{t}}</span></sc-for></span>
+</a>
+</sc-for>
+</section>
+
+<article style="overflow: hidden; display: flex; justify-content: center; padding: 36px 48px;">
+<div style="width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #8f8f8f;">
+<span style="font-family: 'JetBrains Mono', monospace;">생성 09.02 · 수정 1일 전</span>
+<div role="group" aria-label="모드" style="margin-left: auto; display: flex; border: 1px solid #333333; border-radius: 6px; overflow: hidden;">
+<button type="button" style="height: 24px; padding: 0 10px; background: transparent; color: #8f8f8f; border: 0; font: inherit; font-size: 12px;">편집</button>
+<button type="button" aria-pressed="true" style="height: 24px; padding: 0 10px; background: #2a2a2a; color: #e6e6e6; border: 0; border-left: 1px solid #333333; font: inherit; font-size: 12px; font-weight: 600;">미리보기</button>
+</div>
+<button type="button" aria-label="메모 메뉴" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: transparent; border: 0; color: #8f8f8f;"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></button>
+</div>
+<h1 style="margin: 0; font-size: 30px; font-weight: 700; color: #e6e6e6; letter-spacing: -0.3px;">식단 · 운동 원칙</h1>
+<div style="display: flex; gap: 6px; align-items: center;">
+<span style="padding: 0 9px; border-radius: 4px; background: #4a2a27; color: #e27a72; font-size: 12px;">health</span>
+<span style="padding: 0 9px; border-radius: 4px; background: #2f2f2f; color: #cfcfcf; font-size: 12px;">원칙</span>
+<button type="button" style="height: 22px; padding: 0 8px; background: transparent; color: #8f8f8f; border: 1px dashed #333333; border-radius: 4px; font: inherit; font-size: 12px;">+ 태그</button>
+</div>
+<div style="height: 1px; background: #2a2a2a;"></div>
+
+<div style="display: flex; flex-direction: column; gap: 18px; font-size: 14px; line-height: 1.7; color: #cfcfcf;">
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<h2 style="margin: 0; font-size: 16px; font-weight: 600; color: #e6e6e6;">주 3일 웨이트</h2>
+<ol style="margin: 0; padding-left: 22px;"><li>어깨 + 하체</li><li>가슴 + 삼두</li><li>등 + 이두</li></ol>
+<p style="margin: 0; color: #8f8f8f;">유산소 30분 (경사 10, 5km) · 남는 하루 공복 유산소 1번</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<h2 style="margin: 0; font-size: 16px; font-weight: 600; color: #e6e6e6;">식단 <span style="font-family: 'JetBrains Mono', monospace; font-weight: 500; color: #e27a72;">1500kcal</span></h2>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;">
+<div style="padding: 8px 10px; border: 1px solid #333333; border-radius: 6px; display: flex; flex-direction: column;"><span style="font-size: 11.5px; color: #8f8f8f;">단백질</span><span style="font-family: 'JetBrains Mono', monospace; color: #e6e6e6;">160 이상</span><span style="font-size: 11px; color: #8f8f8f;">고정</span></div>
+<div style="padding: 8px 10px; border: 1px solid #333333; border-radius: 6px; display: flex; flex-direction: column;"><span style="font-size: 11.5px; color: #8f8f8f;">탄수</span><span style="font-family: 'JetBrains Mono', monospace; color: #e6e6e6;">140 이하</span><span style="font-size: 11px; color: #8f8f8f;">지방이랑 조절</span></div>
+<div style="padding: 8px 10px; border: 1px solid #333333; border-radius: 6px; display: flex; flex-direction: column;"><span style="font-size: 11.5px; color: #8f8f8f;">지방</span><span style="font-family: 'JetBrains Mono', monospace; color: #e6e6e6;">50 이하</span><span style="font-size: 11px; color: #8f8f8f;">탄수랑 조절</span></div>
+<div style="padding: 8px 10px; border: 1px solid #333333; border-radius: 6px; display: flex; flex-direction: column;"><span style="font-size: 11.5px; color: #8f8f8f;">당류</span><span style="font-family: 'JetBrains Mono', monospace; color: #e6e6e6;">30 이하</span><span style="font-size: 11px; color: #8f8f8f;">하루</span></div>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<h2 style="margin: 0; font-size: 16px; font-weight: 600; color: #e6e6e6;">일상 습관</h2>
+<ul style="margin: 0; padding-left: 22px;">
+<li>정제 탄수 줄이기 — 밀가루 탄수 1g &lt;&lt; 쌀·현미 탄수</li>
+<li>물 많이 마시기 · 유산균 챙기기 · 나트륨 2000대 유지</li>
+<li>식후 혈당 관리 — 산책, 식후 30분 뒤 헬스</li>
+<li>7시간 이상 수면, 일찍 자는 것보다 규칙적으로 자기</li>
+</ul>
+</div>
+<details open="" style="border: 1px solid #333333; border-radius: 6px; padding: 8px 12px;">
+<summary style="cursor: pointer; color: #e6e6e6; font-weight: 600;">유지어트 — 칼로리 서서히 늘리기</summary>
+<ul style="margin: 6px 0 0; padding-left: 22px;">
+<li>현재 1500kcal에서 주에 100kcal씩 → 목표 1800kcal</li>
+<li>올리는 과정에서 체중이 늘면 다시 1500으로 낮추거나 그 칼로리에서 유지</li>
+<li>단백질 160 고정 · 탄수 160 이하 · 지방 60 이하</li>
+</ul>
+</details>
+</div>
+</div>
+</article>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1024}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const tf = (name, on) => ({ name, on, style: 'height: 22px; padding: 0 9px; border-radius: 4px; font: inherit; font-size: 11.5px; cursor: pointer; ' + (on ? 'background: #3e2624; border: 1px solid #9c4540; color: #e27a72;' : 'background: transparent; border: 1px solid #333333; color: #8f8f8f;') });
+    const item = (title, at, snippet, tags, sel) => ({ title, at, snippet, tags, style: 'display: flex; flex-direction: column; gap: 3px; padding: 10px 14px; border-bottom: 1px solid #2a2a2a; ' + (sel ? 'background: #252525; box-shadow: inset 2px 0 0 #e27a72;' : '') });
+    return {
+      tagFilters: [tf('전체', true), tf('방향', false), tf('health', false), tf('cloud', false), tf('github', false), tf('CS', false)],
+      memos: [
+        item('식단 · 운동 원칙', '1일 전', '주 3일 웨이트 · 식단 1500kcal · 단백질 160 이상', ['health', '원칙'], true),
+        item('LIFE', '3일 전', '이번 학기 집에서 롤 안 하기 · 현재에 집중하기', ['life']),
+        item('전체적 공부 방향', '09.12', '[메모 내용 미리보기]', ['방향']),
+        item('공부하면서 깃허브 방향', '09.10', '[메모 내용 미리보기]', ['github', '방향']),
+        item('CS 공부 방향', '09.08', '[메모 내용 미리보기]', ['CS', '방향']),
+        item('활동 (클라우드)', '09.05', '[메모 내용 미리보기]', ['cloud'])
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
