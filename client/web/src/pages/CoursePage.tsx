@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Pencil } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
@@ -125,8 +125,12 @@ function CourseDashboard({
   const categories = useStore(courseCategoryStore)
   const update = useUpdate(courses)
   const toast = useToast()
+  const qc = useQueryClient()
   const [memo, setMemo] = useState(course.memo ?? '')
-  const dirty = memo !== (course.memo ?? '')
+  // 저장할 게 있는지는 서버에서 다시 받은 값이 아니라 '이 편집기가 마지막으로 보낸 값'과 비교한다 (이슈 #170).
+  // 서버 값과 비교하면, 바로 닫았다 다시 열었을 때 늦게 도착한 새 값 때문에 예전 편집 내용이 다시 저장돼 덮어썼다
+  const [saved, setSaved] = useState(course.memo ?? '')
+  const dirty = memo !== saved
 
   const save = (patch: { grade?: Grade | null; memo?: string | null }, okText: string) =>
     update.mutate({ id: course.id, body: courseBody(course, patch) }, { onSuccess: () => toast.success(okText) })
@@ -141,11 +145,18 @@ function CourseDashboard({
   const saveMemo = (text: string, base: Course) => {
     if (text.length > MEMO_MAX || text === sentMemo.current) return
     sentMemo.current = text
+    const value = text.trim() ? text : null
+    const before = saved
+    setSaved(text)
+    // 창을 닫고 바로 다시 열어도 새 내용으로 시작하게 캐시를 먼저 바꿔 둔다
+    qc.setQueryData<Course>([courses.path, 'one', base.id], (old) => (old ? { ...old, memo: value } : old))
     update.mutate(
-      { id: base.id, body: courseBody(base, { memo: text.trim() ? text : null }) },
+      { id: base.id, body: courseBody(base, { memo: value }) },
       {
         onError: () => {
           sentMemo.current = null
+          setSaved(before)
+          void qc.invalidateQueries({ queryKey: [courses.path, 'one', base.id] })
         },
       },
     )
@@ -264,7 +275,7 @@ function CourseDashboard({
                 ? '저장 중…'
                 : dirty
                   ? '곧 자동 저장'
-                  : course.memo
+                  : saved
                     ? '저장됨'
                     : '적으면 자동 저장'
           }
