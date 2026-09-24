@@ -61,7 +61,7 @@ function Palette({ onClose }: { onClose: () => void }) {
         key: `e${e.id}`,
         group: '일정',
         title: e.title,
-        meta: `${d.slice(2).replaceAll('-', '.')} ${e.allDay ? '종일' : timeRange(e)}`,
+        meta: `${d.slice(2).replaceAll('-', '.')} ${e.allDay ? 'All day' : timeRange(e)}`,
         run: go(`/schedule?date=${d}&event=${e.id}`),
       })
     }
@@ -99,6 +99,8 @@ function Palette({ onClose }: { onClose: () => void }) {
   }
 
   const ICON = { 메모: FileText, 일정: CalendarDays, '허브 링크': Link2 }
+  // 그룹 이름은 영어로 보여 준다 (이슈 #209)
+  const GROUP_LABEL = { 메모: 'Memos', 일정: 'Schedule', '허브 링크': 'Hub Links' }
   let lastGroup = ''
 
   return createPortal(
@@ -109,7 +111,7 @@ function Palette({ onClose }: { onClose: () => void }) {
           <input
             ref={inputRef}
             className={s.input}
-            placeholder="메모, 일정, 허브 링크 검색"
+            placeholder="Search memos, schedules, hub links"
             value={q}
             onChange={(e) => {
               setQ(e.target.value)
@@ -122,14 +124,14 @@ function Palette({ onClose }: { onClose: () => void }) {
           />
         </div>
         <ul id="search-results" role="listbox" className={s.list}>
-          {hits.length === 0 && <li className={s.empty}>검색 결과가 없어요</li>}
+          {hits.length === 0 && <li className={s.empty}>No results</li>}
           {hits.map((h, i) => {
             const header = h.group !== lastGroup
             lastGroup = h.group
             const Icon = ICON[h.group]
             return (
               <li key={h.key} role="presentation">
-                {header && <div className={s.group}>{h.group}</div>}
+                {header && <div className={s.group}>{GROUP_LABEL[h.group]}</div>}
                 <div
                   id={`hit-${h.key}`}
                   role="option"
@@ -147,9 +149,9 @@ function Palette({ onClose }: { onClose: () => void }) {
           })}
         </ul>
         <div className={s.foot}>
-          <span>↑↓ 이동</span>
-          <span>Enter 열기</span>
-          <span>Esc 닫기</span>
+          <span>↑↓ Move</span>
+          <span>Enter Open</span>
+          <span>Esc Close</span>
         </div>
       </div>
     </div>,

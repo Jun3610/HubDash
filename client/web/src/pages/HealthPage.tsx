@@ -8,7 +8,9 @@ import { PageHeader } from '../components/layout/PageHeader'
 import { Button, DateNav, Peek } from '../components/ui'
 import { YEAR_PAGE } from '../hooks/useActivity'
 import { useToday } from '../hooks/useToday'
-import { formatHeaderDate, shiftDate, type LocalDate } from '../lib/date'
+import { formatHeaderDate, formatShortDate, shiftDate, weekDays, weekStartOf, type LocalDate } from '../lib/date'
+import { num } from '../lib/format'
+import { mealsOn } from '../lib/select/diet'
 import { withinDateTimes } from '../lib/select/range'
 import { DaySummary, GoalModal, MealCards } from './health/DietTab'
 import s from './health/Health.module.css'
@@ -82,7 +84,7 @@ export default function HealthPage() {
       if (document.querySelectorAll('[role="dialog"]').length > 1) return
       e.preventDefault()
       const { date: d, setDate: go } = dateRef.current
-      go(shiftDate(d, e.key === 'ArrowLeft' ? -1 : 1))
+      go(shiftDate(d, e.key === 'ArrowLeft' ? -7 : 7)) // 한 번에 일주일 (이슈 #205)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -123,18 +125,49 @@ export default function HealthPage() {
         <Peek label={`${formatHeaderDate(date)} 식단`} onClose={closePeek}>
           <div className={s.peekHead}>
             <Utensils size={18} strokeWidth={1.8} aria-hidden="true" />
-            <h1>식단</h1>
-            <DateNav value={date} onChange={setDate} today={today} />
+            <h1>Diet</h1>
+            <DateNav
+              value={date}
+              onChange={setDate}
+              today={today}
+              step={7}
+              label={`${formatShortDate(weekStartOf(date))} – ${formatShortDate(shiftDate(weekStartOf(date), 6))}`}
+            />
           </div>
-          <DaySummary records={dayMeals} date={date} onGoals={() => setDialog({ kind: 'goal' })} />
-          <MealCards
-            records={dayMeals}
-            date={date}
-            today={today}
-            loading={meals.isLoading}
-            error={meals.error}
-            onRetry={() => void meals.refetch()}
-          />
+          {/* 이번 주 월–일, 칸마다 그날 칼로리. ←/→는 일주일씩, 칸을 누르면 그날 (이슈 #205) */}
+          <div className={s.weekStrip} role="tablist" aria-label="요일">
+            {weekDays(date).map((d, i) => {
+              const kcal = Object.values(mealsOn(all, d)).reduce((a, m) => a + (m?.kcal ?? 0), 0)
+              return (
+                <button
+                  key={d}
+                  type="button"
+                  role="tab"
+                  aria-selected={d === date}
+                  data-today={d === today}
+                  className={s.weekDay}
+                  onClick={() => setDate(d)}
+                >
+                  <span>{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]}</span>
+                  <small>{formatShortDate(d)}</small>
+                  <b>{kcal ? num(kcal) : '—'}</b>
+                </button>
+              )
+            })}
+          </div>
+          {/* 2열: 왼쪽 끼니(아침·점심·저녁·간식), 오른쪽 통계 (이슈 #205) */}
+          <div className={s.dayLayout}>
+            <MealCards
+              stacked
+              records={dayMeals}
+              date={date}
+              today={today}
+              loading={meals.isLoading}
+              error={meals.error}
+              onRetry={() => void meals.refetch()}
+            />
+            <DaySummary column records={dayMeals} date={date} onGoals={() => setDialog({ kind: 'goal' })} />
+          </div>
         </Peek>
       )}
       {peek === 'workout' && (
