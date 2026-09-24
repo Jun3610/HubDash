@@ -1,7 +1,11 @@
-# 로컬 실행용 — `docker compose up -d --build` 한 번으로 DB, Kafka, 앱이 모두 뜬다.
-# 앱을 컨테이너 대신 IDE/bootRun으로 개발할 때는 `docker compose up -d db kafka`만 띄우면 된다.
+# 로컬 실행용 — 레포 루트에서 `docker compose up -d --build` 한 번으로 DB, Kafka, API, 웹이 모두 뜬다.
+# 브라우저에서 http://localhost:3000 으로 접속한다(웹이 /api를 API 컨테이너로 넘김).
+# 화면/서버 코드를 고치는 중에는 `docker compose up -d db kafka`만 띄우고 웹은 `npm run dev`, API는 bootRun으로 개발한다.
 #
 # 모든 포트는 내 컴퓨터(127.0.0.1)에서만 열어, 같은 네트워크의 다른 기기가 접근하지 못하게 한다.
+# 프로젝트 이름을 고정해 두면 어느 폴더에서 실행해도 같은 컨테이너/네트워크로 잡힌다.
+name: hubdash
+
 services:
   db:
     image: postgres:16
@@ -49,8 +53,8 @@ services:
       retries: 12
       start_period: 20s
 
-  app:
-    build: .
+  api:
+    build: ./server
     image: hubdash-api:local
     container_name: hubdash-api
     restart: unless-stopped
@@ -66,11 +70,25 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-hubdash}
       KAFKA_BOOTSTRAP: kafka:19092
       # 이미지는 prod 프로파일이라 API_KEY/DB_PASSWORD에 기본값이 없다. 로컬용 기본값은 여기서만 준다 —
-      # 127.0.0.1로만 열려 있으므로 이 컴퓨터 밖에서는 접근할 수 없다. 바꾸려면 server/.env에 API_KEY=...를 적는다.
+      # 127.0.0.1로만 열려 있으므로 이 컴퓨터 밖에서는 접근할 수 없다. 바꾸려면 레포 루트 .env에 API_KEY=...를 적는다.
       API_KEY: ${API_KEY:-dev-local-key}
     ports:
       - "127.0.0.1:8080:8080"
 
+  web:
+    build: ./client/web
+    image: hubdash-web:local
+    container_name: hubdash-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:3000:80"
+
+# compose 파일이 server/에 있던 때(프로젝트 이름 server) 만든 볼륨을 이름으로 그대로 이어 쓴다 —
+# 이름을 지정하지 않으면 hubdash_hubdash-db-data라는 새 빈 볼륨이 생겨 기존 데이터가 안 보인다.
 volumes:
   hubdash-db-data:
+    name: server_hubdash-db-data
   hubdash-kafka-data:
+    name: server_hubdash-kafka-data
