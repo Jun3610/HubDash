@@ -146,7 +146,7 @@ function SemesterBlock({
     <article id={`sem-${semester.id}`} className={s.semBlock} aria-label={`${semester.name} 학기`}>
       <section className={s.semHead}>
         <h1>{semester.name}</h1>
-        <Tag size="lg" tone={status === '진행 중' ? 'neutral' : status === '예정' ? 'blue' : 'gray'}>
+        <Tag size="lg" tone={status === '진행 중' ? 'accent' : status === '예정' ? 'blue' : 'gray'}>
           {status}
         </Tag>
         <span className={s.period}>
