@@ -1,24 +1,45 @@
-.layout {
+.board {
   flex: 1 1 auto;
-  display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
-  min-height: 0;
-}
-.list {
-  border-right: 1px solid var(--border);
+  padding: 20px 28px 24px;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  max-height: calc(100vh - var(--header-h));
-  position: sticky;
-  top: 0;
+  gap: 14px;
+  min-width: 0;
+}
+/* 습관 · 독서 카드 (누르면 작은 창, 이슈 #148) */
+.lifeRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+/* 메모 카드 격자 */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px 14px;
+  text-align: left;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+.card:hover {
+  border-color: var(--text-muted);
 }
 .filters {
-  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border-bottom: 1px solid var(--divider);
 }
 .search {
   display: flex;
@@ -61,30 +82,6 @@
   border-color: var(--heat-3);
   color: var(--accent);
 }
-.items {
-  overflow-y: auto;
-  flex: 1 1 auto;
-}
-.item {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--divider);
-  background: none;
-  border-left: 0;
-  border-right: 0;
-  border-top: 0;
-  text-align: left;
-  width: 100%;
-}
-.item:hover {
-  background: var(--surface);
-}
-.item[aria-current='true'] {
-  background: var(--subtle);
-  box-shadow: inset 2px 0 0 var(--accent);
-}
 .itemHead {
   display: flex;
   align-items: baseline;
@@ -123,12 +120,6 @@
   background: var(--tag-neutral);
   color: var(--text-muted);
   font-size: 11px;
-}
-.editorWrap {
-  display: flex;
-  justify-content: center;
-  padding: 36px 48px;
-  min-width: 0;
 }
 .editor {
   width: 100%;
@@ -236,74 +227,6 @@
 .counter[data-over='true'] {
   color: var(--red);
 }
-/* 미리보기 */
-.md {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--text-body);
-  word-break: break-word;
-}
-.md h2 {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text);
-  margin-top: 6px;
-}
-.md h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text);
-}
-.md h4 {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-}
-.md ul,
-.md ol {
-  margin: 0;
-  padding-left: 22px;
-}
-.md li[data-task] {
-  list-style: none;
-  margin-left: -20px;
-  display: flex;
-  gap: 6px;
-  align-items: baseline;
-}
-.md blockquote {
-  margin: 0;
-  padding: 2px 12px;
-  border-left: 3px solid var(--border);
-  color: var(--text-muted);
-}
-.md code {
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: var(--fill);
-}
-.md pre {
-  margin: 0;
-  padding: 10px 12px;
-  border-radius: var(--radius);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  overflow-x: auto;
-}
-.md pre code {
-  padding: 0;
-  background: none;
-}
-.md hr {
-  border: 0;
-  border-top: 1px solid var(--divider);
-  width: 100%;
-}
 .status {
   display: flex;
   align-items: center;
@@ -321,37 +244,14 @@
   display: none;
 }
 
-@media (max-width: 900px) {
-  .layout {
-    grid-template-columns: 260px minmax(0, 1fr);
-  }
-  .editorWrap {
-    padding: 24px;
-  }
-}
 @media (max-width: 767px) {
-  .layout {
+  .board {
+    padding: 14px 16px 88px;
+  }
+  .lifeRow {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .list {
-    position: static;
-    max-height: none;
-    border-right: 0;
-    padding-bottom: 72px;
-  }
-  .layout[data-open='true'] .list {
-    display: none;
-  }
-  .layout[data-open='false'] .editorWrap {
-    display: none;
-  }
-  .editorWrap {
-    padding: 16px 16px 96px;
   }
   .titleInput {
     font-size: 24px;
-  }
-  .back {
-    display: inline-flex;
   }
 }

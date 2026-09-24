@@ -15,6 +15,7 @@ import {
   RowActions,
   Table,
   Textarea,
+  TimeField,
 } from '../../components/ui'
 import { toLocalDateTime, type LocalDate } from '../../lib/date'
 import { num } from '../../lib/format'
@@ -328,7 +329,7 @@ export function BodyModal({ today, log, onClose }: { today: LocalDate; log?: Hea
           <Input type="date" mono value={d.recordedAt} onChange={set('recordedAt')} />
         </Field>
         <Field label="시각" required error={errors.time}>
-          <Input type="time" mono value={d.time} onChange={set('time')} />
+          <TimeField value={d.time} onChange={(v) => setD({ ...d, time: v })} />
         </Field>
         <Field label="체중 (kg)" error={errors.weightKg ?? errors.both}>
           <Input mono inputMode="decimal" value={d.weightKg} onChange={set('weightKg')} />

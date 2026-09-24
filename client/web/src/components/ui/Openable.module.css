@@ -1,0 +1,15 @@
+/* 누르면 작은 창이 뜨는 카드 (이슈 #148) */
+.openable {
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    box-shadow 0.12s;
+}
+.openable:hover,
+.openable:hover > section {
+  border-color: var(--text-muted);
+}
+.openable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

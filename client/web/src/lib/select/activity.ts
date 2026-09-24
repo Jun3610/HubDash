@@ -41,7 +41,7 @@ export function activityOn(src: ActivitySources, date: LocalDate): ActivityItem[
       out.push({
         domain: 'meal',
         text: `${MEAL_TYPE_KO[t]} ${m.title || '기록'} · ${m.kcal}kcal`,
-        to: '/health?tab=meal',
+        to: `/health?tab=meal&date=${date}`,
       })
   }
   for (const w of src.workouts) {

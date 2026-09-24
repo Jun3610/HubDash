@@ -1,0 +1,75 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80; /* 창 안에서 여는 모달(90)이 위로 오게 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: fade 0.12s ease-out;
+}
+.panel {
+  width: min(960px, 100%);
+  height: min(88vh, 1100px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  outline: none;
+  animation: rise 0.14s ease-out;
+}
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  flex-shrink: 0;
+}
+.actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 8px 56px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+}
+@media (max-width: 720px) {
+  .overlay {
+    padding: 12px;
+  }
+  .panel {
+    height: 92vh;
+  }
+  .body {
+    padding: 4px 16px 32px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .panel {
+    animation: none;
+  }
+}

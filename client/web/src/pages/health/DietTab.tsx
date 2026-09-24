@@ -5,6 +5,7 @@ import { mealItems, mealRecords, useDietGoal, useUpdateDietGoal } from '../../ap
 import { invalidateDomain } from '../../api/resource'
 import { MEAL_TYPE_KO, MEAL_TYPES, type DietGoalRequest, type GoalRule, type MealType } from '../../api/types'
 import {
+  barVar,
   Button,
   ConfirmDialog,
   Field,
@@ -15,7 +16,7 @@ import {
   ProgressBar,
   QueryState,
   Segmented,
-  barVar,
+  TimeField,
 } from '../../components/ui'
 import { formatTime, type LocalDate } from '../../lib/date'
 import { num, pct } from '../../lib/format'
@@ -36,7 +37,7 @@ import s from './Health.module.css'
 
 // ---------------- 목표 표시 ----------------
 
-/** 하루 합계: 탄수 → 지방 → 단백질 → 칼로리, 목표가 있으면 막대로 */
+/** 하루 합계: 지방 → 탄수 → 단백질 → 칼로리, 목표가 있으면 막대로 */
 export function DaySummary({
   records,
   date,
@@ -69,7 +70,7 @@ export function DaySummary({
         <div
           className={s.shareBar}
           role="img"
-          aria-label={`칼로리 비율 탄수 ${share.carbsG}% 지방 ${share.fatG}% 단백질 ${share.proteinG}%`}
+          aria-label={`칼로리 비율 지방 ${share.fatG}% 탄수 ${share.carbsG}% 단백질 ${share.proteinG}%`}
         >
           {MACROS.map((m) => (
             <span key={m.key} style={{ width: `${share[m.key]}%`, background: barVar(m.color) }} />
@@ -344,10 +345,10 @@ function MealModal({
           </div>
         </div>
         <Field label="시각" required error={errors.time}>
-          <Input type="time" mono value={d.time} onChange={set('time')} />
+          <TimeField value={d.time} onChange={(v) => setD({ ...d, time: v })} />
         </Field>
         <span className={`${s.full} muted`} style={{ fontSize: 11.5 }}>
-          칼로리 = 탄수×4 + 지방×9 + 단백질×4
+          칼로리 = 지방×9 + 탄수×4 + 단백질×4
           {merged && ' · 예전에 음식별로 적은 기록은 저장하면 이 한 줄로 합쳐져요.'}
         </span>
         <div className={s.full}>
@@ -361,8 +362,8 @@ function MealModal({
 // ---------------- 식단 목표 ----------------
 
 const GOAL_FIELDS = [
-  { key: 'carbs', value: 'carbsG', rule: 'carbsRule', label: '탄수', unit: 'g' },
   { key: 'fat', value: 'fatG', rule: 'fatRule', label: '지방', unit: 'g' },
+  { key: 'carbs', value: 'carbsG', rule: 'carbsRule', label: '탄수', unit: 'g' },
   { key: 'protein', value: 'proteinG', rule: 'proteinRule', label: '단백질', unit: 'g' },
   { key: 'calories', value: 'calories', rule: 'caloriesRule', label: '권장 칼로리', unit: 'kcal' },
 ] as const

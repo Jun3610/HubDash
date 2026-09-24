@@ -1,23 +1,25 @@
 import { useQuery } from '@tanstack/react-query'
 import { Pencil, Save } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import { courseBody, courses } from '../api/pknu'
 import { useUpdate } from '../api/resource'
 import type { Course, Grade } from '../api/types'
-import { PageContent, PageHeader } from '../components/layout/PageHeader'
 import {
   Button,
   Card,
   EmptyState,
   FormError,
+  Peek,
   QueryState,
   SectionHeader,
+  Segmented,
   Tag,
   Textarea,
   toneFor,
   useToast,
 } from '../components/ui'
+import { Markdown } from '../components/ui/Markdown'
 import { NotionLink } from '../components/ui/NotionLink'
 import { courseCategoryStore } from '../config/prefs'
 import { useAllCourses } from '../hooks/usePknu'
@@ -30,65 +32,82 @@ import s from './pknu/Pknu.module.css'
 
 const MEMO_MAX = 5000
 
-/** 과목 대시보드: 학점 · 학기 · 성적과 과목 메모 (이슈 #134) */
-export default function CoursePage() {
-  const { id } = useParams()
-  const courseId = Number(id)
-  const navigate = useNavigate()
+function useCourse(courseId: number) {
   const q = useQuery({
     queryKey: [courses.path, 'one', courseId],
     queryFn: () => courses.get(courseId),
     enabled: Number.isFinite(courseId),
   })
   const all = useAllCourses()
-  const todayStr = useToday()
   const course = q.data
   const semester = all.semesters.find((x) => x.id === course?.semesterId)
+  return { q, all, course, semester }
+}
+
+type CourseData = ReturnType<typeof useCourse>
+
+/** 예전 과목 페이지 주소는 학기 화면 위에 작은 창으로 */
+export function CourseRedirect() {
+  const { id } = useParams()
+  return <Navigate to={`/pknu?course=${id}`} replace />
+}
+
+/** 과목 대시보드 (이슈 #134): 사이드바·과목 표에서 누르면 작은 창으로 뜬다 (이슈 #148) */
+export function CoursePeek({ courseId, onClose }: { courseId: number; onClose: () => void }) {
+  const data = useCourse(courseId)
+  const { course, semester } = data
   const [editing, setEditing] = useState(false)
 
   return (
     <>
-      <PageHeader
-        title="학업 · PKNU"
-        titleTo={semester ? `/pknu?semester=${semester.id}` : '/pknu'}
-        sub={course?.name ?? '과목'}
+      <Peek
+        label={course ? `${course.name} 과목` : '과목'}
+        onClose={onClose}
+        actions={
+          course && (
+            <Button size="sm" icon={<Pencil size={13} />} onClick={() => setEditing(true)}>
+              과목 수정
+            </Button>
+          )
+        }
       >
-        {course && (
-          <Button icon={<Pencil size={13} />} onClick={() => setEditing(true)}>
-            과목 수정
-          </Button>
-        )}
-      </PageHeader>
-      <PageContent>
-        <QueryState
-          loading={q.isLoading}
-          error={q.error}
-          onRetry={() => void q.refetch()}
-          empty={!course}
-          emptyView={<EmptyState title="과목을 찾을 수 없어요" action={<Link to="/pknu">학업으로</Link>} />}
-        >
-          {course && (
-            <CourseDashboard
-              key={course.id}
-              course={course}
-              semesterName={semester?.name}
-              semesterLive={semester ? semesterStatus(semester.startDate, semester.endDate, todayStr) : undefined}
-              sameSemester={all.courses.filter((c) => c.semesterId === course.semesterId)}
-              allCourses={all.courses}
-            />
-          )}
-        </QueryState>
-      </PageContent>
+        <CourseContent data={data} />
+      </Peek>
       {editing && course && semester && (
         <CourseModal
-          semesterList={all.semesters}
+          semesterList={data.all.semesters}
           semesterId={semester.id}
           course={course}
           onClose={() => setEditing(false)}
-          onDeleted={() => navigate(`/pknu?semester=${semester.id}`)}
+          onDeleted={onClose}
         />
       )}
     </>
+  )
+}
+
+function CourseContent({ data }: { data: CourseData }) {
+  const { q, all, course, semester } = data
+  const todayStr = useToday()
+  return (
+    <QueryState
+      loading={q.isLoading}
+      error={q.error}
+      onRetry={() => void q.refetch()}
+      empty={!course}
+      emptyView={<EmptyState title="과목을 찾을 수 없어요" action={<Link to="/pknu">PKNU로</Link>} />}
+    >
+      {course && (
+        <CourseDashboard
+          key={course.id}
+          course={course}
+          semesterName={semester?.name}
+          semesterLive={semester ? semesterStatus(semester.startDate, semester.endDate, todayStr) : undefined}
+          sameSemester={all.courses.filter((c) => c.semesterId === course.semesterId)}
+          allCourses={all.courses}
+        />
+      )}
+    </QueryState>
   )
 }
 
@@ -109,6 +128,8 @@ function CourseDashboard({
   const update = useUpdate(courses)
   const toast = useToast()
   const [memo, setMemo] = useState(course.memo ?? '')
+  // 메모가 있으면 마크다운 미리보기로 시작 (이슈 #148)
+  const [mode, setMode] = useState<'edit' | 'preview'>(course.memo ? 'preview' : 'edit')
   const dirty = memo !== (course.memo ?? '')
 
   const save = (patch: { grade?: Grade | null; memo?: string | null }, okText: string) =>
@@ -225,28 +246,47 @@ function CourseDashboard({
           title="과목 메모"
           meta={dirty ? '저장 안 됨' : course.memo ? '저장됨' : undefined}
           actions={
-            <Button
-              size="sm"
-              variant="primary"
-              icon={<Save size={13} />}
-              disabled={!dirty || update.isPending || memo.length > MEMO_MAX}
-              onClick={saveMemo}
-            >
-              저장
-            </Button>
+            <>
+              <Segmented
+                label="메모 모드"
+                value={mode}
+                onChange={setMode}
+                items={[
+                  { key: 'edit', label: '편집' },
+                  { key: 'preview', label: '미리보기' },
+                ]}
+              />
+              <Button
+                size="sm"
+                variant="primary"
+                icon={<Save size={13} />}
+                disabled={!dirty || update.isPending || memo.length > MEMO_MAX}
+                onClick={saveMemo}
+              >
+                저장
+              </Button>
+            </>
           }
         />
-        <Textarea
-          aria-label="과목 메모"
-          rows={10}
-          placeholder="시험 범위, 과제 방식, 교수님 스타일 같은 걸 적어 두세요 (⌘S로 저장)"
-          value={memo}
-          onChange={(e) => setMemo(e.target.value)}
-          style={{ minHeight: 200 }}
-        />
-        <span className={s.memoCount} data-over={memo.length > MEMO_MAX}>
-          {memo.length.toLocaleString()} / {MEMO_MAX.toLocaleString()}
-        </span>
+        {mode === 'edit' ? (
+          <>
+            <Textarea
+              aria-label="과목 메모 (마크다운)"
+              rows={10}
+              placeholder={'마크다운으로 적어요 (⌘S로 저장)\n\n# 시험 범위\n- 3장 ~ 7장\n**과제는 매주 금요일**'}
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+              style={{ minHeight: 200, fontFamily: 'var(--font-mono)', fontSize: 13 }}
+            />
+            <span className={s.memoCount} data-over={memo.length > MEMO_MAX}>
+              {memo.length.toLocaleString()} / {MEMO_MAX.toLocaleString()}
+            </span>
+          </>
+        ) : memo.trim() ? (
+          <Markdown source={memo} />
+        ) : (
+          <EmptyState compact title="메모가 없어요 — 편집에서 적어 보세요" />
+        )}
         <FormError error={update.error} />
       </Card>
     </>

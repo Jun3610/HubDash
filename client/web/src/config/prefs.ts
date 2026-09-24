@@ -53,12 +53,14 @@ export const navOrderStore = createStore<string[]>('hubdash.navOrder', [])
 
 /** 카드·입력칸 테두리 색 (이슈 #132) */
 export const BORDERS = [
+  { key: 'white', label: '흰색 + 그림자' },
   { key: 'accent', label: '강조색 섞기' },
   { key: 'gray', label: '기존 회색' },
   { key: 'light', label: '밝은 회색' },
 ] as const
 export type BorderStyle = (typeof BORDERS)[number]['key']
-export const borderStore = createStore<BorderStyle>('hubdash.border', 'accent')
+// 이슈 #148에서 기본값을 흰색으로 바꾸며 키를 새로 둬서, 예전 선택(강조색)도 흰색에서 다시 시작한다
+export const borderStore = createStore<BorderStyle>('hubdash.border.v2', 'white')
 
 export function applyBorder(border: BorderStyle) {
   document.documentElement.dataset.border = border

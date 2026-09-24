@@ -1,9 +1,11 @@
 import { parseBlocks, renderInline } from '../../lib/markdown'
+import { cx } from './cx'
+import s from './Markdown.module.css'
 
 /** 메모 미리보기. React 요소로만 그려서 HTML이 실행되지 않는다 */
 export function Markdown({ source, className }: { source: string; className?: string }) {
   return (
-    <div className={className}>
+    <div className={cx(s.md, className)}>
       {parseBlocks(source).map((b, i) => {
         switch (b.t) {
           case 'h': {

@@ -15,6 +15,7 @@
 }
 .summary {
   border: 1px solid var(--border);
+  box-shadow: var(--card-shadow);
   border-radius: var(--radius);
   background: var(--bg);
   padding: 14px 16px;
@@ -75,6 +76,7 @@
 }
 .mealCard {
   border: 1px solid var(--border);
+  box-shadow: var(--card-shadow);
   border-radius: var(--radius);
   background: var(--bg);
   overflow: hidden;
@@ -216,6 +218,7 @@
 }
 .listCard {
   border: 1px solid var(--border);
+  box-shadow: var(--card-shadow);
   border-radius: var(--radius);
   background: var(--bg);
   overflow: hidden;
@@ -452,4 +455,20 @@
   .kcalBox {
     grid-column: 1 / -1;
   }
+}
+/* 작은 창 머리 (이슈 #148) */
+.peekHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+}
+.peekHead h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin-right: auto;
+}
+.spanAll {
+  grid-column: 1 / -1;
 }

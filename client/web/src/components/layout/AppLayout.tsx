@@ -1,6 +1,6 @@
 import { Plus, Search } from 'lucide-react'
 import { useCallback, useState } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useProfile } from '../../api/user'
 import { useToday } from '../../hooks/useToday'
 import { formatHeaderDate } from '../../lib/date'
@@ -14,13 +14,15 @@ import { SearchPalette } from './SearchPalette'
 import { useSearchHotkey } from './useSearchHotkey'
 import { Sidebar } from './Sidebar'
 import { initials } from '../../lib/format'
+import { CoursePeek } from '../../pages/CoursePage'
+import { SettingsPeek } from '../../pages/SettingsPage'
+import { usePeekTo, withParam, type PeekKey } from './peek'
 
 const MOBILE_TABS = [
   NAV.find((n) => n.key === 'home')!,
   NAV.find((n) => n.key === 'health')!,
-  { ...NAV.find((n) => n.key === 'pknu')!, label: '학업' },
+  { ...NAV.find((n) => n.key === 'pknu')!, label: 'PKNU' },
   NAV.find((n) => n.key === 'hub')!,
-  { ...SETTINGS_NAV, label: '더보기' },
 ]
 
 export function AppLayout() {
@@ -44,8 +46,25 @@ export function AppLayout() {
         </main>
         <MobileTabBar />
         <SearchPalette open={searchOpen} onClose={closeSearch} />
+        <PeekHost />
       </div>
     </QuickRecordProvider>
+  )
+}
+
+/** 주소의 ?course= / ?settings= 를 보고 어느 화면 위에서든 작은 창을 띄운다 (이슈 #148) */
+function PeekHost() {
+  const { pathname, search } = useLocation()
+  const navigate = useNavigate()
+  const params = new URLSearchParams(search)
+  const courseId = Number(params.get('course'))
+  const settings = params.get('settings')
+  const close = (key: PeekKey) => navigate({ pathname, search: withParam(search, key, null) }, { replace: true })
+  return (
+    <>
+      {courseId > 0 && <CoursePeek key={courseId} courseId={courseId} onClose={() => close('course')} />}
+      {settings && <SettingsPeek section={settings} onClose={() => close('settings')} />}
+    </>
   )
 }
 
@@ -75,7 +94,9 @@ function MobileHeader({ onSearch }: { onSearch: () => void }) {
 }
 
 function MobileTabBar() {
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
+  const peekTo = usePeekTo()
+  const Settings = SETTINGS_NAV.icon
   return (
     <nav aria-label="하단 탭" className={s.tabbar}>
       {MOBILE_TABS.map((t) => {
@@ -88,6 +109,13 @@ function MobileTabBar() {
           </NavLink>
         )
       })}
+      <Link
+        to={peekTo('settings', 1)}
+        className={cx(s.tab, new URLSearchParams(search).has('settings') && s.tabActive)}
+      >
+        <Settings size={20} strokeWidth={1.7} />
+        More
+      </Link>
     </nav>
   )
 }

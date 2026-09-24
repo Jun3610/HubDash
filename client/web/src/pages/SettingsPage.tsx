@@ -1,17 +1,18 @@
 import { useIsMutating } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, Eye, EyeOff, Plus, X } from 'lucide-react'
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
 import { WEEKLY_STATS, useRunWeeklyStat, type WeeklyStat } from '../api/analytics'
 import { ApiError, connectionStatus, request } from '../api/client'
 import type { BatchRunResult, UserProfile, UserSetting } from '../api/types'
 import { useProfile, useSettings, useUpdateProfile, useUpdateSettings } from '../api/user'
-import { PageHeader } from '../components/layout/PageHeader'
 import {
   Button,
   Field,
   FormError,
   IconButton,
   Input,
+  Peek,
   QueryState,
   Select,
   Switch,
@@ -39,16 +40,30 @@ import { initials } from '../lib/format'
 import { useStore } from '../lib/storage'
 import s from './settings/Settings.module.css'
 
-export default function SettingsPage() {
+/** 예전 설정 페이지 주소(/settings#api 등)는 홈 위에 설정 창으로 */
+export function SettingsRedirect() {
+  const { hash } = useLocation()
+  return <Navigate to={`/?settings=${hash.slice(1) || '1'}`} replace />
+}
+
+/** 설정은 페이지가 아니라 작은 창 (이슈 #148). section이 구역 id면 그곳으로 스크롤 */
+export function SettingsPeek({ section, onClose }: { section: string; onClose: () => void }) {
   const saving = useIsMutating()
+  useEffect(() => {
+    if (section !== '1') document.getElementById(section)?.scrollIntoView({ block: 'start' })
+  }, [section])
   return (
-    <>
-      <PageHeader title="설정">
+    <Peek
+      label="설정"
+      onClose={onClose}
+      actions={
         <span className={s.status} style={{ color: 'var(--text-muted)' }}>
           <span className={s.dot} style={{ background: saving ? 'var(--yellow)' : 'var(--green)' }} />
           {saving ? '저장 중…' : '모든 변경 저장됨'}
         </span>
-      </PageHeader>
+      }
+    >
+      <h1 className={s.peekTitle}>설정</h1>
       <div className={s.grid}>
         <div className={s.col}>
           <ProfileSection />
@@ -61,7 +76,7 @@ export default function SettingsPage() {
           <BatchSection />
         </div>
       </div>
-    </>
+    </Peek>
   )
 }
 

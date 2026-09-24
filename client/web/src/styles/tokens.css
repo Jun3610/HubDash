@@ -159,7 +159,22 @@
   color-scheme: light;
 }
 
-/* 테두리 색 (설정 > 화면 > 테두리, 이슈 #132). 기본은 강조색을 살짝 섞은 색 */
+/* 카드 그림자: 흰 테두리와 같이 명암을 준다 (이슈 #148) */
+:root {
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 18px rgba(0, 0, 0, 0.28);
+}
+:root[data-theme='light'] {
+  --card-shadow: 0 1px 2px rgba(15, 15, 15, 0.06), 0 6px 16px rgba(15, 15, 15, 0.07);
+}
+
+/* 테두리 색 (설정 > 화면 > 테두리, 이슈 #132 → #148에서 흰색을 기본으로) */
+:root[data-border='white'] {
+  --border: rgba(255, 255, 255, 0.5);
+  --sb-border: rgba(255, 255, 255, 0.28);
+}
+:root[data-theme='light'][data-border='white'] {
+  --border: #e3e3e1;
+}
 :root[data-border='accent'] {
   --border: color-mix(in srgb, var(--accent) 38%, #2a2a2a);
   --sb-border: color-mix(in srgb, var(--accent) 30%, #30363d);

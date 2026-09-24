@@ -12,36 +12,45 @@ import {
   SectionHeader,
   StackedBarChart,
   barVar,
+  openable,
+  openClass,
 } from '../../components/ui'
 import { datePart, formatShortDate, shiftDate, weekStartOf, type LocalDate } from '../../lib/date'
 import { num, pct } from '../../lib/format'
 import { dailySeries, goalState, MACROS, ruleText } from '../../lib/select/diet'
 import { sortBy, withinDates } from '../../lib/select/range'
 import { SLEEP_GOAL, useBodyLogs, useMealStats, useWorkouts } from './data'
+import { DaySummary } from './DietTab'
 import s from './Health.module.css'
 
-/** 건강 첫 화면: 식단·체중·수면·운동을 한눈에 (이슈 #131) */
-export function StatsTab({
+type OpenKind = 'meal' | 'workout' | 'body'
+
+/** 건강 대시보드: 식단·체중·수면·운동을 한눈에 (이슈 #131). 자세한 기록은 작은 창으로 연다 (이슈 #148) */
+export function HealthDashboard({
   records,
   loading,
   today,
   onGoals,
-  onOpenDay,
+  onOpen,
 }: {
   records: MealRecord[]
   loading: boolean
   today: LocalDate
   onGoals: () => void
-  onOpenDay: (d: LocalDate) => void
+  onOpen: (kind: OpenKind, date?: LocalDate) => void
 }) {
+  const todayMeals = records.filter((r) => datePart(r.consumedAt) === today)
   return (
     <div className={s.statsGrid}>
-      <DietTrend records={records} loading={loading} today={today} onGoals={onGoals} onOpenDay={onOpenDay} />
-      <MacroAverages records={records} today={today} onGoals={onGoals} />
-      <WeightTrend today={today} />
-      <SleepTrend today={today} />
-      <WeeklyAverages />
-      <WorkoutWeek today={today} />
+      <div {...openable('오늘 식단 열기', () => onOpen('meal'))} className={`${s.spanAll} ${openClass}`}>
+        <DaySummary records={todayMeals} date={today} onGoals={onGoals} />
+      </div>
+      <DietTrend records={records} loading={loading} today={today} onGoals={onGoals} onOpen={onOpen} />
+      <MacroAverages records={records} today={today} onGoals={onGoals} onOpen={() => onOpen('meal')} />
+      <WeightTrend today={today} onOpen={() => onOpen('body')} />
+      <SleepTrend today={today} onOpen={() => onOpen('body')} />
+      <WeeklyAverages onOpen={() => onOpen('meal')} />
+      <WorkoutWeek today={today} onOpen={() => onOpen('workout')} />
     </div>
   )
 }
@@ -64,20 +73,20 @@ function DietTrend({
   loading,
   today,
   onGoals,
-  onOpenDay,
+  onOpen,
 }: {
   records: MealRecord[]
   loading: boolean
   today: LocalDate
   onGoals: () => void
-  onOpenDay: (d: LocalDate) => void
+  onOpen: (kind: 'meal', date?: LocalDate) => void
 }) {
   const goal = useDietGoal()
   const days = dailySeries(records, today, 14)
   const logged = days.filter((d) => d.meals > 0)
   const avg = logged.length ? Math.round(logged.reduce((a, d) => a + d.kcal, 0) / logged.length) : 0
   return (
-    <Card className={s.span2}>
+    <Card {...openable('식단 기록 열기', () => onOpen('meal'))} className={`${s.span2} ${openClass}`}>
       <SectionHeader
         title="최근 14일 식단"
         meta={logged.length ? `기록한 날 평균 ${num(avg)} kcal` : undefined}
@@ -87,22 +96,22 @@ function DietTrend({
         loading={loading}
         error={null}
         empty={logged.length === 0}
-        emptyView={<EmptyState compact title="최근 14일 식단 기록이 없어요 — 식단 탭에서 끼니를 추가해 보세요" />}
+        emptyView={<EmptyState compact title="최근 14일 식단 기록이 없어요 — 끼니 기록에서 추가해 보세요" />}
       >
         <StackedBarChart
-          label="최근 14일 날짜별 칼로리(탄수·지방·단백질)"
+          label="최근 14일 날짜별 칼로리(지방·탄수·단백질)"
           goal={goal.data?.calories ?? null}
           goalLabel={goal.data?.calories ? `권장 ${num(goal.data.calories)}` : undefined}
           data={days.map((d) => ({
             key: d.date,
-            title: `${d.date} · ${num(d.kcal)} kcal (탄 ${num(d.carbsG)}g · 지 ${num(d.fatG)}g · 단 ${num(d.proteinG)}g)`,
+            title: `${d.date} · ${num(d.kcal)} kcal (지 ${num(d.fatG)}g · 탄 ${num(d.carbsG)}g · 단 ${num(d.proteinG)}g)`,
             parts: MACROS.map((m) => ({ label: m.label, color: m.color, value: d[m.key] * m.kcalPerG })),
           }))}
           axis={[formatShortDate(days[0].date), formatShortDate(days[days.length - 1].date)]}
         />
         <div className={s.dayChips}>
           {days.slice(-7).map((d) => (
-            <button key={d.date} type="button" onClick={() => onOpenDay(d.date)} title="그날 식단 보기">
+            <button key={d.date} type="button" onClick={() => onOpen('meal', d.date)} title="그날 식단 보기">
               {formatShortDate(d.date)}
               <b>{d.meals ? num(d.kcal) : '—'}</b>
             </button>
@@ -124,7 +133,17 @@ function DietTrend({
   )
 }
 
-function MacroAverages({ records, today, onGoals }: { records: MealRecord[]; today: LocalDate; onGoals: () => void }) {
+function MacroAverages({
+  records,
+  today,
+  onGoals,
+  onOpen,
+}: {
+  records: MealRecord[]
+  today: LocalDate
+  onGoals: () => void
+  onOpen: () => void
+}) {
   const goal = useDietGoal()
   const days = dailySeries(records, today, 7).filter((d) => d.meals > 0)
   const n = days.length || 1
@@ -135,6 +154,7 @@ function MacroAverages({ records, today, onGoals }: { records: MealRecord[]; tod
   }
   const g = goal.data
   const rows = [
+    { label: '지방', value: avg.fatG, goal: g?.fatG ?? null, rule: g?.fatRule ?? 'AT_MOST', color: 'orange' as const },
     {
       label: '탄수',
       value: avg.carbsG,
@@ -142,7 +162,6 @@ function MacroAverages({ records, today, onGoals }: { records: MealRecord[]; tod
       rule: g?.carbsRule ?? 'AT_MOST',
       color: 'yellow' as const,
     },
-    { label: '지방', value: avg.fatG, goal: g?.fatG ?? null, rule: g?.fatRule ?? 'AT_MOST', color: 'orange' as const },
     {
       label: '단백질',
       value: avg.proteinG,
@@ -152,7 +171,7 @@ function MacroAverages({ records, today, onGoals }: { records: MealRecord[]; tod
     },
   ]
   return (
-    <Card>
+    <Card {...openable('식단 기록 열기', onOpen)}>
       <SectionHeader
         title="최근 7일 하루 평균"
         meta={`${days.length}일 기록`}
@@ -203,7 +222,7 @@ function lastPerDay<T extends { recordedAt: string }>(logs: T[], pick: (l: T) =>
   return days.map((d) => ({ key: d, value: by.get(d) ?? null }))
 }
 
-function WeightTrend({ today }: { today: LocalDate }) {
+function WeightTrend({ today, onOpen }: { today: LocalDate; onOpen: () => void }) {
   const list = useBodyLogs()
   const days = Array.from({ length: 30 }, (_, i) => shiftDate(today, i - 29))
   const points = lastPerDay(list.data?.content ?? [], (l) => l.weightKg, days)
@@ -212,22 +231,24 @@ function WeightTrend({ today }: { today: LocalDate }) {
   const first = vals[0]?.value ?? null
   const delta = last !== null && first !== null && vals.length > 1 ? last - first : null
   return (
-    <Card className={s.span2}>
+    <Card {...openable('체중 · 수면 기록 열기', onOpen)} className={`${s.span2} ${openClass}`}>
       <SectionHeader
         title="체중 추이"
         meta="최근 30일"
         actions={
-          last !== null ? (
-            <span className="mono" style={{ fontSize: 12.5 }}>
-              {num(last, 1)}kg
-              {delta !== null && (
-                <span style={{ marginLeft: 6, color: delta <= 0 ? 'var(--green)' : 'var(--orange)' }}>
-                  {delta > 0 ? '+' : delta < 0 ? '−' : '±'}
-                  {Math.abs(delta).toFixed(1)}
-                </span>
-              )}
-            </span>
-          ) : undefined
+          <>
+            {last !== null && (
+              <span className="mono" style={{ fontSize: 12.5 }}>
+                {num(last, 1)}kg
+                {delta !== null && (
+                  <span style={{ marginLeft: 6, color: delta <= 0 ? 'var(--green)' : 'var(--orange)' }}>
+                    {delta > 0 ? '+' : delta < 0 ? '−' : '±'}
+                    {Math.abs(delta).toFixed(1)}
+                  </span>
+                )}
+              </span>
+            )}
+          </>
         }
       />
       <QueryState loading={list.isLoading} error={list.error} onRetry={() => void list.refetch()}>
@@ -243,23 +264,25 @@ function WeightTrend({ today }: { today: LocalDate }) {
   )
 }
 
-function SleepTrend({ today }: { today: LocalDate }) {
+function SleepTrend({ today, onOpen }: { today: LocalDate; onOpen: () => void }) {
   const list = useBodyLogs()
   const days = Array.from({ length: 14 }, (_, i) => shiftDate(today, i - 13))
   const points = lastPerDay(list.data?.content ?? [], (l) => l.sleepHours, days)
   const vals = points.map((p) => p.value).filter((v): v is number => v !== null)
   const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null
   return (
-    <Card>
+    <Card {...openable('체중 · 수면 기록 열기', onOpen)}>
       <SectionHeader
         title="수면"
         meta="최근 14일"
         actions={
-          avg !== null ? (
-            <span className="mono" style={{ fontSize: 12.5 }}>
-              평균 {num(avg, 1)}h
-            </span>
-          ) : undefined
+          <>
+            {avg !== null && (
+              <span className="mono" style={{ fontSize: 12.5 }}>
+                평균 {num(avg, 1)}h
+              </span>
+            )}
+          </>
         }
       />
       <QueryState
@@ -286,12 +309,12 @@ function SleepTrend({ today }: { today: LocalDate }) {
   )
 }
 
-function WeeklyAverages() {
+function WeeklyAverages({ onOpen }: { onOpen: () => void }) {
   const goal = useDietGoal()
   const stats = useMealStats()
   const weeks = sortBy(stats.data?.content ?? [], (w) => w.weekStart)
   return (
-    <Card className={s.span2}>
+    <Card {...openable('식단 기록 열기', onOpen)} className={`${s.span2} ${openClass}`}>
       <SectionHeader title="주간 평균 칼로리" meta="최근 8주 · 주간 통계" />
       <QueryState
         loading={stats.isLoading}
@@ -315,14 +338,14 @@ function WeeklyAverages() {
   )
 }
 
-function WorkoutWeek({ today }: { today: LocalDate }) {
+function WorkoutWeek({ today, onOpen }: { today: LocalDate; onOpen: () => void }) {
   const list = useWorkouts()
   const items = list.data?.content ?? []
   const from = weekStartOf(today)
   const week = withinDates(items, (w) => w.performedAt, from, shiftDate(from, 6))
   const minutes = week.reduce((a, w) => a + w.durationMinutes, 0)
   return (
-    <Card>
+    <Card {...openable('운동 기록 열기', onOpen)}>
       <SectionHeader title="이번 주 운동" meta={`${week.length}회 · ${num(minutes)}분`} />
       <QueryState
         loading={list.isLoading}
