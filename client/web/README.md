@@ -9,7 +9,7 @@ HubDash 서버(`../../server`, Spring Boot REST API)에 붙는 개인용 대시�
 cd client/web
 npm install
 
-# 1) 실제 서버에 붙여서 (서버는 ../../server 에서 docker compose up -d)
+# 1) 실제 서버에 붙여서 (레포 루트에서 docker compose up -d db kafka api)
 npm run dev                      # http://localhost:5173 , /api → http://localhost:8080 프록시
 
 # 2) 서버 없이 목 데이터로
@@ -24,6 +24,11 @@ VITE_USE_MOCK=true npm run dev   # MSW가 명세와 같은 모양으로 응답
 | `npm run lint` | oxlint |
 | `npm test` | Vitest 단위 테스트 |
 | `npm run format` | Prettier |
+
+### 도커로 (평소에 쓸 때)
+
+레포 루트에서 `docker compose up -d --build`로 띄우면 이 앱이 빌드되어 nginx로 <http://localhost:3000> 에서 서빙된다
+(`Dockerfile`, `nginx.conf`). `/api`는 nginx가 API 컨테이너로 넘긴다. 코드를 고친 뒤에는 `--build`로 다시 빌드해야 반영된다.
 
 ## 환경 변수
 

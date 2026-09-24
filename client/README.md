@@ -47,7 +47,7 @@ swift test                                   # 단위 테스트(스텁 전송 �
 **계약 테스트**는 실제 서버에 붙어서 Swift 모델이 진짜 응답을 해석하는지 확인합니다. 서버를 띄우고 환경변수를 주면 실행됩니다(없으면 건너뜀).
 
 ```bash
-cd server && docker compose up -d && ./gradlew :api:bootRun          # 다른 터미널에서
+docker compose up -d db kafka && (cd server && ./gradlew :api:bootRun)   # 레포 루트에서, 다른 터미널
 cd client/HubDashKit
 HUBDASH_BASE_URL=http://localhost:8080 HUBDASH_API_KEY=dev-local-key swift test
 ```
