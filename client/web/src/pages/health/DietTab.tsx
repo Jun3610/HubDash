@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Pencil, Plus, Target, Trash2 } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { mealItems, mealRecords, useDietGoal, useUpdateDietGoal } from '../../api/health'
 import { invalidateDomain } from '../../api/resource'
 import { MEAL_TYPE_KO, MEAL_TYPES, type DietGoalRequest, type GoalRule, type MealType } from '../../api/types'
@@ -200,7 +200,7 @@ export function DaySummary({
                 className={s.limit}
                 style={{ color: st === 'ok' ? 'var(--green)' : st === 'over' ? 'var(--red)' : undefined }}
               >
-                {r.key === 'calories' && r.goal !== null ? '권장 ' : ''}
+                {r.key === 'calories' && r.goal !== null ? 'goal ' : ''}
                 {ruleText(r.goal, r.rule, r.unit)}
                 {st === 'ok' && ' ✓'}
               </span>
@@ -209,7 +209,7 @@ export function DaySummary({
         })}
       </div>
       <Button size="sm" icon={<Target size={13} />} onClick={onGoals} style={{ alignSelf: 'flex-start' }}>
-        {hasAnyGoal ? '목표 수정' : '목표 정하기'}
+        {hasAnyGoal ? 'Edit Goal' : 'Set Goal'}
       </Button>
     </section>
   )
@@ -237,7 +237,27 @@ export function MealCards({
 }) {
   const [editing, setEditing] = useState<{ type: MealType; entry?: MealEntry } | null>(null)
   const [deleting, setDeleting] = useState<MealEntry | null>(null)
+  // 식단 창에서 ⌘/Ctrl + 1~4 → 아침·점심·저녁·간식 입력 창 (이미 있으면 그 끼니 수정, 이슈 #220)
+  const mealsRef = useRef<Record<string, MealEntry | undefined>>({})
+  useEffect(() => {
+    if (!stacked) return
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return
+      const n = Number(e.key)
+      if (!Number.isInteger(n) || n < 1 || n > MEAL_TYPES.length) return
+      // 식단 창 위에 다른 창(끼니 입력 등)이 떠 있으면 두지 않는다
+      if (document.querySelectorAll('[role="dialog"]').length > 1) return
+      e.preventDefault()
+      const type = MEAL_TYPES[n - 1]
+      setEditing({ type, entry: mealsRef.current[type] })
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [stacked])
   const meals = mealsOn(records, date)
+  useEffect(() => {
+    mealsRef.current = meals
+  })
   const qc = useQueryClient()
   const remove = useMutation({
     mutationFn: async (entry: MealEntry) => {
@@ -294,7 +314,7 @@ export function MealCards({
             ) : (
               <button type="button" className={s.addBtn} onClick={() => setEditing({ type })}>
                 <Plus size={14} />
-                {MEAL_TYPE_KO[type]} 추가
+                Add {MEAL_TYPE_KO[type]}
               </button>
             )}
           </article>
@@ -420,19 +440,19 @@ function MealModal({
     <Modal
       open
       onClose={onClose}
-      title={`${MEAL_TYPE_KO[type]} ${entry ? '수정' : '추가'}`}
+      title={`${entry ? 'Edit' : 'Add'} ${MEAL_TYPE_KO[type]}`}
       footer={
         <>
-          <Button onClick={onClose}>취소</Button>
+          <Button onClick={onClose}>Cancel</Button>
           <Button variant="primary" type="submit" form="meal-form" disabled={save.isPending}>
-            {save.isPending ? '저장 중…' : '저장'}
+            {save.isPending ? 'Saving…' : 'Save'}
           </Button>
         </>
       }
     >
       <form id="meal-form" onSubmit={submit} noValidate className={s.formGrid}>
-        <Field label="제목 (먹은 것)" required error={errors.title} className={s.full}>
-          <Input autoFocus placeholder="예: 닭가슴살 덮밥, 계란 2개" value={d.title} onChange={set('title')} />
+        <Field label="What you ate" required error={errors.title} className={s.full}>
+          <Input autoFocus placeholder="e.g. chicken rice bowl, 2 eggs" value={d.title} onChange={set('title')} />
         </Field>
         <div className={`${s.full} ${s.macroInputs}`}>
           {MACROS.map((m) => (
@@ -441,16 +461,16 @@ function MealModal({
             </Field>
           ))}
           <div className={s.kcalBox} aria-live="polite">
-            <span>칼로리</span>
+            <span>Calories</span>
             <b>{num(kcal)}</b>
-            <small>자동 계산</small>
+            <small>auto</small>
           </div>
         </div>
-        <Field label="시각" required error={errors.time}>
+        <Field label="Time" required error={errors.time}>
           <TimeField value={d.time} onChange={(v) => setD({ ...d, time: v })} />
         </Field>
         <span className={`${s.full} muted`} style={{ fontSize: 11.5 }}>
-          칼로리 = 지방×9 + 탄수×4 + 단백질×4
+          Calories = Fat×9 + Carbs×4 + Protein×4
           {merged && ' · 예전에 음식별로 적은 기록은 저장하면 이 한 줄로 합쳐져요.'}
         </span>
         <div className={s.full}>
@@ -464,10 +484,10 @@ function MealModal({
 // ---------------- 식단 목표 ----------------
 
 const GOAL_FIELDS = [
-  { key: 'fat', value: 'fatG', rule: 'fatRule', label: '지방', unit: 'g' },
-  { key: 'carbs', value: 'carbsG', rule: 'carbsRule', label: '탄수', unit: 'g' },
-  { key: 'protein', value: 'proteinG', rule: 'proteinRule', label: '단백질', unit: 'g' },
-  { key: 'calories', value: 'calories', rule: 'caloriesRule', label: '권장 칼로리', unit: 'kcal' },
+  { key: 'fat', value: 'fatG', rule: 'fatRule', label: 'Fat', unit: 'g' },
+  { key: 'carbs', value: 'carbsG', rule: 'carbsRule', label: 'Carbs', unit: 'g' },
+  { key: 'protein', value: 'proteinG', rule: 'proteinRule', label: 'Protein', unit: 'g' },
+  { key: 'calories', value: 'calories', rule: 'caloriesRule', label: 'Calories', unit: 'kcal' },
 ] as const
 
 export function GoalModal({ onClose }: { onClose: () => void }) {
@@ -510,19 +530,19 @@ export function GoalModal({ onClose }: { onClose: () => void }) {
     <Modal
       open
       onClose={onClose}
-      title="식단 목표"
+      title="Diet Goal"
       footer={
         <>
-          <Button onClick={onClose}>취소</Button>
+          <Button onClick={onClose}>Cancel</Button>
           <Button variant="primary" type="submit" form="goal-form" disabled={update.isPending || goal.isLoading}>
-            저장
+            Save
           </Button>
         </>
       }
     >
       <form id="goal-form" onSubmit={submit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <span className="muted" style={{ fontSize: 12 }}>
-          값을 비우면 그 항목은 목표 없이 합계만 보여요.
+          Leave a value empty to show only the total for it.
         </span>
         {GOAL_FIELDS.map((f) => (
           <div key={f.key} className={s.goalRow}>
@@ -530,18 +550,18 @@ export function GoalModal({ onClose }: { onClose: () => void }) {
               <Input
                 mono
                 inputMode="decimal"
-                placeholder="목표 없음"
+                placeholder="No goal"
                 value={d[f.value]}
                 onChange={(e) => setD({ ...d, [f.value]: e.target.value })}
               />
             </Field>
             <Segmented<GoalRule>
-              label={`${f.label} 기준`}
+              label={`${f.label} rule`}
               value={d[f.rule] as GoalRule}
               onChange={(v) => setD({ ...d, [f.rule]: v })}
               items={[
-                { key: 'AT_MOST', label: '이하' },
-                { key: 'AT_LEAST', label: '이상' },
+                { key: 'AT_MOST', label: 'Max' },
+                { key: 'AT_LEAST', label: 'Min' },
               ]}
             />
           </div>
