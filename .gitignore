@@ -31,3 +31,6 @@ replay_pid*
 *.iws
 *.iml
 *.ipr
+
+# 로컬 비밀값 (NOTION_TOKEN 등) — 커밋하지 않음 (이슈 #163)
+.env

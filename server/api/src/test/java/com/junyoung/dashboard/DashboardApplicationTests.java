@@ -54,7 +54,7 @@ class DashboardApplicationTests {
 
     @Test
     void createsAndFetchesHubCategoryEndToEnd() throws Exception {
-        HubCategoryRequest request = new HubCategoryRequest("CI/CD", "빌드 파이프라인 문서");
+        HubCategoryRequest request = new HubCategoryRequest("CI/CD", "빌드 파이프라인 문서", null);
 
         mockMvc.perform(post("/api/hub/categories")
                         .header("X-API-KEY", "test-api-key")

@@ -43,8 +43,8 @@ class HubCategoryControllerTest {
 
     @Test
     void createsCategory() throws Exception {
-        HubCategoryRequest request = new HubCategoryRequest("CI/CD", "빌드 파이프라인 문서");
-        HubCategoryResponse response = new HubCategoryResponse(1L, "CI/CD", "빌드 파이프라인 문서",
+        HubCategoryRequest request = new HubCategoryRequest("CI/CD", "빌드 파이프라인 문서", null);
+        HubCategoryResponse response = new HubCategoryResponse(1L, "CI/CD", "빌드 파이프라인 문서", null,
                 LocalDateTime.now(), LocalDateTime.now());
         when(hubCategoryService.create(request)).thenReturn(response);
 
@@ -58,7 +58,7 @@ class HubCategoryControllerTest {
 
     @Test
     void rejectsBlankName() throws Exception {
-        HubCategoryRequest invalid = new HubCategoryRequest("", null);
+        HubCategoryRequest invalid = new HubCategoryRequest("", null, null);
 
         mockMvc.perform(post("/api/hub/categories")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -70,7 +70,7 @@ class HubCategoryControllerTest {
     @Test
     void listsCategories() throws Exception {
         when(hubCategoryService.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(
-                new HubCategoryResponse(1L, "CI/CD", null, LocalDateTime.now(), LocalDateTime.now())
+                new HubCategoryResponse(1L, "CI/CD", null, null, LocalDateTime.now(), LocalDateTime.now())
         )));
 
         mockMvc.perform(get("/api/hub/categories"))

@@ -36,7 +36,7 @@ class HubCategoryServiceTest {
 
     @Test
     void createsCategoryAndReturnsResponse() {
-        HubCategoryRequest request = new HubCategoryRequest("CI/CD", "빌드 파이프라인 문서");
+        HubCategoryRequest request = new HubCategoryRequest("CI/CD", "빌드 파이프라인 문서", null);
         when(hubCategoryRepository.save(any(HubCategory.class)))
                 .thenReturn(new HubCategory("CI/CD", "빌드 파이프라인 문서"));
 
