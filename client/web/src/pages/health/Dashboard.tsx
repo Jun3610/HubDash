@@ -96,7 +96,7 @@ function DietTrend({
         loading={loading}
         error={null}
         empty={logged.length === 0}
-        emptyView={<EmptyState compact title="최근 14일 식단 기록이 없어요 — 끼니 기록에서 추가해 보세요" />}
+        emptyView={<EmptyState compact title="최근 14일 식단 기록이 없어요 — 식단 추가에서 넣어 보세요" />}
       >
         <StackedBarChart
           label="최근 14일 날짜별 칼로리(지방·탄수·단백질)"
