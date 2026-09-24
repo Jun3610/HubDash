@@ -201,7 +201,7 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
         </div>
 
         <ul className={s.menu}>
-          {orderedNav(navOrder).map((n, i) => {
+          {orderedNav(navOrder).map((n) => {
             const active = n.to === '/' ? pathname === '/' : pathname.startsWith(n.to)
             const count = counts[n.key]
             const Icon = n.icon
@@ -212,10 +212,6 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
                   <Icon size={16} strokeWidth={1.7} aria-hidden="true" />
                   <span className={s.itemLabel}>{n.label}</span>
                   {count !== undefined && <span className={s.count}>{count}</span>}
-                  {/* ⌘ + 순서 번호로 바로 이동 (이슈 #211) */}
-                  <span className={s.hotkey} aria-hidden="true">
-                    ⌘{i + 1}
-                  </span>
                 </NavLink>
               </li>
             )

@@ -32,21 +32,27 @@ export function AppLayout() {
   const openSearch = useCallback(() => setSearchOpen(true), [])
   const closeSearch = useCallback(() => setSearchOpen(false), [])
   useSearchHotkey(openSearch)
-  // ⌘/Ctrl + 1~6 → 사이드바에 보이는 순서대로 이동 (이슈 #211, 설정의 메뉴 순서를 따른다)
+  // ⌘/Ctrl + ↑/↓ → 사이드바의 이전/다음 메뉴 (끝에서는 반대쪽으로, 이슈 #213)
+  // 입력 칸(커서 처음·끝으로 가는 기본 동작)이나 창이 떠 있을 때는 두지 않는다
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const navOrder = useStore(navOrderStore)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return
-      const n = Number(e.key)
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+      const el = e.target as HTMLElement
+      if (el.closest('input, textarea, select, [contenteditable="true"]')) return
+      if (document.querySelector('[role="dialog"]')) return
       const items = orderedNav(navOrder)
-      if (!Number.isInteger(n) || n < 1 || n > items.length) return
+      const cur = items.findIndex((n) => (n.to === '/' ? pathname === '/' : pathname.startsWith(n.to)))
+      const next = (cur + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length
       e.preventDefault()
-      navigate(items[n - 1].to)
+      navigate(items[cur === -1 ? 0 : next].to)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [navigate, navOrder])
+  }, [navigate, navOrder, pathname])
 
   return (
     <QuickRecordProvider>
