@@ -8,6 +8,7 @@ public record HubCategoryResponse(
         Long id,
         String name,
         String description,
+        String notionDatabaseId,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -16,6 +17,7 @@ public record HubCategoryResponse(
                 category.getId(),
                 category.getName(),
                 category.getDescription(),
+                category.getNotionDatabaseId(),
                 category.getCreatedAt(),
                 category.getUpdatedAt()
         );

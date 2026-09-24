@@ -5,6 +5,7 @@ import com.junyoung.dashboard.domain.hub.dto.HubCategoryResponse;
 import com.junyoung.dashboard.domain.hub.entity.HubCategory;
 import com.junyoung.dashboard.domain.hub.repository.HubCategoryRepository;
 import com.junyoung.dashboard.global.exception.EntityNotFoundException;
+import com.junyoung.dashboard.global.notion.NotionIds;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,7 @@ public class HubCategoryService {
     @Transactional
     public HubCategoryResponse create(HubCategoryRequest request) {
         HubCategory saved = hubCategoryRepository.save(
-                new HubCategory(request.name(), request.description()));
+                new HubCategory(request.name(), request.description(), NotionIds.extract(request.notionDatabase())));
         return HubCategoryResponse.from(saved);
     }
 
@@ -39,7 +40,7 @@ public class HubCategoryService {
     @Transactional
     public HubCategoryResponse update(Long id, HubCategoryRequest request) {
         HubCategory category = getOrThrow(id);
-        category.update(request.name(), request.description());
+        category.update(request.name(), request.description(), NotionIds.extract(request.notionDatabase()));
         return HubCategoryResponse.from(category);
     }
 

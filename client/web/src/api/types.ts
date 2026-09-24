@@ -198,8 +198,13 @@ export type Memo = Required<MemoRequest> & Timestamps
 export interface HubCategoryRequest {
   name: string
   description?: string | null
+  /** 노션 DB 주소나 ID (선택, 이슈 #163). PUT은 전체 교체라 수정할 때도 늘 보낸다 */
+  notionDatabase?: string | null
 }
-export type HubCategory = Required<HubCategoryRequest> & Timestamps
+export type HubCategory = Required<Omit<HubCategoryRequest, 'notionDatabase'>> & {
+  /** 'Notion 불러오기'로 새 글을 가져올 노션 DB (대시 없는 32자리) */
+  notionDatabaseId: string | null
+} & Timestamps
 
 export interface HubLinkRequest {
   categoryId: Id

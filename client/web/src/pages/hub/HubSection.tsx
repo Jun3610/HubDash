@@ -1,8 +1,9 @@
-import { MoreHorizontal, Pin, Plus } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { MoreHorizontal, Pin, Plus, RefreshCw } from 'lucide-react'
 import { useRef, useState, type FormEvent } from 'react'
 import { Navigate, useParams, useSearchParams } from 'react-router-dom'
-import { hubCategories, hubLinks } from '../../api/hub'
-import { useCreate, useRemove, useUpdate } from '../../api/resource'
+import { hubCategories, hubLinks, syncNotion } from '../../api/hub'
+import { invalidateDomain, useCreate, useRemove, useUpdate } from '../../api/resource'
 import type { HubCategory, HubLink } from '../../api/types'
 import {
   Button,
@@ -19,6 +20,8 @@ import {
   Segmented,
   Select,
   Table,
+  toastApiError,
+  useToast,
 } from '../../components/ui'
 import { pinnedLinksStore } from '../../config/prefs'
 import { useAllHubLinks } from '../../hooks/useHub'
@@ -52,6 +55,27 @@ export function HubSection() {
   const [formOpen, setFormOpen] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const remove = useRemove(hubLinks)
+  const toast = useToast()
+  const qc = useQueryClient()
+  const sync = useMutation({
+    mutationFn: syncNotion,
+    meta: { silent: true }, // 전역 오류 토스트 대신 아래 onError 한 번만
+    onSuccess: (r) => {
+      void invalidateDomain(qc, hubLinks.path)
+      if (r.categories.length === 0)
+        toast.error('노션 DB가 연결된 카테고리가 없어요', undefined, '카테고리 수정에서 노션 DB를 넣어 주세요')
+      else if (r.added === 0) toast.success('새 글이 없어요', '노션과 이미 같아요')
+      else
+        toast.success(
+          `새 글 ${r.added}개를 가져왔어요`,
+          r.categories
+            .filter((c) => c.added)
+            .map((c) => `${c.name} ${c.added}`)
+            .join(' · '),
+        )
+    },
+    onError: (err) => toastApiError(err, 'Notion 불러오기 실패'),
+  })
 
   const catId = Number(params.get('hub')) || null
   const category = hub.categories.find((c) => c.id === catId) ?? null
@@ -84,7 +108,17 @@ export function HubSection() {
         <span className="muted" style={{ fontSize: 12 }}>
           {hub.categories.length}개 카테고리 · {hub.links.length}개 링크 · 누르면 노션 글 목록
         </span>
-        <Button size="sm" style={{ marginLeft: 'auto' }} onClick={() => setCatDialog({})}>
+        <Button
+          size="sm"
+          style={{ marginLeft: 'auto' }}
+          icon={<RefreshCw size={13} className={sync.isPending ? s.spin : undefined} />}
+          disabled={sync.isPending}
+          title="노션 DB에 새로 추가한 글을 가져와요"
+          onClick={() => sync.mutate()}
+        >
+          {sync.isPending ? '불러오는 중…' : 'Notion 불러오기'}
+        </Button>
+        <Button size="sm" onClick={() => setCatDialog({})}>
           Add Category
         </Button>
       </div>
@@ -561,6 +595,7 @@ function CategoryModal({
 }) {
   const [name, setName] = useState(category?.name ?? '')
   const [description, setDescription] = useState(category?.description ?? '')
+  const [notionDb, setNotionDb] = useState(category?.notionDatabaseId ?? '')
   const [errors, setErrors] = useState<Errors>({})
   const [confirm, setConfirm] = useState(false)
   const create = useCreate(hubCategories)
@@ -572,7 +607,8 @@ function CategoryModal({
     const errs = { name: required(name, '이름') ?? maxLen(name, 100), description: maxLen(description, 500) }
     setErrors(errs)
     if (hasErrors(errs)) return
-    const body = { name: name.trim(), description: optStr(description) }
+    // 노션 DB는 비우면 연결 해제. PUT이 전체 교체라 수정할 때도 늘 보낸다
+    const body = { name: name.trim(), description: optStr(description), notionDatabase: optStr(notionDb) }
     const done = (c: HubCategory) => {
       onSaved(c)
       onClose()
@@ -610,6 +646,17 @@ function CategoryModal({
         </Field>
         <Field label="설명" error={errors.description}>
           <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+        </Field>
+        <Field
+          label="노션 DB"
+          hint="노션 DB 주소나 ID를 넣으면 'Notion 불러오기'로 새 글을 가져와요 (DB를 HubDash 통합에 연결해야 해요)"
+        >
+          <Input
+            mono
+            value={notionDb}
+            onChange={(e) => setNotionDb(e.target.value)}
+            placeholder="https://www.notion.so/…"
+          />
         </Field>
         <FormError error={m.error ?? remove.error} />
       </form>

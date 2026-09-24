@@ -72,6 +72,8 @@ services:
       # 이미지는 prod 프로파일이라 API_KEY/DB_PASSWORD에 기본값이 없다. 로컬용 기본값은 여기서만 준다 —
       # 127.0.0.1로만 열려 있으므로 이 컴퓨터 밖에서는 접근할 수 없다. 바꾸려면 레포 루트 .env에 API_KEY=...를 적는다.
       API_KEY: ${API_KEY:-dev-local-key}
+      # 'Notion 불러오기' 토큰 — 레포 루트 .env에 NOTION_TOKEN=... (커밋 안 함, 이슈 #163)
+      NOTION_TOKEN: ${NOTION_TOKEN:-}
     ports:
       - "127.0.0.1:8080:8080"
 

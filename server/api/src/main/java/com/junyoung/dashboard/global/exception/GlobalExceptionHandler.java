@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import com.junyoung.dashboard.global.notion.NotionException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -61,6 +62,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleNotReadable(HttpMessageNotReadableException ex) {
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error("INVALID_REQUEST", "요청 본문을 읽을 수 없습니다"));
+    }
+
+    /** 노션 토큰 없음·DB 권한 없음 등 — 문구를 그대로 보여 준다 (이슈 #163) */
+    @ExceptionHandler(NotionException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNotion(NotionException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(ApiResponse.error("NOTION_ERROR", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
