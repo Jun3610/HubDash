@@ -37,6 +37,7 @@ import { longestStreak, studyStreak, weeklyMinutes } from '../lib/select/study'
 import { hasErrors, isUrl, maxLen, numRange, optStr, required, type Errors } from '../lib/validate'
 import s from './study/Study.module.css'
 import { NotionLink } from '../components/ui/NotionLink'
+import { usePeekTo } from '../components/layout/peek'
 
 /** 주제 순서대로 쓰는 색 (점, 라벨, 막대가 같은 색) */
 const TOPIC_COLORS: (BarColor & Tone)[] = ['green', 'orange', 'purple', 'blue', 'yellow', 'accent', 'red']
@@ -79,7 +80,7 @@ export default function StudyPage() {
   return (
     <>
       <PageHeader
-        title="공부"
+        title="Study"
         tabs={
           <Tabs<Tab>
             inHeader
@@ -370,6 +371,7 @@ function LogTable({
 // ---- 주간 통계 (서버 배치 결과) ----
 
 function WeeklyStatsTable({ topics, colorIdx }: { topics: StudyTopic[]; colorIdx: Map<number, number> }) {
+  const peekTo = usePeekTo()
   const results = useQueries({
     queries: topics.map((t) => {
       const q = { topicId: t.id, size: 8, sort: 'weekStart,desc' }
@@ -387,7 +389,7 @@ function WeeklyStatsTable({ topics, colorIdx }: { topics: StudyTopic[]; colorIdx
     <section className={s.box}>
       <div className={s.boxHead}>
         <h2>주제별 주간 통계</h2>
-        <Link to="/settings" style={{ fontSize: 12 }}>
+        <Link to={peekTo('settings', 1)} style={{ fontSize: 12 }}>
           다시 계산
         </Link>
       </div>

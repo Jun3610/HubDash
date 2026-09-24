@@ -42,6 +42,7 @@
 }
 .box {
   border: 1px solid var(--border);
+  box-shadow: var(--card-shadow);
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--bg);
@@ -245,6 +246,7 @@
   min-width: 120px;
   padding: 8px 12px;
   border: 1px solid var(--border);
+  box-shadow: var(--card-shadow);
   border-radius: var(--radius);
   background: var(--bg);
   color: var(--text-body);
@@ -313,6 +315,7 @@ a.infoValue {
   align-items: center;
   justify-content: center;
   border: 1px solid var(--border);
+  box-shadow: var(--card-shadow);
   border-radius: var(--radius);
   background: var(--bg);
   color: var(--text-body);

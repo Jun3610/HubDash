@@ -1,142 +1,135 @@
-import { Plus, Target } from 'lucide-react'
-import { useState } from 'react'
+import { Dumbbell, Plus, Scale, Target, Utensils } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { mealRecords } from '../api/health'
 import { useList } from '../api/resource'
 import type { HealthLog, WorkoutLog } from '../api/types'
 import { PageHeader } from '../components/layout/PageHeader'
-import { Button, DateNav, Tabs } from '../components/ui'
+import { Button, DateNav, Peek } from '../components/ui'
 import { YEAR_PAGE } from '../hooks/useActivity'
 import { useToday } from '../hooks/useToday'
-import { useUrlState } from '../hooks/useUrlState'
-import { shiftDate, weekStartOf } from '../lib/date'
-import { withinDates, withinDateTimes } from '../lib/select/range'
-import { useBodyLogs, useWorkouts } from './health/data'
+import { formatHeaderDate, type LocalDate } from '../lib/date'
+import { withinDateTimes } from '../lib/select/range'
 import { DaySummary, GoalModal, MealCards } from './health/DietTab'
 import s from './health/Health.module.css'
 import { BodyModal, BodyTab, WorkoutModal, WorkoutTab } from './health/OtherSections'
-import { StatsTab } from './health/StatsTab'
+import { HealthDashboard } from './health/Dashboard'
 
-type Tab = 'stats' | 'meal' | 'workout' | 'body'
+/** 작은 창 종류. 예전 탭 주소(?tab=meal 등)를 그대로 쓴다 */
+type PeekKind = 'meal' | 'workout' | 'body'
 type Dialog = { kind: 'goal' } | { kind: 'workout'; log?: WorkoutLog } | { kind: 'body'; log?: HealthLog } | null
 
+const PEEKS: readonly string[] = ['meal', 'workout', 'body']
+
+/** 건강: 탭 없이 대시보드 한 화면, 식단·운동·체중수면 기록은 작은 창으로 (이슈 #148) */
 export default function HealthPage() {
   const today = useToday()
-  // 첫 화면은 통계, 식단·운동·체중수면은 탭 (이슈 #131)
-  const [tab, setTab] = useUrlState('tab', 'stats')
-  const [date, setDate] = useUrlState('date', today)
-  const [dialog, setDialog] = useState<Dialog>(null)
   const [params, setParams] = useSearchParams()
+  const [dialog, setDialog] = useState<Dialog>(null)
 
   // 끼니 목록은 기록 히트맵과 같은 쿼리를 써서 캐시를 공유한다 (날짜 필터가 없어 넉넉히 받는다)
   const meals = useList(mealRecords, { size: YEAR_PAGE, sort: 'consumedAt,desc' })
   const all = meals.data?.content ?? []
-  const dayMeals = withinDateTimes(all, (r) => r.consumedAt, date, date)
-  const workouts = useWorkouts()
-  const body = useBodyLogs()
-  const from = weekStartOf(today)
 
-  // 빠른 기록(?new=meal 등)으로 들어오면 해당 탭·창 (주소에서 바로 계산)
+  // 빠른 기록(?new=meal 등): 끼니는 오늘 식단 창, 운동·체중은 입력 창
   const newKind = params.get('new')
-  const effectiveTab =
-    newKind === 'meal' ? 'meal' : newKind === 'workout' ? 'workout' : newKind === 'body' ? 'body' : tab
+  const tabParam = newKind === 'meal' ? 'meal' : params.get('tab')
+  const peek = tabParam && PEEKS.includes(tabParam) ? (tabParam as PeekKind) : null
+  const date = (params.get('date') ?? today) as LocalDate
+  const dayMeals = withinDateTimes(all, (r) => r.consumedAt, date, date)
   const active: Dialog = dialog ?? (newKind === 'workout' || newKind === 'body' ? ({ kind: newKind } as Dialog) : null)
-  const closeDialog = () => {
-    setDialog(null)
-    if (newKind)
+
+  const update = useCallback(
+    (fn: (p: URLSearchParams) => void, replace = false) =>
       setParams(
         (p) => {
           const n = new URLSearchParams(p)
-          n.delete('new')
-          n.set('tab', newKind)
+          fn(n)
           return n
         },
-        { replace: true },
-      )
+        { replace },
+      ),
+    [setParams],
+  )
+  const openPeek = (kind: PeekKind, d?: LocalDate) =>
+    update((n) => {
+      n.set('tab', kind)
+      if (d && d !== today) n.set('date', d)
+      else n.delete('date')
+    })
+  const closePeek = useCallback(
+    () =>
+      update((n) => {
+        n.delete('tab')
+        n.delete('date')
+        n.delete('new')
+      }, true),
+    [update],
+  )
+  const setDate = (d: LocalDate) => update((n) => (d === today ? n.delete('date') : n.set('date', d)), true)
+  const closeDialog = () => {
+    setDialog(null)
+    if (newKind === 'workout' || newKind === 'body') update((n) => n.delete('new'), true)
   }
 
   return (
     <>
-      <PageHeader
-        title="건강"
-        tabs={
-          <Tabs<Tab>
-            inHeader
-            label="건강 탭"
-            value={effectiveTab as Tab}
-            onChange={(k) => {
-              if (newKind) closeDialog()
-              setTab(k)
-            }}
-            items={[
-              { key: 'stats', label: '통계' },
-              { key: 'meal', label: '식단', count: dayMeals.length || undefined },
-              {
-                key: 'workout',
-                label: '운동',
-                count:
-                  withinDates(workouts.data?.content ?? [], (w) => w.performedAt, from, shiftDate(from, 6)).length ||
-                  undefined,
-              },
-              { key: 'body', label: '체중 · 수면', count: body.data?.totalElements || undefined },
-            ]}
-          />
-        }
-      >
-        {effectiveTab === 'meal' && <DateNav value={date} onChange={setDate} today={today} />}
-        {(effectiveTab === 'meal' || effectiveTab === 'stats') && (
-          <Button icon={<Target size={14} />} onClick={() => setDialog({ kind: 'goal' })}>
-            식단 목표
-          </Button>
-        )}
-        {effectiveTab === 'workout' && (
-          <Button variant="primary" icon={<Plus size={14} />} onClick={() => setDialog({ kind: 'workout' })}>
-            운동 추가
-          </Button>
-        )}
-        {effectiveTab === 'body' && (
-          <Button variant="primary" icon={<Plus size={14} />} onClick={() => setDialog({ kind: 'body' })}>
-            기록 추가
-          </Button>
-        )}
+      <PageHeader title="Health">
+        <Button icon={<Target size={14} />} onClick={() => setDialog({ kind: 'goal' })}>
+          식단 목표
+        </Button>
+        <Button icon={<Scale size={14} />} onClick={() => setDialog({ kind: 'body' })}>
+          체중 · 수면
+        </Button>
+        <Button icon={<Dumbbell size={14} />} onClick={() => setDialog({ kind: 'workout' })}>
+          운동
+        </Button>
+        <Button variant="primary" icon={<Plus size={14} />} onClick={() => openPeek('meal')}>
+          끼니 기록
+        </Button>
       </PageHeader>
 
       <div className={s.page}>
-        {effectiveTab === 'stats' && (
-          <StatsTab
-            records={all}
-            loading={meals.isLoading}
+        <HealthDashboard
+          records={all}
+          loading={meals.isLoading}
+          today={today}
+          onGoals={() => setDialog({ kind: 'goal' })}
+          onOpen={openPeek}
+        />
+      </div>
+
+      {peek === 'meal' && (
+        <Peek label={`${formatHeaderDate(date)} 식단`} onClose={closePeek}>
+          <div className={s.peekHead}>
+            <Utensils size={18} strokeWidth={1.8} aria-hidden="true" />
+            <h1>식단</h1>
+            <DateNav value={date} onChange={setDate} today={today} />
+          </div>
+          <DaySummary records={dayMeals} date={date} onGoals={() => setDialog({ kind: 'goal' })} />
+          <MealCards
+            records={dayMeals}
+            date={date}
             today={today}
-            onGoals={() => setDialog({ kind: 'goal' })}
-            onOpenDay={(d) => {
-              setDate(d)
-              setTab('meal')
-            }}
+            loading={meals.isLoading}
+            error={meals.error}
+            onRetry={() => void meals.refetch()}
           />
-        )}
-        {effectiveTab === 'meal' && (
-          <>
-            <DaySummary records={dayMeals} date={date} onGoals={() => setDialog({ kind: 'goal' })} />
-            <MealCards
-              records={dayMeals}
-              date={date}
-              today={today}
-              loading={meals.isLoading}
-              error={meals.error}
-              onRetry={() => void meals.refetch()}
-            />
-          </>
-        )}
-        {effectiveTab === 'workout' && (
+        </Peek>
+      )}
+      {peek === 'workout' && (
+        <Peek label="운동 기록" onClose={closePeek}>
           <WorkoutTab
             onAdd={() => setDialog({ kind: 'workout' })}
             onEdit={(log) => setDialog({ kind: 'workout', log })}
           />
-        )}
-        {effectiveTab === 'body' && (
+        </Peek>
+      )}
+      {peek === 'body' && (
+        <Peek label="체중 · 수면 기록" onClose={closePeek}>
           <BodyTab onAdd={() => setDialog({ kind: 'body' })} onEdit={(log) => setDialog({ kind: 'body', log })} />
-        )}
-      </div>
+        </Peek>
+      )}
 
       {active?.kind === 'goal' && <GoalModal onClose={closeDialog} />}
       {active?.kind === 'workout' && <WorkoutModal today={today} log={active.log} onClose={closeDialog} />}

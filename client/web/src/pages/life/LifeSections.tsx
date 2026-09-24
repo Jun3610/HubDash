@@ -31,6 +31,7 @@ import { mergeWeekly } from '../../lib/select/pknu'
 import { createStore, useStore } from '../../lib/storage'
 import { hasErrors, maxLen, optStr, required, type Errors } from '../../lib/validate'
 import s from './Life.module.css'
+import { usePeekTo } from '../../components/layout/peek'
 
 /** "오늘 한 줄 메모" — 서버에 하루 메모 필드가 없어 날짜별로 이 브라우저에 저장 */
 const dailyNoteStore = createStore<Record<string, string>>('hubdash.dailyNote', {})
@@ -194,6 +195,7 @@ export function LifeSection({ section }: { section: LifeSectionKey }) {
 }
 
 function Pledges() {
+  const peekTo = usePeekTo()
   const pledges = useStore(pledgesStore)
   return (
     <section className={s.pledges} aria-label="이번 학기 다짐">
@@ -210,7 +212,7 @@ function Pledges() {
         </div>
       ) : (
         <span style={{ fontSize: 12.5 }}>
-          아직 다짐이 없어요 · <Link to="/settings">설정에서 추가</Link>
+          아직 다짐이 없어요 · <Link to={peekTo('settings', 1)}>설정에서 추가</Link>
         </span>
       )}
     </section>
@@ -361,6 +363,7 @@ function TodayCheck({
 }
 
 function WeeklyRates({ habits: list }: { habits: Habit[] }) {
+  const peekTo = usePeekTo()
   const results = useQueries({
     queries: list.map((h) => {
       const q = { habitId: h.id, size: 20, sort: 'weekStart,desc' }
@@ -383,7 +386,9 @@ function WeeklyRates({ habits: list }: { habits: Habit[] }) {
         loading={results.some((r) => r.isLoading)}
         error={results.find((r) => r.error)?.error}
         empty={weeks.length === 0}
-        emptyView={<EmptyState compact title="주간 통계가 아직 없어요" action={<Link to="/settings">계산</Link>} />}
+        emptyView={
+          <EmptyState compact title="주간 통계가 아직 없어요" action={<Link to={peekTo('settings', 1)}>계산</Link>} />
+        }
       >
         <div className={s.rateBars} role="img" aria-label="주간 습관 달성률">
           {weeks.map((w) => {

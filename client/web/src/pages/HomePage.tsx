@@ -51,7 +51,7 @@ export default function HomePage() {
   const range = useYearRange()
   return (
     <>
-      <PageHeader title="홈" hideOnMobile>
+      <PageHeader title="Home" hideOnMobile>
         <span className="mono muted" style={{ fontSize: 12 }}>
           {formatHeaderDate(today)}
         </span>
@@ -104,7 +104,6 @@ function ProfileRow() {
       </div>
       <div className={s.who}>
         <h1>{profile.data?.displayName ?? (profile.isLoading ? '…' : '프로필 없음')}</h1>
-        {profile.data?.bio && <span className="ellipsis">{profile.data.bio}</span>}
       </div>
       <div className={s.tags}>
         {pknu.semester && (

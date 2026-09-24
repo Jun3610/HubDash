@@ -109,7 +109,7 @@ export default function MemoPage() {
   if (tab !== 'memo') {
     return (
       <>
-        <PageHeader title="메모" sub={tab === 'habits' ? '습관' : '독서'} tabs={tabs} />
+        <PageHeader title="Memo" sub={tab === 'habits' ? '습관' : '독서'} tabs={tabs} />
         <LifeSection section={tab} />
       </>
     )
@@ -117,7 +117,7 @@ export default function MemoPage() {
 
   return (
     <>
-      <PageHeader title="메모" sub={isNew ? '새 메모' : selected?.title} tabs={tabs}>
+      <PageHeader title="Memo" sub={isNew ? '새 메모' : selected?.title} tabs={tabs}>
         <Button variant="primary" icon={<Plus size={14} />} onClick={() => pick({ new: true })}>
           새 메모
         </Button>
@@ -475,7 +475,7 @@ function Editor({
           </span>
         </>
       ) : d.content.trim() ? (
-        <Markdown source={d.content} className={s.md} />
+        <Markdown source={d.content} />
       ) : (
         <EmptyState compact title="내용이 없어요 — 편집으로 바꿔 적어 보세요" />
       )}

@@ -21,6 +21,7 @@ import {
   toneFor,
 } from '../components/ui'
 import { NotionLink } from '../components/ui/NotionLink'
+import { usePeekTo } from '../components/layout/peek'
 import { courseCategoryStore } from '../config/prefs'
 import { pickCurrentSemester, useAllCourses, useSemesterBundle } from '../hooks/usePknu'
 import { useToday } from '../hooks/useToday'
@@ -59,7 +60,7 @@ export default function PknuPage() {
   return (
     <>
       <PageHeader
-        title="학업 · PKNU"
+        title="PKNU"
         tabs={
           sorted.length > 0 ? (
             <Tabs
@@ -241,6 +242,7 @@ function CoursesTable({
 }) {
   const categories = useStore(courseCategoryStore)
   const navigate = useNavigate()
+  const peekTo = usePeekTo()
   const ordered = courseList.map((c, i) => ({ c, i }))
   return (
     <section className={s.box}>
@@ -287,10 +289,10 @@ function CoursesTable({
           </thead>
           <tbody>
             {ordered.map(({ c, i }) => (
-              <tr key={c.id} className={s.courseRow} onClick={() => navigate(`/pknu/courses/${c.id}`)}>
+              <tr key={c.id} className={s.courseRow} onClick={() => navigate(peekTo('course', c.id))}>
                 <td>
                   {/* 행 어디를 눌러도 과목 대시보드로 (이슈 #134) */}
-                  <Link to={`/pknu/courses/${c.id}`} className={s.courseName} onClick={(e) => e.stopPropagation()}>
+                  <Link to={peekTo('course', c.id)} className={s.courseName} onClick={(e) => e.stopPropagation()}>
                     {c.name}
                   </Link>{' '}
                   {c.notionUrl && <NotionLink url={c.notionUrl} label={`${c.name} 노션 필기`} />}
@@ -319,7 +321,7 @@ function CoursesTable({
 
 // ---- 모달 ----
 
-function SemesterModal({
+export function SemesterModal({
   semester,
   onClose,
   onSaved,

@@ -92,7 +92,7 @@ export default function HubPage() {
 
   return (
     <>
-      <PageHeader title="허브" sub={category?.name ?? '전체'}>
+      <PageHeader title="Hub" sub={category?.name ?? '전체'}>
         <label className={s.search}>
           <Search size={14} />
           <input

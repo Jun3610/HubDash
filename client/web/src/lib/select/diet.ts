@@ -1,10 +1,10 @@
 import type { DietGoal, MealRecord, MealType } from '../../api/types'
 import { datePart, shiftDate, type LocalDate } from '../date'
 
-/** 표시·입력 순서: 탄수 → 지방 → 단백질 → 칼로리 (사용자 요청, 이슈 #131) */
+/** 표시·입력 순서: 지방 → 탄수 → 단백질 → 칼로리 (사용자 요청, 이슈 #131 → #148에서 지방을 앞으로) */
 export const MACROS = [
-  { key: 'carbsG', label: '탄수', unit: 'g', kcalPerG: 4, color: 'yellow' },
   { key: 'fatG', label: '지방', unit: 'g', kcalPerG: 9, color: 'orange' },
+  { key: 'carbsG', label: '탄수', unit: 'g', kcalPerG: 4, color: 'yellow' },
   { key: 'proteinG', label: '단백질', unit: 'g', kcalPerG: 4, color: 'green' },
 ] as const
 export type MacroKey = (typeof MACROS)[number]['key']
@@ -125,18 +125,9 @@ export interface DietRow {
   color: 'yellow' | 'orange' | 'green' | 'blue'
 }
 
-/** 목표 대비 표시 줄: 탄수 → 지방 → 단백질 → 칼로리 (목표가 없으면 goal=null) */
+/** 목표 대비 표시 줄: 지방 → 탄수 → 단백질 → 칼로리 (목표가 없으면 goal=null) */
 export function dietRows(goal: DietGoal | undefined, t: Macros & { kcal: number }): DietRow[] {
   return [
-    {
-      key: 'carbsG',
-      label: '탄수',
-      unit: 'g',
-      value: t.carbsG,
-      goal: goal?.carbsG ?? null,
-      rule: goal?.carbsRule ?? 'AT_MOST',
-      color: 'yellow',
-    },
     {
       key: 'fatG',
       label: '지방',
@@ -145,6 +136,15 @@ export function dietRows(goal: DietGoal | undefined, t: Macros & { kcal: number 
       goal: goal?.fatG ?? null,
       rule: goal?.fatRule ?? 'AT_MOST',
       color: 'orange',
+    },
+    {
+      key: 'carbsG',
+      label: '탄수',
+      unit: 'g',
+      value: t.carbsG,
+      goal: goal?.carbsG ?? null,
+      rule: goal?.carbsRule ?? 'AT_MOST',
+      color: 'yellow',
     },
     {
       key: 'proteinG',

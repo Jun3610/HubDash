@@ -18,6 +18,7 @@ import {
   QueryState,
   Segmented,
   Textarea,
+  TimeField,
 } from '../components/ui'
 import miscStyles from '../components/ui/Misc.module.css'
 import { useAllEvents } from '../hooks/useEvents'
@@ -101,7 +102,7 @@ export default function SchedulePage() {
   return (
     <>
       <PageHeader
-        title="일정"
+        title="Schedule"
         tabs={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Segmented<View>
@@ -627,7 +628,7 @@ function EventModal({
         </Field>
         {!d.allDay ? (
           <Field label="시작 시각" required>
-            <Input type="time" mono value={d.startTime} onChange={set('startTime')} />
+            <TimeField value={d.startTime} onChange={(v) => setD({ ...d, startTime: v })} />
           </Field>
         ) : (
           <span />
@@ -637,7 +638,7 @@ function EventModal({
         </Field>
         {!d.allDay ? (
           <Field label="종료 시각" required>
-            <Input type="time" mono value={d.endTime} onChange={set('endTime')} />
+            <TimeField value={d.endTime} onChange={(v) => setD({ ...d, endTime: v })} />
           </Field>
         ) : (
           <span />

@@ -9,10 +9,10 @@ import HomePage from './pages/HomePage'
 import HubPage from './pages/HubPage'
 import MemoPage from './pages/MemoPage'
 import NotFoundPage from './pages/NotFoundPage'
-import CoursePage from './pages/CoursePage'
+import { CourseRedirect } from './pages/CoursePage'
 import PknuPage from './pages/PknuPage'
 import SchedulePage from './pages/SchedulePage'
-import SettingsPage from './pages/SettingsPage'
+import { SettingsRedirect } from './pages/SettingsPage'
 import StudyPage from './pages/StudyPage'
 
 const router = createBrowserRouter(
@@ -23,7 +23,8 @@ const router = createBrowserRouter(
         { path: '/', element: <HomePage /> },
         { path: '/health', element: <HealthPage /> },
         { path: '/pknu', element: <PknuPage /> },
-        { path: '/pknu/courses/:id', element: <CoursePage /> },
+        // 세부 화면은 작은 창으로 (이슈 #148) — 예전 주소는 해당 창이 열린 화면으로
+        { path: '/pknu/courses/:id', element: <CourseRedirect /> },
         { path: '/study', element: <StudyPage /> },
         // 생활·습관은 메모의 탭으로 합쳤다 (이슈 #136)
         { path: '/life', element: <Navigate to="/memo?tab=habits" replace /> },
@@ -32,7 +33,7 @@ const router = createBrowserRouter(
         { path: '/hub', element: <HubPage /> },
         // 리마인더는 화면에서 뺐다(이슈 #135) — 예전 주소는 홈으로
         { path: '/reminders', element: <Navigate to="/" replace /> },
-        { path: '/settings', element: <SettingsPage /> },
+        { path: '/settings', element: <SettingsRedirect /> },
         { path: '*', element: <NotFoundPage /> },
       ],
     },

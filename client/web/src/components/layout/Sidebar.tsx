@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { BookMarked, ChevronDown, ChevronLeft, ChevronRight, Search, Settings } from 'lucide-react'
+import { BookMarked, ChevronDown, ChevronLeft, ChevronRight, Plus, Search, Settings } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { connectionStatus } from '../../api/client'
@@ -8,7 +8,7 @@ import { connectionStore, displayHost } from '../../config/connection'
 import { pinnedLinksStore, sidebarSemesterStore } from '../../config/prefs'
 import { ACTIVITY_LABEL, useActivity } from '../../hooks/useActivity'
 import { useAllHubLinks } from '../../hooks/useHub'
-import { courseColor, useSemesterBundle, useSemesters } from '../../hooks/usePknu'
+import { useSemesterBundle, useSemesters } from '../../hooks/usePknu'
 import { useToday } from '../../hooks/useToday'
 import { formatHeaderDate, formatShortDate, shiftDate, weekDays } from '../../lib/date'
 import { initials } from '../../lib/format'
@@ -16,14 +16,17 @@ import { browserUrl } from '../../lib/url'
 import { currentStreak, heatLevel } from '../../lib/heatmap'
 import { activityOn } from '../../lib/select/activity'
 import { useStore } from '../../lib/storage'
+import { SemesterModal } from '../../pages/PknuPage'
 import { cx } from '../ui'
+import { usePeekTo } from './peek'
 import { orderedNav } from './nav'
 import { navOrderStore } from '../../config/prefs'
 import s from './Sidebar.module.css'
 
 export function Sidebar({ onSearch }: { onSearch: () => void }) {
   const today = useToday()
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
+  const peekTo = usePeekTo()
   const profile = useProfile()
   const conn = useStore(connectionStore)
   const status = useStore(connectionStatus)
@@ -41,6 +44,7 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
   const [semOpen, setSemOpen] = useState(true)
   const [pinOpen, setPinOpen] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [addingSem, setAddingSem] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   // 이번 주 기록: ◀ ▶로 주를 넘기고, 날짜를 누르면 그날 기록을 펼친다 (이슈 #132)
   const [weekOffset, setWeekOffset] = useState(0)
@@ -68,7 +72,6 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
     setPicked(null)
   }
 
-  const courseRows = pknu.courses.map((c, i) => ({ course: c, color: courseColor(i) }))
   const credits = pknu.courses.reduce((sum, c) => sum + c.credit, 0)
   const pinnedLinks = hub.links.filter((l) => pinned.includes(l.id))
 
@@ -234,28 +237,39 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
             학기
             {pknu.courses.length > 0 && <span className={s.sectionMeta}>{credits}학점</span>}
           </button>
-          {pknu.semesters.length > 0 && (
-            <select
-              className={s.semSelect}
-              aria-label="사이드바에 보여 줄 학기"
-              value={semPick != null && pknu.semester?.id === semPick ? String(semPick) : ''}
-              onChange={(e) => sidebarSemesterStore.set(e.target.value ? Number(e.target.value) : null)}
+          <div className={s.semRow}>
+            {pknu.semesters.length > 0 && (
+              // 고른 학기가 없으면 지금 학기를 보여 준다 (이슈 #148에서 '현재 학기' 항목은 뺐다)
+              <select
+                className={s.semSelect}
+                aria-label="사이드바에 보여 줄 학기"
+                value={String(pknu.semester?.id ?? '')}
+                onChange={(e) => sidebarSemesterStore.set(Number(e.target.value))}
+              >
+                {pknu.semesters.map((sem) => (
+                  <option key={sem.id} value={sem.id}>
+                    {sem.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            <button
+              type="button"
+              className={s.semAdd}
+              aria-label="학기 추가"
+              title="학기 추가"
+              onClick={() => setAddingSem(true)}
             >
-              <option value="">현재 학기{semPick == null && pknu.semester ? ` (${pknu.semester.name})` : ''}</option>
-              {pknu.semesters.map((sem) => (
-                <option key={sem.id} value={sem.id}>
-                  {sem.name}
-                </option>
-              ))}
-            </select>
-          )}
+              <Plus size={13} strokeWidth={2} />
+            </button>
+          </div>
           {semOpen &&
-            (courseRows.length === 0 ? (
+            (pknu.courses.length === 0 ? (
               <span className={s.subEmpty}>{pknu.isLoading ? '불러오는 중…' : '등록된 과목이 없어요'}</span>
             ) : (
-              courseRows.map(({ course, color }) => (
-                <Link key={course.id} to={`/pknu/courses/${course.id}`} className={s.subItem}>
-                  <span className={s.dot} style={{ background: color }} />
+              pknu.courses.map((course) => (
+                <Link key={course.id} to={peekTo('course', course.id)} className={s.subItem}>
+                  <span className={s.dot} />
                   <span className={s.subLabel}>{course.name}</span>
                 </Link>
               ))
@@ -286,6 +300,10 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
         </div>
       </div>
 
+      {addingSem && (
+        <SemesterModal onClose={() => setAddingSem(false)} onSaved={(x) => sidebarSemesterStore.set(x.id)} />
+      )}
+
       <div className={s.footer}>
         <div className={s.me}>
           <div className={s.avatar} aria-hidden="true">
@@ -296,13 +314,13 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
             <span className={cx(s.meName, 'ellipsis')}>{profile.data?.displayName ?? '—'}</span>
             <span className={s.meHandle}>@Jun3610</span>
           </div>
-          <NavLink
-            to="/settings"
+          <Link
+            to={peekTo('settings', 1)}
             aria-label="설정"
-            className={({ isActive }) => cx(s.settings, isActive && s.settingsActive)}
+            className={cx(s.settings, new URLSearchParams(search).has('settings') && s.settingsActive)}
           >
             <Settings size={15} strokeWidth={1.8} />
-          </NavLink>
+          </Link>
         </div>
         <div className={s.conn}>
           <span className={s.connDot} style={{ background: connColor }} />
@@ -315,6 +333,7 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
 }
 
 function WorkspaceMenu({ onClose, onRefresh }: { onClose: () => void; onRefresh: () => void }) {
+  const peekTo = usePeekTo()
   return (
     <>
       <div style={{ position: 'fixed', inset: 0, zIndex: 20 }} onClick={onClose} />
@@ -334,7 +353,7 @@ function WorkspaceMenu({ onClose, onRefresh }: { onClose: () => void; onRefresh:
           flexDirection: 'column',
         }}
       >
-        <Link role="menuitem" to="/settings" onClick={onClose} className={s.subItem}>
+        <Link role="menuitem" to={peekTo('settings', 1)} onClick={onClose} className={s.subItem}>
           설정 열기
         </Link>
         <button

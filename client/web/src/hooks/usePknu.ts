@@ -43,11 +43,6 @@ export function useSemesterBundle(semesterId?: Id | null) {
   }
 }
 
-/** 과목 색 점: 과목 순서대로 --course-1..6 */
-export function courseColor(index: number): string {
-  return `var(--course-${(index % 6) + 1})`
-}
-
 /** 모든 학기의 과목 (전체 평점 계산용). useCourses와 같은 쿼리 키라 캐시를 같이 쓴다 */
 export function useAllCourses() {
   const sems = useSemesters()
