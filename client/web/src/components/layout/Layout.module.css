@@ -143,10 +143,30 @@
     border-color: transparent;
     color: var(--on-accent);
   }
+  /* 폭이 좁아 탭과 버튼을 한 줄에 두면 탭이 가려진다 → 탭 한 줄(가로 스크롤), 버튼은 다음 줄 */
   .header {
+    height: auto;
+    min-height: var(--header-h);
     padding: 0 16px;
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+  .headerTabs {
+    flex: 1 0 100%;
+    min-height: var(--header-h);
     overflow-x: auto;
     scrollbar-width: none;
+  }
+  .headerRight {
+    flex: 1 0 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    padding: 6px 0;
+  }
+  .headerTabs + .headerRight {
+    margin-left: 0;
+    padding-bottom: 8px;
+    border-top: 1px solid var(--divider);
   }
   .crumb {
     display: none;
