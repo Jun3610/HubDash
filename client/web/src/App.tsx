@@ -10,6 +10,7 @@ import HubPage from './pages/HubPage'
 import LifePage from './pages/LifePage'
 import MemoPage from './pages/MemoPage'
 import NotFoundPage from './pages/NotFoundPage'
+import CoursePage from './pages/CoursePage'
 import PknuPage from './pages/PknuPage'
 import SchedulePage from './pages/SchedulePage'
 import SettingsPage from './pages/SettingsPage'
@@ -23,6 +24,7 @@ const router = createBrowserRouter(
         { path: '/', element: <HomePage /> },
         { path: '/health', element: <HealthPage /> },
         { path: '/pknu', element: <PknuPage /> },
+        { path: '/pknu/courses/:id', element: <CoursePage /> },
         { path: '/study', element: <StudyPage /> },
         { path: '/life', element: <LifePage /> },
         { path: '/schedule', element: <SchedulePage /> },

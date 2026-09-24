@@ -230,3 +230,124 @@
     margin-left: 0;
   }
 }
+
+/* ---- 학기 전환 · 과목 대시보드 (이슈 #132·#134) ---- */
+.semSwitch {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.semSwitch button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  min-width: 120px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text-body);
+  font-weight: 600;
+  font-size: 13.5px;
+  text-align: left;
+}
+.semSwitch button small {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.semSwitch button:hover {
+  border-color: var(--text-muted);
+}
+.semSwitch button[aria-selected='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.courseRow {
+  cursor: pointer;
+}
+.courseRow:hover .courseName {
+  color: var(--link-hover);
+}
+.courseInfo {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.infoLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.infoValue {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text);
+}
+.infoValue small {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+a.infoValue {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 600;
+}
+.infoSub {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.gradePick {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.gradePick button {
+  min-width: 54px;
+  height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text-body);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+}
+.gradePick button small {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+.gradePick button:hover:not(:disabled) {
+  border-color: var(--text-muted);
+}
+.gradePick button[aria-checked='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.memoCount {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+}
+.memoCount[data-over='true'] {
+  color: var(--red);
+}
+@media (max-width: 767px) {
+  .courseInfo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .semSwitch button {
+    min-width: 0;
+    flex: 1 1 0;
+  }
+}
