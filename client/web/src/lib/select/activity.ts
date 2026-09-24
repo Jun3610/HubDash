@@ -5,6 +5,7 @@ import {
   type HabitLog,
   type HealthLog,
   type MealRecord,
+  type ScheduleEvent,
   type StudyProgress,
   type StudyTopic,
   type WorkoutLog,
@@ -21,6 +22,7 @@ export interface ActivitySources {
   topics: StudyTopic[]
   habitLogs: HabitLog[]
   habits: Habit[]
+  events: ScheduleEvent[]
 }
 
 export interface ActivityItem {
@@ -70,6 +72,10 @@ export function activityOn(src: ActivitySources, date: LocalDate): ActivityItem[
   for (const l of src.habitLogs) {
     if (l.completed && l.performedAt === date)
       out.push({ domain: 'habit', text: `${habitName.get(l.habitId) ?? '습관'} 완료`, to: '/memo?tab=habits' })
+  }
+  for (const e of src.events) {
+    if (datePart(e.startAt) === date)
+      out.push({ domain: 'event', text: e.allDay ? e.title : `${formatTime(e.startAt)} ${e.title}`, to: '/schedule' })
   }
   return out
 }

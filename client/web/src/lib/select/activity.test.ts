@@ -41,6 +41,28 @@ const src: ActivitySources = {
     { ...ts, id: 2, habitId: 3, performedAt: '2026-09-22', completed: false, notes: null },
   ],
   habits: [{ ...ts, id: 3, name: '물 2L', description: null }],
+  events: [
+    {
+      ...ts,
+      id: 1,
+      title: '팀 회의',
+      startAt: '2026-09-22T19:00:00',
+      endAt: '2026-09-22T20:00:00',
+      location: null,
+      description: null,
+      allDay: false,
+    },
+    {
+      ...ts,
+      id: 2,
+      title: '추석',
+      startAt: '2026-09-22T00:00:00',
+      endAt: '2026-09-23T00:00:00',
+      location: null,
+      description: null,
+      allDay: true,
+    },
+  ],
 }
 
 describe('activityOn', () => {
@@ -52,6 +74,8 @@ describe('activityOn', () => {
       '07:30 70.2kg',
       '자료구조 1h 30m',
       '물 2L 완료',
+      '19:00 팀 회의',
+      '추석',
     ])
   })
 
