@@ -88,8 +88,8 @@ function DietTrend({
   return (
     <Card {...openable('식단 기록 열기', () => onOpen('meal'))} className={`${s.span2} ${openClass}`}>
       <SectionHeader
-        title="최근 14일 식단"
-        meta={logged.length ? `기록한 날 평균 ${num(avg)} kcal` : undefined}
+        title="Diet · Last 14 Days"
+        meta={logged.length ? `avg ${num(avg)} kcal / logged day` : undefined}
         actions={<Legend />}
       />
       <QueryState
@@ -173,8 +173,8 @@ function MacroAverages({
   return (
     <Card {...openable('식단 기록 열기', onOpen)}>
       <SectionHeader
-        title="최근 7일 하루 평균"
-        meta={`${days.length}일 기록`}
+        title="7-Day Daily Average"
+        meta={`${days.length} days logged`}
         actions={
           <Button size="sm" variant="link" onClick={onGoals}>
             목표
@@ -233,8 +233,8 @@ function WeightTrend({ today, onOpen }: { today: LocalDate; onOpen: () => void }
   return (
     <Card {...openable('체중 · 수면 기록 열기', onOpen)} className={`${s.span2} ${openClass}`}>
       <SectionHeader
-        title="체중 추이"
-        meta="최근 30일"
+        title="Weight Trend"
+        meta="30 days"
         actions={
           <>
             {last !== null && (
@@ -273,8 +273,8 @@ function SleepTrend({ today, onOpen }: { today: LocalDate; onOpen: () => void })
   return (
     <Card {...openable('체중 · 수면 기록 열기', onOpen)}>
       <SectionHeader
-        title="수면"
-        meta="최근 14일"
+        title="Sleep"
+        meta="14 days"
         actions={
           <>
             {avg !== null && (
@@ -315,7 +315,7 @@ function WeeklyAverages({ onOpen }: { onOpen: () => void }) {
   const weeks = sortBy(stats.data?.content ?? [], (w) => w.weekStart)
   return (
     <Card {...openable('식단 기록 열기', onOpen)} className={`${s.span2} ${openClass}`}>
-      <SectionHeader title="주간 평균 칼로리" meta="최근 8주 · 주간 통계" />
+      <SectionHeader title="Weekly Avg Calories" meta="8 weeks" />
       <QueryState
         loading={stats.isLoading}
         error={stats.error}
@@ -346,7 +346,7 @@ function WorkoutWeek({ today, onOpen }: { today: LocalDate; onOpen: () => void }
   const minutes = week.reduce((a, w) => a + w.durationMinutes, 0)
   return (
     <Card {...openable('운동 기록 열기', onOpen)}>
-      <SectionHeader title="이번 주 운동" meta={`${week.length}회 · ${num(minutes)}분`} />
+      <SectionHeader title="This Week's Workout" meta={`${week.length} sessions · ${num(minutes)} min`} />
       <QueryState
         loading={list.isLoading}
         error={list.error}
