@@ -96,7 +96,7 @@ function DietTrend({
         loading={loading}
         error={null}
         empty={logged.length === 0}
-        emptyView={<EmptyState compact title="최근 14일 식단 기록이 없어요 — 식단 추가에서 넣어 보세요" />}
+        emptyView={<EmptyState compact title="No meals in the last 14 days — add one with Add Meal" />}
       >
         <StackedBarChart
           label="최근 14일 날짜별 칼로리(지방·탄수·단백질)"
@@ -104,7 +104,7 @@ function DietTrend({
           goalLabel={goal.data?.calories ? `goal ${num(goal.data.calories)}` : undefined}
           data={days.map((d) => ({
             key: d.date,
-            title: `${d.date} · ${num(d.kcal)} kcal (지 ${num(d.fatG)}g · 탄 ${num(d.carbsG)}g · 단 ${num(d.proteinG)}g)`,
+            title: `${d.date} · ${num(d.kcal)} kcal (F ${num(d.fatG)}g · C ${num(d.carbsG)}g · P ${num(d.proteinG)}g)`,
             parts: MACROS.map((m) => ({ label: m.label, color: m.color, value: d[m.key] * m.kcalPerG })),
           }))}
           axis={[formatShortDate(days[0].date), formatShortDate(days[days.length - 1].date)]}
@@ -182,7 +182,7 @@ function MacroAverages({
         }
       />
       {days.length === 0 ? (
-        <EmptyState compact title="최근 7일 기록이 없어요" />
+        <EmptyState compact title="No records in the last 7 days" />
       ) : (
         rows.map((r) => {
           const st = goalState(r.value, r.goal, r.rule)
@@ -291,7 +291,7 @@ function SleepTrend({ today, onOpen }: { today: LocalDate; onOpen: () => void })
           <>
             {avg !== null && (
               <span className="mono" style={{ fontSize: 12.5 }}>
-                평균 {num(avg, 1)}h
+                avg {num(avg, 1)}h
               </span>
             )}
           </>
@@ -301,7 +301,7 @@ function SleepTrend({ today, onOpen }: { today: LocalDate; onOpen: () => void })
         loading={list.isLoading}
         error={null}
         empty={vals.length === 0}
-        emptyView={<EmptyState compact title="수면 기록이 없어요" />}
+        emptyView={<EmptyState compact title="No sleep records" />}
       >
         <BarChart
           label="최근 14일 수면 시간"
@@ -311,7 +311,7 @@ function SleepTrend({ today, onOpen }: { today: LocalDate; onOpen: () => void })
           data={points.map((p) => ({
             key: p.key,
             value: p.value ?? 0,
-            label: p.value !== null ? `${p.key} · ${p.value}시간` : `${p.key} · 기록 없음`,
+            label: p.value !== null ? `${p.key} · ${p.value}h` : `${p.key} · no record`,
             color: p.value !== null && p.value < SLEEP_GOAL ? 'orange' : 'purple',
           }))}
           axis={[formatShortDate(days[0]), formatShortDate(days[days.length - 1])]}
@@ -332,7 +332,9 @@ function WeeklyAverages({ onOpen }: { onOpen: () => void }) {
         loading={stats.isLoading}
         error={stats.error}
         empty={weeks.length === 0}
-        emptyView={<EmptyState compact title="주간 통계가 아직 없어요 (매주 자동 집계, 설정에서 다시 계산 가능)" />}
+        emptyView={
+          <EmptyState compact title="No weekly stats yet (computed every week, can be recomputed in Settings)" />
+        }
       >
         <BarChart
           label="최근 8주 주간 평균 칼로리"
@@ -340,7 +342,7 @@ function WeeklyAverages({ onOpen }: { onOpen: () => void }) {
           data={weeks.map((w) => ({
             key: w.weekStart,
             value: w.avgCalories ?? 0,
-            label: `${w.weekStart} 주 · ${num(w.avgCalories)} kcal · ${w.dayCount}일 기록`,
+            label: `week of ${w.weekStart} · ${num(w.avgCalories)} kcal · ${w.dayCount} days logged`,
             color: goal.data?.calories && (w.avgCalories ?? 0) > goal.data.calories ? 'orange' : 'blue',
           }))}
           axis={[formatShortDate(weeks[0]?.weekStart ?? ''), formatShortDate(weeks[weeks.length - 1]?.weekStart ?? '')]}
@@ -363,7 +365,7 @@ function WorkoutWeek({ today, onOpen }: { today: LocalDate; onOpen: () => void }
         loading={list.isLoading}
         error={list.error}
         empty={items.length === 0}
-        emptyView={<EmptyState compact title="운동 기록이 없어요" />}
+        emptyView={<EmptyState compact title="No workouts yet" />}
       >
         <ProgressBar value={pct(minutes, 150)} color="orange" label="vs 150 min goal" thin />
         <span className={s.limit}>goal 150 min / week</span>
@@ -373,7 +375,7 @@ function WorkoutWeek({ today, onOpen }: { today: LocalDate; onOpen: () => void }
             <span className="ellipsis" style={{ color: 'var(--text-strong)' }}>
               {w.type}
             </span>
-            <span className={s.mono}>{w.durationMinutes}분</span>
+            <span className={s.mono}>{w.durationMinutes} min</span>
           </div>
         ))}
       </QueryState>
