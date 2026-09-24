@@ -21,12 +21,17 @@ export function Modal({
   wide?: boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
+  // 부모가 다시 그려질 때마다 onClose가 새로 만들어져도 포커스를 처음으로 되돌리지 않게 ref로 둔다 (이슈 #193)
+  const closeRef = useRef(onClose)
+  useEffect(() => {
+    closeRef.current = onClose
+  })
 
   useEffect(() => {
     if (!open) return
     const prev = document.activeElement as HTMLElement | null
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') closeRef.current()
     }
     document.addEventListener('keydown', onKey)
     // 첫 입력 칸에 포커스
@@ -36,7 +41,7 @@ export function Modal({
       document.removeEventListener('keydown', onKey)
       prev?.focus?.()
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
   return createPortal(

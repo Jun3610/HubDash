@@ -232,6 +232,13 @@
   color: var(--text-strong);
   min-height: 44px;
 }
+.quickItem[aria-selected='true'] {
+  /* 방향키로 고른 항목 (이슈 #193) */
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+  color: var(--text);
+  outline: none;
+}
 .quickItem:hover {
   background: var(--subtle);
   color: var(--text);
