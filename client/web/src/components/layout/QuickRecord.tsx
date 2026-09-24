@@ -1,5 +1,5 @@
 import { BookOpen, CalendarPlus, CheckSquare, FileText, Utensils } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Modal } from '../ui'
 import s from './Layout.module.css'
@@ -15,10 +15,29 @@ const ITEMS = [
 
 export function QuickRecordProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false)
+
+  // 어디서든 ⌘/Ctrl + Enter로 연다 (이슈 #187). 다른 창이 떠 있으면 그 작업을 방해하지 않게 두고
+  // 빠른 기록 창이 이미 열려 있으면 닫는다
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.key !== 'Enter' || e.isComposing) return
+      const dialogs = document.querySelectorAll('[role="dialog"]').length
+      if (open) {
+        e.preventDefault()
+        setOpen(false)
+      } else if (dialogs === 0) {
+        e.preventDefault()
+        setOpen(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
   return (
     <QuickContext.Provider value={() => setOpen(true)}>
       {children}
-      <Modal open={open} onClose={() => setOpen(false)} title="빠른 기록">
+      <Modal open={open} onClose={() => setOpen(false)} title="빠른 기록 · ⌘↵">
         <div className={s.quickGrid}>
           {ITEMS.map((it) => (
             <Link key={it.to} to={it.to} className={s.quickItem} onClick={() => setOpen(false)}>
