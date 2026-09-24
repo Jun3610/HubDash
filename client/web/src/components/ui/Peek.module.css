@@ -24,6 +24,9 @@
   outline: none;
   animation: rise 0.14s ease-out;
 }
+.panel:focus-visible {
+  outline: none;
+}
 .bar {
   display: flex;
   align-items: center;

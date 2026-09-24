@@ -5,11 +5,19 @@ import { memos } from '../api/memo'
 import { BIG_PAGE, useCreate, useList, useRemove, useUpdate } from '../api/resource'
 import type { Memo } from '../api/types'
 import { PageHeader } from '../components/layout/PageHeader'
-import { Button, ConfirmDialog, EmptyState, IconButton, openable, Peek, QueryState, Segmented } from '../components/ui'
+import {
+  Button,
+  ConfirmDialog,
+  EmptyState,
+  IconButton,
+  MarkdownEditor,
+  openable,
+  Peek,
+  QueryState,
+} from '../components/ui'
 import { useNow } from '../hooks/useToday'
 import { datePart, formatShortDate, parseLocalDateTime } from '../lib/date'
 import { joinTags, splitTags } from '../lib/format'
-import { Markdown } from '../components/ui/Markdown'
 import { plainSnippet } from '../lib/markdown'
 import { HabitsSummary, LifeSection, ReadingSummary, type LifeSectionKey } from './life/LifeSections'
 import s from './memo/Memo.module.css'
@@ -227,7 +235,6 @@ function Editor({
     content: memo?.content ?? '',
     tags: splitTags(memo?.tags),
   })
-  const [mode, setMode] = useState<'edit' | 'preview'>(memo ? 'preview' : 'edit')
   const [savedKey, setSavedKey] = useState(memo ? key(d) : '')
   const [adding, setAdding] = useState(false)
   const [tagDraft, setTagDraft] = useState('')
@@ -372,17 +379,6 @@ function Editor({
         >
           저장
         </Button>
-        <span>
-          <Segmented
-            label="모드"
-            value={mode}
-            onChange={setMode}
-            items={[
-              { key: 'edit', label: '편집' },
-              { key: 'preview', label: '미리보기' },
-            ]}
-          />
-        </span>
         {idRef.current && (
           <IconButton label="메모 삭제" size="sm" onClick={() => setConfirm(true)}>
             <MoreHorizontal size={15} />
@@ -433,24 +429,16 @@ function Editor({
 
       <div className={s.divider} />
 
-      {mode === 'edit' ? (
-        <>
-          <textarea
-            className={s.body}
-            aria-label="본문 (마크다운)"
-            placeholder={'마크다운으로 적어요\n\n# 제목\n- 목록\n**굵게**'}
-            value={d.content}
-            onChange={(e) => setD({ ...d, content: e.target.value })}
-          />
-          <span className={s.counter} data-over={d.content.length > LIMITS.content}>
-            {d.content.length.toLocaleString()} / {LIMITS.content.toLocaleString()}
-          </span>
-        </>
-      ) : d.content.trim() ? (
-        <Markdown source={d.content} />
-      ) : (
-        <EmptyState compact title="내용이 없어요 — 편집으로 바꿔 적어 보세요" />
-      )}
+      <MarkdownEditor
+        label="본문"
+        value={memo?.content ?? ''}
+        onChange={(content) => setD((prev) => ({ ...prev, content }))}
+        placeholder="적어 보세요 — # 제목, - 목록, [] 할 일, **굵게**, > 인용"
+        className={s.body}
+      />
+      <span className={s.counter} data-over={d.content.length > LIMITS.content}>
+        {d.content.length.toLocaleString()} / {LIMITS.content.toLocaleString()}
+      </span>
 
       <ConfirmDialog
         open={confirm}

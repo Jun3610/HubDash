@@ -66,3 +66,60 @@
   border-top: 1px solid var(--divider);
   width: 100%;
 }
+.md h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 6px;
+}
+/* 바로 보이는 편집기 (이슈 #150) */
+.editor {
+  gap: 4px;
+  min-height: 200px;
+  outline: none;
+  cursor: text;
+}
+.editor p {
+  margin: 0;
+  min-height: 1.7em;
+}
+.editor :global(.is-editor-empty:first-child)::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--text-muted);
+  opacity: 0.7;
+  pointer-events: none;
+  white-space: pre-wrap;
+}
+.editor a {
+  color: var(--blue, var(--accent));
+  text-decoration: underline;
+}
+.md ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 2px;
+}
+.md ul[data-type='taskList'] li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.md ul[data-type='taskList'] li > label {
+  margin-top: 4px;
+}
+.md ul[data-type='taskList'] li > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.md ul[data-type='taskList'] li[data-checked='true'] > div {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+.md ul[data-type='taskList'] input {
+  accent-color: var(--accent);
+}
+/* 노션처럼 테두리 없이 커서만 */
+.editor:focus-visible {
+  outline: none;
+}
