@@ -349,14 +349,14 @@ function HabitsCard() {
       <SectionHeader
         title="오늘 습관"
         count={life.habits.length ? `${doneToday}/${life.habits.length}` : undefined}
-        actions={<Link to="/life">생활</Link>}
+        actions={<Link to="/memo?tab=habits">생활</Link>}
       />
       <QueryState
         loading={life.isLoading}
         error={life.error}
         onRetry={life.refetch}
         empty={life.habits.length === 0}
-        emptyView={<EmptyState compact title="등록한 습관이 없어요" action={<Link to="/life">추가</Link>} />}
+        emptyView={<EmptyState compact title="등록한 습관이 없어요" action={<Link to="/memo?tab=habits">추가</Link>} />}
       >
         {life.habits.map((h) => {
           const logs = life.logsByHabit.get(h.id)

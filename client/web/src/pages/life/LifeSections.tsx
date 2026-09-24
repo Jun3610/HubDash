@@ -2,11 +2,10 @@ import { useQueries } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { habitWeeklyStats } from '../api/analytics'
-import { habits, readingLogs } from '../api/life'
-import { BIG_PAGE, listKey, useCreate, useList, useRemove, useUpdate } from '../api/resource'
-import type { Habit, HabitLog, HabitWeeklyStat, ReadingLog } from '../api/types'
-import { PageHeader } from '../components/layout/PageHeader'
+import { habitWeeklyStats } from '../../api/analytics'
+import { habits, readingLogs } from '../../api/life'
+import { BIG_PAGE, listKey, useCreate, useList, useRemove, useUpdate } from '../../api/resource'
+import type { Habit, HabitLog, HabitWeeklyStat, ReadingLog } from '../../api/types'
 import {
   Button,
   Card,
@@ -19,175 +18,172 @@ import {
   QueryState,
   SectionHeader,
   Table,
-  Tabs,
   Tag,
   Textarea,
-} from '../components/ui'
-import { pledgesStore } from '../config/prefs'
-import { habitStreak, logOn, useHabitsWithLogs, useToggleHabit } from '../hooks/useLife'
-import { useOptimistic } from '../hooks/useOptimistic'
-import { useToday } from '../hooks/useToday'
-import { formatShortDate, shiftDate, type LocalDate } from '../lib/date'
-import { cellState, lastDays, readingState, recentRate, sortBooks, stars } from '../lib/select/life'
-import { mergeWeekly } from '../lib/select/pknu'
-import { createStore, useStore } from '../lib/storage'
-import { hasErrors, maxLen, optStr, required, type Errors } from '../lib/validate'
-import s from './life/Life.module.css'
+} from '../../components/ui'
+import { pledgesStore } from '../../config/prefs'
+import { habitStreak, logOn, useHabitsWithLogs, useToggleHabit } from '../../hooks/useLife'
+import { useOptimistic } from '../../hooks/useOptimistic'
+import { useToday } from '../../hooks/useToday'
+import { formatShortDate, shiftDate, type LocalDate } from '../../lib/date'
+import { cellState, lastDays, readingState, recentRate, sortBooks, stars } from '../../lib/select/life'
+import { mergeWeekly } from '../../lib/select/pknu'
+import { createStore, useStore } from '../../lib/storage'
+import { hasErrors, maxLen, optStr, required, type Errors } from '../../lib/validate'
+import s from './Life.module.css'
 
 /** "오늘 한 줄 메모" — 서버에 하루 메모 필드가 없어 날짜별로 이 브라우저에 저장 */
 const dailyNoteStore = createStore<Record<string, string>>('hubdash.dailyNote', {})
 
-type Tab = 'habits' | 'reading'
+export type LifeSectionKey = 'habits' | 'reading'
 
-export default function LifePage() {
+/**
+ * 메모 화면의 '습관' · '독서' 탭 (생활·습관 메뉴를 메모로 합침, 이슈 #136).
+ * 예전 생활 화면의 두 구역을 탭별로 나눠 보여 준다.
+ */
+export function LifeSection({ section }: { section: LifeSectionKey }) {
   const today = useToday()
-  const [tab, setTab] = useState<Tab>('habits')
   const [habitDialog, setHabitDialog] = useState<{ habit?: Habit } | null>(null)
   const [bookDialog, setBookDialog] = useState<{ book?: ReadingLog } | null>(null)
   const life = useHabitsWithLogs()
   const books = useList(readingLogs, { size: BIG_PAGE, sort: 'startedAt,desc' })
   const bookList = sortBooks(books.data?.content ?? [])
 
-  // 두 구역을 한 화면에 두고 탭은 해당 구역으로 이동 (디자인의 앵커 탭)
-  const go = (k: Tab) => {
-    setTab(k)
-    document.getElementById(k)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
   return (
     <>
-      <PageHeader
-        title="생활 · 습관"
-        tabs={
-          <Tabs<Tab>
-            inHeader
-            label="생활 탭"
-            value={tab}
-            onChange={go}
-            items={[
-              { key: 'habits', label: '습관', count: life.habits.length },
-              { key: 'reading', label: '독서', count: bookList.length },
-            ]}
-          />
-        }
-      >
-        <Button onClick={() => setBookDialog({})}>책 추가</Button>
-        <Button variant="primary" icon={<Plus size={14} />} onClick={() => setHabitDialog({})}>
-          습관 추가
-        </Button>
-      </PageHeader>
-
       <div className={s.layout}>
         <div className={s.main}>
-          <Pledges />
-          <section id="habits" className={s.box} aria-labelledby="tracker-title">
-            <div className={s.boxHead}>
-              <h2 id="tracker-title">습관 트래커</h2>
-              <span className="muted" style={{ fontSize: 12 }}>
-                최근 14일 · 칸을 누르면 그날 기록 토글
-              </span>
-              <span className={s.right}>
-                {formatShortDate(shiftDate(today, -13))} → {formatShortDate(today)}
-              </span>
-            </div>
-            <div className={life.habits.length ? undefined : s.pad}>
-              <QueryState
-                loading={life.isLoading && life.habits.length === 0}
-                error={life.error}
-                onRetry={life.refetch}
-                empty={life.habits.length === 0}
-                emptyView={
-                  <EmptyState
-                    title="등록한 습관이 없어요"
-                    description="매일 체크할 습관을 추가해 보세요."
-                    action={
-                      <Button variant="primary" onClick={() => setHabitDialog({})}>
-                        습관 추가
-                      </Button>
+          <div className={s.toolbar}>
+            {section === 'habits' ? (
+              <Button variant="primary" icon={<Plus size={14} />} onClick={() => setHabitDialog({})}>
+                습관 추가
+              </Button>
+            ) : (
+              <Button variant="primary" icon={<Plus size={14} />} onClick={() => setBookDialog({})}>
+                책 추가
+              </Button>
+            )}
+          </div>
+          {section === 'habits' && (
+            <>
+              <Pledges />
+              <section id="habits" className={s.box} aria-labelledby="tracker-title">
+                <div className={s.boxHead}>
+                  <h2 id="tracker-title">습관 트래커</h2>
+                  <span className="muted" style={{ fontSize: 12 }}>
+                    최근 14일 · 칸을 누르면 그날 기록 토글
+                  </span>
+                  <span className={s.right}>
+                    {formatShortDate(shiftDate(today, -13))} → {formatShortDate(today)}
+                  </span>
+                </div>
+                <div className={life.habits.length ? undefined : s.pad}>
+                  <QueryState
+                    loading={life.isLoading && life.habits.length === 0}
+                    error={life.error}
+                    onRetry={life.refetch}
+                    empty={life.habits.length === 0}
+                    emptyView={
+                      <EmptyState
+                        title="등록한 습관이 없어요"
+                        description="매일 체크할 습관을 추가해 보세요."
+                        action={
+                          <Button variant="primary" onClick={() => setHabitDialog({})}>
+                            습관 추가
+                          </Button>
+                        }
+                      />
                     }
-                  />
-                }
-              >
-                <Tracker
-                  habits={life.habits}
-                  logsByHabit={life.logsByHabit}
-                  today={today}
-                  onEdit={(habit) => setHabitDialog({ habit })}
-                />
-              </QueryState>
-            </div>
-          </section>
-          <section id="reading" className={s.box} aria-labelledby="reading-title">
-            <div className={s.boxHead}>
-              <h2 id="reading-title">독서 기록</h2>
-              <span className="muted" style={{ fontSize: 12 }}>
-                올해 완독 {bookList.filter((b) => b.finishedAt?.startsWith(today.slice(0, 4))).length}권
-              </span>
-            </div>
-            <div className={bookList.length ? undefined : s.pad}>
-              <QueryState
-                loading={books.isLoading}
-                error={books.error}
-                onRetry={() => void books.refetch()}
-                empty={bookList.length === 0}
-                emptyView={
-                  <EmptyState
-                    title="독서 기록이 없어요"
-                    action={
-                      <Button variant="primary" onClick={() => setBookDialog({})}>
-                        책 추가
-                      </Button>
-                    }
-                  />
-                }
-              >
-                <Table>
-                  <thead>
-                    <tr>
-                      <th scope="col">제목</th>
-                      <th scope="col" className={s.hideMobile} style={{ width: 120 }}>
-                        저자
-                      </th>
-                      <th scope="col" style={{ width: 150 }}>
-                        기간
-                      </th>
-                      <th scope="col" style={{ width: 100 }}>
-                        평점
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bookList.map((b) => {
-                      const st = readingState(b)
-                      return (
-                        <tr key={b.id}>
-                          <td>
-                            <button type="button" className={s.bookTitle} onClick={() => setBookDialog({ book: b })}>
-                              {b.title}
-                            </button>{' '}
-                            <Tag tone={st === '완독' ? 'purple' : 'blue'}>{st}</Tag>
-                          </td>
-                          <td className={`${s.hideMobile} muted`}>{b.author ?? '—'}</td>
-                          <td className="mono muted" style={{ fontSize: 12 }}>
-                            {formatShortDate(b.startedAt)} → {b.finishedAt ? formatShortDate(b.finishedAt) : '—'}
-                          </td>
-                          <td className={s.stars} aria-label={b.rating ? `5점 만점에 ${b.rating}점` : '평점 없음'}>
-                            {stars(b.rating)}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </Table>
-              </QueryState>
-            </div>
-          </section>
+                  >
+                    <Tracker
+                      habits={life.habits}
+                      logsByHabit={life.logsByHabit}
+                      today={today}
+                      onEdit={(habit) => setHabitDialog({ habit })}
+                    />
+                  </QueryState>
+                </div>
+              </section>
+            </>
+          )}
+          {section === 'reading' && (
+            <section id="reading" className={s.box} aria-labelledby="reading-title">
+              <div className={s.boxHead}>
+                <h2 id="reading-title">독서 기록</h2>
+                <span className="muted" style={{ fontSize: 12 }}>
+                  올해 완독 {bookList.filter((b) => b.finishedAt?.startsWith(today.slice(0, 4))).length}권
+                </span>
+              </div>
+              <div className={bookList.length ? undefined : s.pad}>
+                <QueryState
+                  loading={books.isLoading}
+                  error={books.error}
+                  onRetry={() => void books.refetch()}
+                  empty={bookList.length === 0}
+                  emptyView={
+                    <EmptyState
+                      title="독서 기록이 없어요"
+                      action={
+                        <Button variant="primary" onClick={() => setBookDialog({})}>
+                          책 추가
+                        </Button>
+                      }
+                    />
+                  }
+                >
+                  <Table>
+                    <thead>
+                      <tr>
+                        <th scope="col">제목</th>
+                        <th scope="col" className={s.hideMobile} style={{ width: 120 }}>
+                          저자
+                        </th>
+                        <th scope="col" style={{ width: 150 }}>
+                          기간
+                        </th>
+                        <th scope="col" style={{ width: 100 }}>
+                          평점
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bookList.map((b) => {
+                        const st = readingState(b)
+                        return (
+                          <tr key={b.id}>
+                            <td>
+                              <button type="button" className={s.bookTitle} onClick={() => setBookDialog({ book: b })}>
+                                {b.title}
+                              </button>{' '}
+                              <Tag tone={st === '완독' ? 'purple' : 'blue'}>{st}</Tag>
+                            </td>
+                            <td className={`${s.hideMobile} muted`}>{b.author ?? '—'}</td>
+                            <td className="mono muted" style={{ fontSize: 12 }}>
+                              {formatShortDate(b.startedAt)} → {b.finishedAt ? formatShortDate(b.finishedAt) : '—'}
+                            </td>
+                            <td className={s.stars} aria-label={b.rating ? `5점 만점에 ${b.rating}점` : '평점 없음'}>
+                              {stars(b.rating)}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </Table>
+                </QueryState>
+              </div>
+            </section>
+          )}
         </div>
 
         <aside className={s.aside}>
-          <TodayCheck habits={life.habits} logsByHabit={life.logsByHabit} today={today} loading={life.isLoading} />
-          <WeeklyRates habits={life.habits} />
-          <ReadingNow book={bookList.find((b) => !b.finishedAt)} onEdit={(book) => setBookDialog({ book })} />
+          {section === 'habits' ? (
+            <>
+              <TodayCheck habits={life.habits} logsByHabit={life.logsByHabit} today={today} loading={life.isLoading} />
+              <WeeklyRates habits={life.habits} />
+            </>
+          ) : (
+            <ReadingNow book={bookList.find((b) => !b.finishedAt)} onEdit={(book) => setBookDialog({ book })} />
+          )}
         </aside>
       </div>
 

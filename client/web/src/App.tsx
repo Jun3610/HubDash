@@ -7,7 +7,6 @@ import { useStore } from './lib/storage'
 import HealthPage from './pages/HealthPage'
 import HomePage from './pages/HomePage'
 import HubPage from './pages/HubPage'
-import LifePage from './pages/LifePage'
 import MemoPage from './pages/MemoPage'
 import NotFoundPage from './pages/NotFoundPage'
 import CoursePage from './pages/CoursePage'
@@ -26,7 +25,8 @@ const router = createBrowserRouter(
         { path: '/pknu', element: <PknuPage /> },
         { path: '/pknu/courses/:id', element: <CoursePage /> },
         { path: '/study', element: <StudyPage /> },
-        { path: '/life', element: <LifePage /> },
+        // 생활·습관은 메모의 탭으로 합쳤다 (이슈 #136)
+        { path: '/life', element: <Navigate to="/memo?tab=habits" replace /> },
         { path: '/schedule', element: <SchedulePage /> },
         { path: '/memo', element: <MemoPage /> },
         { path: '/hub', element: <HubPage /> },
