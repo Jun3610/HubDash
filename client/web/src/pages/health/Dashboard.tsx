@@ -154,7 +154,7 @@ function MacroAverages({
   }
   const g = goal.data
   const rows = [
-    { label: 'Fat', value: avg.fatG, goal: g?.fatG ?? null, rule: g?.fatRule ?? 'AT_MOST', color: 'orange' as const },
+    { label: 'Fat', value: avg.fatG, goal: g?.fatG ?? null, rule: g?.fatRule ?? 'AT_MOST', color: 'red' as const },
     {
       label: 'Carbs',
       value: avg.carbsG,
