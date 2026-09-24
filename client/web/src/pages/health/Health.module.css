@@ -60,7 +60,7 @@
 .macroHead {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 13.5px; /* 탄단지를 조금 크게 (이슈 #211) */
 }
 .macroHead span:first-child {
   color: var(--text-muted);
@@ -384,7 +384,7 @@
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
-  font-size: 12px;
+  font-size: 13.5px;
   color: var(--text-muted);
 }
 .mealMacros span {
