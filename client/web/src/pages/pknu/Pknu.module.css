@@ -368,3 +368,60 @@ a.infoValue {
   margin-left: 0;
   margin-top: -4px;
 }
+
+/* 과목 태그 — 강조색(연빨강) (이슈 #175) */
+.courseTags {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.courseTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 9px;
+  margin-left: 4px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  vertical-align: middle;
+}
+.courseTags .courseTag {
+  margin-left: 0;
+}
+.courseTag button {
+  display: inline-flex;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+}
+.courseTag button:hover {
+  opacity: 1;
+}
+.courseTagAdd {
+  height: 22px;
+  padding: 0 8px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.courseTagInput {
+  height: 22px;
+  width: 110px;
+  padding: 0 6px;
+  font-size: 12px;
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--text);
+  outline: none;
+}

@@ -63,7 +63,7 @@ export function CourseModal({
       notionUrl: optStr(d.notionUrl),
     }
     // 수정은 기존 성적·메모를 그대로 담아 보낸다 (빠뜨리면 서버가 지움)
-    const body = course ? courseBody(course, fields) : { ...fields, grade: null, memo: null }
+    const body = course ? courseBody(course, fields) : { ...fields, grade: null, memo: null, tags: null }
     const done = (x: Course) => {
       saveCategory(x.id)
       onClose()

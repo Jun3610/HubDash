@@ -20,6 +20,7 @@ export function courseBody(c: Course, patch: Partial<CourseRequest> = {}): Cours
     notionUrl: c.notionUrl,
     grade: c.grade,
     memo: c.memo,
+    tags: c.tags,
     ...patch,
   }
 }

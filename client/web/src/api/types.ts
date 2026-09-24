@@ -39,10 +39,17 @@ export interface CourseRequest {
   notionUrl?: string | null // 노션 필기 페이지 (≤1000)
   grade?: Grade | null // 4.5 만점 등급 (수정 요청에서 빠지면 서버가 지우므로 항상 보낸다)
   memo?: string | null // 과목 메모 (≤5000)
+  tags?: string | null // 쉼표 구분 태그 (≤300, 이슈 #175) — 수정 요청에서 빠지면 지워지므로 항상 보낸다
 }
 export type Grade = 'A+' | 'A0' | 'B+' | 'B0' | 'C+' | 'C0' | 'D+' | 'D0' | 'F'
 export type Course = CourseRequest &
-  Timestamps & { professor: string | null; notionUrl: string | null; grade: Grade | null; memo: string | null }
+  Timestamps & {
+    professor: string | null
+    notionUrl: string | null
+    grade: Grade | null
+    memo: string | null
+    tags: string | null
+  }
 
 export interface AssignmentRequest {
   courseId: Id

@@ -117,4 +117,12 @@ class CourseServiceTest {
         assertThat(course.getGrade()).isNull();
         assertThat(course.getMemo()).isNull();
     }
+
+    @Test
+    void normalizesTags() {
+        // 과목 태그: 공백 정리, 빈 값·중복 제거 (이슈 #175)
+        assertThat(CourseService.normalizeTags("  컴공, 시험 ,,컴공")).isEqualTo("컴공,시험");
+        assertThat(CourseService.normalizeTags(" , ")).isNull();
+        assertThat(CourseService.normalizeTags(null)).isNull();
+    }
 }
