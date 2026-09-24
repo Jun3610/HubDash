@@ -31,11 +31,11 @@ export function HeatCellBox({
 export function HeatLegend() {
   return (
     <div className={s.legend} aria-hidden="true">
-      적음
+      Less
       {[0, 1, 2, 3, 4].map((l) => (
         <HeatCellBox key={l} level={l as HeatLevel} />
       ))}
-      많음
+      More
     </div>
   )
 }
@@ -78,11 +78,11 @@ export function YearHeatmap({
     <div className={s.heatWrap}>
       <div className={s.heatDays} aria-hidden="true">
         <span />
-        <span>월</span>
+        <span>Mon</span>
         <span />
-        <span>수</span>
+        <span>Wed</span>
         <span />
-        <span>금</span>
+        <span>Fri</span>
         <span />
       </div>
       <div className={s.heatBody}>

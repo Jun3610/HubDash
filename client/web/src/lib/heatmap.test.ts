@@ -48,7 +48,7 @@ describe('buildYearGrid', () => {
   it('월 라벨은 1일이 든 주에 붙는다', () => {
     const labels = monthLabels(grid)
     const octIdx = grid.findIndex((col) => col.some((c) => c.date === '2025-10-01'))
-    expect(labels[octIdx]).toBe('10월')
+    expect(labels[octIdx]).toBe('Oct')
     expect(labels.filter(Boolean).length).toBeGreaterThanOrEqual(12)
   })
 
@@ -56,7 +56,7 @@ describe('buildYearGrid', () => {
     // 2025-09-21 시작 → 10월 1일이 2번째 열
     expect(monthLabels(grid)[0]).toBe('')
     const g2 = buildYearGrid(counts, '2026-09-09') // 2025-09-07 시작, 10월은 4번째 열
-    expect(monthLabels(g2)[0]).toBe('9월')
+    expect(monthLabels(g2)[0]).toBe('Sep')
   })
 })
 

@@ -49,15 +49,17 @@ export function buildYearGrid(counts: Map<LocalDate, number>, end: LocalDate, we
   return cols.map((col) => col.map((c) => ({ ...c, level: heatLevel(c.count, max) })))
 }
 
-/** 격자 열마다 월 라벨 — 그 주에 1일이 들어 있으면 "N월", 아니면 빈 문자열 */
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+/** 격자 열마다 월 라벨 — 그 주에 1일이 들어 있으면 "Sep"처럼, 아니면 빈 문자열 (이슈 #201에서 영어로) */
 export function monthLabels(grid: HeatCell[][]): string[] {
   const labels = grid.map((col) => {
     const firstOfMonth = col.find((c) => c.date.endsWith('-01'))
-    return firstOfMonth ? `${Number(firstOfMonth.date.slice(5, 7))}월` : ''
+    return firstOfMonth ? MONTHS[Number(firstOfMonth.date.slice(5, 7)) - 1] : ''
   })
   // 첫 열은 월 이름이 없으면 그 달을 붙이되, 다음 달 라벨과 겹치면(3열 안) 생략
   if (grid.length && !labels[0] && !labels.slice(1, 3).some(Boolean)) {
-    labels[0] = `${Number(grid[0][0].date.slice(5, 7))}월`
+    labels[0] = MONTHS[Number(grid[0][0].date.slice(5, 7)) - 1]
   }
   return labels
 }

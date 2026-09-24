@@ -154,16 +154,16 @@ function MacroAverages({
   }
   const g = goal.data
   const rows = [
-    { label: '지방', value: avg.fatG, goal: g?.fatG ?? null, rule: g?.fatRule ?? 'AT_MOST', color: 'orange' as const },
+    { label: 'Fat', value: avg.fatG, goal: g?.fatG ?? null, rule: g?.fatRule ?? 'AT_MOST', color: 'orange' as const },
     {
-      label: '탄수',
+      label: 'Carbs',
       value: avg.carbsG,
       goal: g?.carbsG ?? null,
       rule: g?.carbsRule ?? 'AT_MOST',
       color: 'yellow' as const,
     },
     {
-      label: '단백질',
+      label: 'Protein',
       value: avg.proteinG,
       goal: g?.proteinG ?? null,
       rule: g?.proteinRule ?? 'AT_LEAST',

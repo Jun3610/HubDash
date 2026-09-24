@@ -56,7 +56,7 @@ export default function HomePage() {
           {formatHeaderDate(today)}
         </span>
         <Button variant="primary" icon={<Plus size={14} />} onClick={quick} title="⌘ + Enter">
-          빠른 기록
+          Quick Log
         </Button>
       </PageHeader>
       <PageContent>
@@ -103,12 +103,12 @@ function ProfileRow() {
         {initials(profile.data?.displayName)}
       </div>
       <div className={s.who}>
-        <h1>{profile.data?.displayName ?? (profile.isLoading ? '…' : '프로필 없음')}</h1>
+        <h1>{profile.data?.displayName ?? (profile.isLoading ? '…' : 'No profile')}</h1>
       </div>
       <div className={s.tags}>
         {pknu.semester && (
           <Tag size="lg">
-            {pknu.semester.name} · {credits}학점
+            {pknu.semester.name} · {credits} credits
           </Tag>
         )}
         {pledges.slice(0, 2).map((p, i) => (
@@ -156,7 +156,7 @@ function Kpis() {
   return (
     <section aria-label="오늘 요약" className={s.kpis}>
       <KpiTile
-        label="오늘 섭취"
+        label="Today's Intake"
         value={dash(recs.isLoading, num(t.kcal))}
         unit={goal.data?.calories ? `/ ${num(goal.data.calories)} kcal` : 'kcal'}
         progress={goal.data?.calories ? pct(t.kcal, goal.data.calories) : undefined}
@@ -164,23 +164,23 @@ function Kpis() {
         over={goalState(t.kcal, goal.data?.calories, goal.data?.caloriesRule ?? 'AT_MOST') === 'over'}
       />
       <KpiTile
-        label="단백질"
+        label="Protein"
         value={dash(recs.isLoading, num(t.proteinG))}
         unit={goal.data?.proteinG ? `/ ${num(goal.data.proteinG)} g` : 'g'}
         progress={goal.data?.proteinG ? pct(t.proteinG, goal.data.proteinG) : undefined}
         color="green"
       />
       <KpiTile
-        label="이번 주 공부"
+        label="Study This Week"
         value={dash(study.isLoading, formatMinutes(study.minutes))}
-        unit={`${study.sessions} 세션`}
+        unit={`${study.sessions} sessions`}
         progress={pct(study.minutes, goals.studyWeekMinutes)}
         color="purple"
       />
       <KpiTile
-        label="이번 주 운동"
+        label="Workout This Week"
         value={dash(workouts.isLoading, formatMinutes(workoutMinutes))}
-        unit={`${weekWorkouts.length}회 · 권장 150분`}
+        unit={`${weekWorkouts.length} sessions · goal 150 min`}
         progress={pct(workoutMinutes, 150)}
         color="orange"
       />
@@ -220,10 +220,10 @@ function HeatCard({ range }: { range: YearRange }) {
       <SectionHeader
         title={
           <>
-            {year === thisYear ? '최근 1년' : `${year}년`} 기록 <span className="mono">{num(total)}</span>건
+            {year === thisYear ? 'Last 12 Months' : year} · <span className="mono">{num(total)}</span> records
           </>
         }
-        meta={<span className={s.desktopOnly}>식단 · 운동 · 체중 · 공부 · 습관 · 지난 일정을 하루 단위로 합산</span>}
+        meta={<span className={s.desktopOnly}>meals · workouts · weight · study · habits · past events, per day</span>}
         actions={
           <div className={s.yearBtns}>
             {[thisYear, thisYear - 1].map((y) => (
@@ -249,7 +249,7 @@ function MobileHeat() {
   return (
     <Card>
       <SectionHeader
-        title="최근 17주 기록"
+        title="Last 17 Weeks"
         actions={
           <span className="mono muted" style={{ fontSize: 11.5 }}>
             {num(total)}건
@@ -280,12 +280,12 @@ function ActivitySplit({ range }: { range: YearRange }) {
   const sum = rows.reduce((a, r) => a + r.n, 0)
   return (
     <Card>
-      <SectionHeader title="활동 개요" />
+      <SectionHeader title="Activity Overview" />
       <QueryState
         loading={activity.isLoading && sum === 0}
         error={activity.error}
         empty={sum === 0}
-        emptyView={<EmptyState compact title="아직 기록이 없어요" />}
+        emptyView={<EmptyState compact title="No records yet" />}
       >
         <div className={s.split} role="img" aria-label="도메인별 기록 비율">
           {rows.map((r) => (
@@ -312,13 +312,13 @@ function EventsCard() {
   const todays = eventsOn(list.data?.content ?? [], today)
   return (
     <Card>
-      <SectionHeader title="오늘 일정" count={todays.length} actions={<Link to="/schedule">캘린더</Link>} />
+      <SectionHeader title="Today's Schedule" count={todays.length} actions={<Link to="/schedule">Calendar</Link>} />
       <QueryState
         loading={list.isLoading}
         error={list.error}
         onRetry={() => void list.refetch()}
         empty={todays.length === 0}
-        emptyView={<EmptyState compact title="오늘 일정이 없어요" />}
+        emptyView={<EmptyState compact title="Nothing scheduled today" />}
       >
         {todays.slice(0, 5).map((e) => (
           <div key={e.id} className={s.event}>
@@ -347,16 +347,16 @@ function HabitsCard() {
   return (
     <Card>
       <SectionHeader
-        title="오늘 습관"
+        title="Today's Habits"
         count={life.habits.length ? `${doneToday}/${life.habits.length}` : undefined}
-        actions={<Link to="/memo?tab=habits">생활</Link>}
+        actions={<Link to="/memo?tab=habits">Habits</Link>}
       />
       <QueryState
         loading={life.isLoading}
         error={life.error}
         onRetry={life.refetch}
         empty={life.habits.length === 0}
-        emptyView={<EmptyState compact title="등록한 습관이 없어요" action={<Link to="/memo?tab=habits">추가</Link>} />}
+        emptyView={<EmptyState compact title="No habits yet" action={<Link to="/memo?tab=habits">Add</Link>} />}
       >
         {life.habits.map((h) => {
           const logs = life.logsByHabit.get(h.id)
@@ -401,9 +401,9 @@ function DietCard() {
   return (
     <Card>
       <SectionHeader
-        title="오늘 식단"
-        meta={!hasGoal && <span className={s.desktopOnly}>식단 목표는 건강 화면에서 정해요</span>}
-        actions={<Link to="/health?tab=meal">건강</Link>}
+        title="Today's Meals"
+        meta={!hasGoal && <span className={s.desktopOnly}>Set diet goals in Health</span>}
+        actions={<Link to="/health?tab=meal">Health</Link>}
       />
       <QueryState loading={recs.isLoading} error={recs.error} onRetry={() => void recs.refetch()} lines={3}>
         <div className={s.macros}>
@@ -437,7 +437,7 @@ function DietCard() {
                   <span>{MEAL_TYPE_KO[type]}</span>
                   <span>{m ? num(m.kcal) : '—'}</span>
                 </div>
-                <span className={cx(s.sub, 'ellipsis')}>{m ? m.title || '제목 없음' : '기록 없음'}</span>
+                <span className={cx(s.sub, 'ellipsis')}>{m ? m.title || 'Untitled' : 'Not logged'}</span>
               </Link>
             )
           })}
@@ -461,10 +461,10 @@ function HubCard() {
     <Card className={s.span2}>
       <SectionHeader
         title="HUB"
-        count={`${hub.categories.length} 카테고리 · ${hub.links.length} 링크`}
+        count={`${hub.categories.length} categories · ${hub.links.length} links`}
         actions={
           <IconButton
-            label="링크 추가"
+            label="Add link"
             size="sm"
             style={{ border: '1px solid var(--border)' }}
             onClick={() => navigate('/study')}
@@ -478,7 +478,7 @@ function HubCard() {
         error={hub.error}
         onRetry={hub.refetch}
         empty={hub.categories.length === 0}
-        emptyView={<EmptyState compact title="카테고리가 없어요" action={<Link to="/study">Study로</Link>} />}
+        emptyView={<EmptyState compact title="No categories" action={<Link to="/study">Study</Link>} />}
       >
         <div className={s.hubGrid}>
           {hub.categories.slice(0, 9).map((c) => (
@@ -505,13 +505,13 @@ function MemosCard() {
   const items = list.data?.content ?? []
   return (
     <Card>
-      <SectionHeader title="메모" actions={<Link to="/memo">전체</Link>} />
+      <SectionHeader title="Memo" actions={<Link to="/memo">All</Link>} />
       <QueryState
         loading={list.isLoading}
         error={list.error}
         onRetry={() => void list.refetch()}
         empty={items.length === 0}
-        emptyView={<EmptyState compact title="메모가 없어요" action={<Link to="/memo?new=1">쓰기</Link>} />}
+        emptyView={<EmptyState compact title="No memos" action={<Link to="/memo?new=1">Write</Link>} />}
       >
         {items.map((m) => (
           <Link key={m.id} to={`/memo?id=${m.id}`} className={s.memo}>

@@ -3,9 +3,9 @@ import { datePart, shiftDate, type LocalDate } from '../date'
 
 /** 표시·입력 순서: 지방 → 탄수 → 단백질 → 칼로리 (사용자 요청, 이슈 #131 → #148에서 지방을 앞으로) */
 export const MACROS = [
-  { key: 'fatG', label: '지방', unit: 'g', kcalPerG: 9, color: 'orange' },
-  { key: 'carbsG', label: '탄수', unit: 'g', kcalPerG: 4, color: 'yellow' },
-  { key: 'proteinG', label: '단백질', unit: 'g', kcalPerG: 4, color: 'green' },
+  { key: 'fatG', label: 'Fat', unit: 'g', kcalPerG: 9, color: 'orange' },
+  { key: 'carbsG', label: 'Carbs', unit: 'g', kcalPerG: 4, color: 'yellow' },
+  { key: 'proteinG', label: 'Protein', unit: 'g', kcalPerG: 4, color: 'green' },
 ] as const
 export type MacroKey = (typeof MACROS)[number]['key']
 
@@ -130,7 +130,7 @@ export function dietRows(goal: DietGoal | undefined, t: Macros & { kcal: number 
   return [
     {
       key: 'fatG',
-      label: '지방',
+      label: 'Fat',
       unit: 'g',
       value: t.fatG,
       goal: goal?.fatG ?? null,
@@ -139,7 +139,7 @@ export function dietRows(goal: DietGoal | undefined, t: Macros & { kcal: number 
     },
     {
       key: 'carbsG',
-      label: '탄수',
+      label: 'Carbs',
       unit: 'g',
       value: t.carbsG,
       goal: goal?.carbsG ?? null,
@@ -148,7 +148,7 @@ export function dietRows(goal: DietGoal | undefined, t: Macros & { kcal: number 
     },
     {
       key: 'proteinG',
-      label: '단백질',
+      label: 'Protein',
       unit: 'g',
       value: t.proteinG,
       goal: goal?.proteinG ?? null,
@@ -157,7 +157,7 @@ export function dietRows(goal: DietGoal | undefined, t: Macros & { kcal: number 
     },
     {
       key: 'calories',
-      label: '칼로리',
+      label: 'Calories',
       unit: 'kcal',
       value: t.kcal,
       goal: goal?.calories ?? null,

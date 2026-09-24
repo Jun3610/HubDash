@@ -105,10 +105,10 @@ export type ReadingLog = Required<ReadingLogRequest> & Timestamps
 export type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK'
 export const MEAL_TYPES: MealType[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK']
 export const MEAL_TYPE_KO: Record<MealType, string> = {
-  BREAKFAST: '아침',
-  LUNCH: '점심',
-  DINNER: '저녁',
-  SNACK: '간식',
+  BREAKFAST: 'Breakfast',
+  LUNCH: 'Lunch',
+  DINNER: 'Dinner',
+  SNACK: 'Snack',
 }
 
 export interface MealTotals {

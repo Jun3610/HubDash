@@ -16,12 +16,12 @@ export const YEAR_PAGE = 2000
 export type ActivityDomain = 'meal' | 'study' | 'habit' | 'workout' | 'body' | 'event'
 
 export const ACTIVITY_LABEL: Record<ActivityDomain, string> = {
-  meal: '식단',
-  study: '공부',
-  habit: '습관',
-  workout: '운동',
-  body: '체중·수면',
-  event: '일정',
+  meal: 'Meals',
+  study: 'Study',
+  habit: 'Habits',
+  workout: 'Workout',
+  body: 'Weight·Sleep',
+  event: 'Schedule',
 }
 
 /**
