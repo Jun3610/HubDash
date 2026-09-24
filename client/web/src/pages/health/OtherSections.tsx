@@ -33,12 +33,12 @@ export function WorkoutTab({ onAdd, onEdit }: { onAdd: () => void; onEdit: (w: W
   return (
     <section className={s.listCard}>
       <div className={s.listHead}>
-        <h2>운동 기록</h2>
+        <h2>Workout Log</h2>
         <span className="mono muted" style={{ fontSize: 11.5 }}>
           {items.length}
         </span>
         <Button variant="primary" size="sm" icon={<Plus size={13} />} onClick={onAdd}>
-          운동 추가
+          Add Workout
         </Button>
       </div>
       <div className={items.length ? undefined : s.pad}>
@@ -49,10 +49,10 @@ export function WorkoutTab({ onAdd, onEdit }: { onAdd: () => void; onEdit: (w: W
           empty={items.length === 0}
           emptyView={
             <EmptyState
-              description="첫 운동을 기록해 보세요."
+              description="Log your first workout."
               action={
                 <Button variant="primary" onClick={onAdd}>
-                  운동 추가
+                  Add Workout
                 </Button>
               }
             />
@@ -61,16 +61,16 @@ export function WorkoutTab({ onAdd, onEdit }: { onAdd: () => void; onEdit: (w: W
           <Table>
             <thead>
               <tr>
-                <th scope="col">날짜</th>
-                <th scope="col">종류</th>
+                <th scope="col">Date</th>
+                <th scope="col">Type</th>
                 <th scope="col" className="num">
-                  시간
+                  Time
                 </th>
                 <th scope="col" className="num">
-                  소모 kcal
+                  Burned kcal
                 </th>
                 <th scope="col" className={s.hideMobile}>
-                  메모
+                  Note
                 </th>
                 <th scope="col">
                   <span className="sr-only">동작</span>
@@ -82,7 +82,7 @@ export function WorkoutTab({ onAdd, onEdit }: { onAdd: () => void; onEdit: (w: W
                 <tr key={w.id} className="hover-row">
                   <td className="mono">{w.performedAt}</td>
                   <td>{w.type}</td>
-                  <td className="num mono">{w.durationMinutes}분</td>
+                  <td className="num mono">{w.durationMinutes} min</td>
                   <td className="num mono">{num(w.caloriesBurned)}</td>
                   <td className={`${s.hideMobile} muted`}>{w.notes}</td>
                   <td style={{ textAlign: 'right' }}>
@@ -96,7 +96,7 @@ export function WorkoutTab({ onAdd, onEdit }: { onAdd: () => void; onEdit: (w: W
       </div>
       <ConfirmDialog
         open={!!del}
-        title="운동 기록 삭제"
+        title="Delete workout"
         message={del && `${del.performedAt} "${del.type}" 기록을 지울까요?`}
         busy={remove.isPending}
         onClose={() => setDel(null)}
@@ -114,12 +114,12 @@ export function BodyTab({ onAdd, onEdit }: { onAdd: () => void; onEdit: (l: Heal
   return (
     <section className={s.listCard}>
       <div className={s.listHead}>
-        <h2>체중 · 수면 기록</h2>
+        <h2>Weight · Sleep Log</h2>
         <span className="mono muted" style={{ fontSize: 11.5 }}>
           {items.length}
         </span>
         <Button variant="primary" size="sm" icon={<Plus size={13} />} onClick={onAdd}>
-          기록 추가
+          Add Record
         </Button>
       </div>
       <div className={items.length ? undefined : s.pad}>
@@ -130,10 +130,10 @@ export function BodyTab({ onAdd, onEdit }: { onAdd: () => void; onEdit: (l: Heal
           empty={items.length === 0}
           emptyView={
             <EmptyState
-              description="체중이나 수면 시간을 기록해 보세요."
+              description="Log your weight or sleep."
               action={
                 <Button variant="primary" onClick={onAdd}>
-                  기록 추가
+                  Add Record
                 </Button>
               }
             />
@@ -142,15 +142,15 @@ export function BodyTab({ onAdd, onEdit }: { onAdd: () => void; onEdit: (l: Heal
           <Table>
             <thead>
               <tr>
-                <th scope="col">날짜</th>
+                <th scope="col">Date</th>
                 <th scope="col" className="num">
-                  체중 kg
+                  Weight kg
                 </th>
                 <th scope="col" className="num">
-                  수면 시간
+                  Sleep h
                 </th>
                 <th scope="col" className={s.hideMobile}>
-                  메모
+                  Note
                 </th>
                 <th scope="col">
                   <span className="sr-only">동작</span>
@@ -184,7 +184,7 @@ export function BodyTab({ onAdd, onEdit }: { onAdd: () => void; onEdit: (l: Heal
       </div>
       <ConfirmDialog
         open={!!del}
-        title="기록 삭제"
+        title="Delete record"
         message={del && `${del.recordedAt.slice(0, 16).replace('T', ' ')} 기록을 지울까요?`}
         busy={remove.isPending}
         onClose={() => setDel(null)}
@@ -236,35 +236,35 @@ export function WorkoutModal({ today, log, onClose }: { today: LocalDate; log?: 
     <Modal
       open
       onClose={onClose}
-      title={log ? '운동 수정' : '운동 기록'}
+      title={log ? 'Edit Workout' : 'Add Workout'}
       footer={
         <>
-          <Button onClick={onClose}>취소</Button>
+          <Button onClick={onClose}>Cancel</Button>
           <Button variant="primary" type="submit" form="workout-form" disabled={m.isPending}>
-            저장
+            Save
           </Button>
         </>
       }
     >
       <form id="workout-form" onSubmit={submit} noValidate className={s.formGrid}>
-        <Field label="날짜" required error={errors.performedAt}>
+        <Field label="Date" required error={errors.performedAt}>
           <Input type="date" mono value={d.performedAt} onChange={set('performedAt')} />
         </Field>
-        <Field label="종류" required error={errors.type}>
-          <Input list="workout-types" placeholder="웨이트 — 등 + 이두" value={d.type} onChange={set('type')} />
+        <Field label="Type" required error={errors.type}>
+          <Input list="workout-types" placeholder="Weights — back + biceps" value={d.type} onChange={set('type')} />
         </Field>
         <datalist id="workout-types">
           {recentTypes.map((t) => (
             <option key={t} value={t} />
           ))}
         </datalist>
-        <Field label="시간 (분)" required error={errors.durationMinutes}>
+        <Field label="Duration (min)" required error={errors.durationMinutes}>
           <Input mono inputMode="numeric" value={d.durationMinutes} onChange={set('durationMinutes')} />
         </Field>
-        <Field label="소모 칼로리" error={errors.caloriesBurned}>
+        <Field label="Calories burned" error={errors.caloriesBurned}>
           <Input mono inputMode="numeric" value={d.caloriesBurned} onChange={set('caloriesBurned')} />
         </Field>
-        <Field label="메모" error={errors.notes} className={s.full}>
+        <Field label="Note" error={errors.notes} className={s.full}>
           <Textarea rows={2} value={d.notes} onChange={set('notes')} style={{ minHeight: 52 }} />
         </Field>
         <div className={s.full}>
@@ -295,7 +295,7 @@ export function BodyModal({ today, log, onClose }: { today: LocalDate; log?: Hea
       weightKg: numRange(d.weightKg, 1, 500),
       sleepHours: numRange(d.sleepHours, 0, 24),
       notes: maxLen(d.notes, 500),
-      both: !d.weightKg.trim() && !d.sleepHours.trim() ? '체중이나 수면 중 하나는 입력하세요' : undefined,
+      both: !d.weightKg.trim() && !d.sleepHours.trim() ? 'Enter weight or sleep' : undefined,
     }
     setErrors(errs)
     if (hasErrors(errs)) return
@@ -314,30 +314,30 @@ export function BodyModal({ today, log, onClose }: { today: LocalDate; log?: Hea
     <Modal
       open
       onClose={onClose}
-      title={log ? '체중 · 수면 수정' : '체중 · 수면 기록'}
+      title={log ? 'Edit Weight · Sleep' : 'Add Weight · Sleep'}
       footer={
         <>
-          <Button onClick={onClose}>취소</Button>
+          <Button onClick={onClose}>Cancel</Button>
           <Button variant="primary" type="submit" form="body-form" disabled={m.isPending}>
-            저장
+            Save
           </Button>
         </>
       }
     >
       <form id="body-form" onSubmit={submit} noValidate className={s.formGrid}>
-        <Field label="날짜" required error={errors.recordedAt}>
+        <Field label="Date" required error={errors.recordedAt}>
           <Input type="date" mono value={d.recordedAt} onChange={set('recordedAt')} />
         </Field>
-        <Field label="시각" required error={errors.time}>
+        <Field label="Time" required error={errors.time}>
           <TimeField value={d.time} onChange={(v) => setD({ ...d, time: v })} />
         </Field>
-        <Field label="체중 (kg)" error={errors.weightKg ?? errors.both}>
+        <Field label="Weight (kg)" error={errors.weightKg ?? errors.both}>
           <Input mono inputMode="decimal" value={d.weightKg} onChange={set('weightKg')} />
         </Field>
-        <Field label="수면 (시간, 0–24)" error={errors.sleepHours}>
+        <Field label="Sleep (hours, 0–24)" error={errors.sleepHours}>
           <Input mono inputMode="decimal" value={d.sleepHours} onChange={set('sleepHours')} />
         </Field>
-        <Field label="메모" error={errors.notes} className={s.full}>
+        <Field label="Note" error={errors.notes} className={s.full}>
           <Textarea rows={2} value={d.notes} onChange={set('notes')} style={{ minHeight: 52 }} />
         </Field>
         <div className={s.full}>

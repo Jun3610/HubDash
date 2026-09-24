@@ -229,7 +229,7 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
           >
             <ChevronDown size={12} strokeWidth={2.2} aria-hidden="true" />
             Semester
-            {pknu.courses.length > 0 && <span className={s.sectionMeta}>{credits} credits</span>}
+            {pknu.courses.length > 0 && <span className={s.sectionMeta}>{credits}학점</span>}
           </button>
           <div className={s.semRow}>
             {pknu.semesters.length > 0 && (

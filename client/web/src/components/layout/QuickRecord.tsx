@@ -55,14 +55,17 @@ export function QuickRecordProvider({ children }: { children: ReactNode }) {
       const dialogs = document.querySelectorAll('[role="dialog"]').length
       if (open) {
         e.preventDefault()
+        e.stopPropagation()
         setOpen(false)
       } else if (dialogs === 0) {
+        // 포커스된 카드·링크의 Enter(열기)까지 같이 동작하지 않게 가장 먼저 받아서 막는다 (이슈 #206)
         e.preventDefault()
+        e.stopPropagation()
         show()
       }
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
   }, [open])
 
   return (

@@ -108,7 +108,7 @@ function ProfileRow() {
       <div className={s.tags}>
         {pknu.semester && (
           <Tag size="lg">
-            {pknu.semester.name} · {credits} credits
+            {pknu.semester.name} · {credits}학점
           </Tag>
         )}
         {pledges.slice(0, 2).map((p, i) => (
