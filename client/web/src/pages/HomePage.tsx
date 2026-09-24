@@ -197,6 +197,7 @@ const DOMAIN_COLOR: Record<ActivityDomain, BarColor> = {
   habit: 'blue',
   workout: 'yellow',
   body: 'gray',
+  event: 'orange',
 }
 
 function useYearRange() {
@@ -223,7 +224,7 @@ function HeatCard({ range }: { range: YearRange }) {
             {year === thisYear ? '최근 1년' : `${year}년`} 기록 <span className="mono">{num(total)}</span>건
           </>
         }
-        meta={<span className={s.desktopOnly}>식단 · 운동 · 체중 · 공부 · 습관 기록을 하루 단위로 합산</span>}
+        meta={<span className={s.desktopOnly}>식단 · 운동 · 체중 · 공부 · 습관 · 지난 일정을 하루 단위로 합산</span>}
         actions={
           <div className={s.yearBtns}>
             {[thisYear, thisYear - 1].map((y) => (
@@ -296,7 +297,7 @@ function ActivitySplit({ range }: { range: YearRange }) {
           <div key={r.k} className={s.splitRow}>
             <span className={s.sdot} style={{ background: barVar(DOMAIN_COLOR[r.k]) }} />
             <span>{ACTIVITY_LABEL[r.k]}</span>
-            <span>{Math.round((r.n / sum) * 100)}%</span>
+            <span>{r.n / sum < 0.005 ? '<1' : Math.round((r.n / sum) * 100)}%</span>
           </div>
         ))}
       </QueryState>
