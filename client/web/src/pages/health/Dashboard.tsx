@@ -15,7 +15,7 @@ import {
   openable,
   openClass,
 } from '../../components/ui'
-import { datePart, formatShortDate, shiftDate, weekStartOf, type LocalDate } from '../../lib/date'
+import { datePart, daysBetween, formatShortDate, shiftDate, weekStartOf, type LocalDate } from '../../lib/date'
 import { num, pct } from '../../lib/format'
 import { dailySeries, goalState, MACROS, ruleText } from '../../lib/select/diet'
 import { sortBy, withinDates } from '../../lib/select/range'
@@ -224,8 +224,17 @@ function lastPerDay<T extends { recordedAt: string }>(logs: T[], pick: (l: T) =>
 
 function WeightTrend({ today, onOpen }: { today: LocalDate; onOpen: () => void }) {
   const list = useBodyLogs()
-  const days = Array.from({ length: 30 }, (_, i) => shiftDate(today, i - 29))
-  const points = lastPerDay(list.data?.content ?? [], (l) => l.weightKg, days)
+  // 첫 체중 기록부터 보여 준다 (최소 30일, 최대 90일, 이슈 #218)
+  const logs = list.data?.content ?? []
+  const firstDay = logs.reduce<string | null>(
+    (a, l) => (l.weightKg != null && (!a || l.recordedAt < a) ? l.recordedAt : a),
+    null,
+  )
+  const span = Math.min(90, Math.max(30, firstDay ? daysBetween(datePart(firstDay), today) + 1 : 30))
+  const days = Array.from({ length: span }, (_, i) => shiftDate(today, i - (span - 1)))
+  const points = lastPerDay(logs, (l) => l.weightKg, days)
+  // 가로축은 오늘에서 거꾸로 일주일마다
+  const ticks = days.map((d, i) => ((span - 1 - i) % 7 === 0 ? formatShortDate(d) : ''))
   const vals = points.filter((p) => p.value !== null)
   const last = vals[vals.length - 1]?.value ?? null
   const first = vals[0]?.value ?? null
@@ -234,7 +243,7 @@ function WeightTrend({ today, onOpen }: { today: LocalDate; onOpen: () => void }
     <Card {...openable('체중 · 수면 기록 열기', onOpen)} className={`${s.span2} ${openClass}`}>
       <SectionHeader
         title="Weight Trend"
-        meta="30 days"
+        meta={`${span} days`}
         actions={
           <>
             {last !== null && (
@@ -253,11 +262,14 @@ function WeightTrend({ today, onOpen }: { today: LocalDate; onOpen: () => void }
       />
       <QueryState loading={list.isLoading} error={list.error} onRetry={() => void list.refetch()}>
         <LineChart
-          label="최근 30일 체중"
-          points={points.map((p) => ({ ...p, title: p.value !== null ? `${p.key} · ${p.value}kg` : undefined }))}
+          label={`최근 ${span}일 체중`}
+          points={points.map((p) => ({
+            ...p,
+            title: p.value !== null ? `${formatShortDate(p.key)} · ${p.value}kg` : undefined,
+          }))}
           unit="kg"
           color="green"
-          axis={[formatShortDate(days[0]), formatShortDate(days[days.length - 1])]}
+          ticks={ticks}
         />
       </QueryState>
     </Card>
