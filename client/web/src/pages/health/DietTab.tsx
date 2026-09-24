@@ -124,7 +124,7 @@ export function DaySummary({
       )}
       <div className={s.total} hidden={column}>
         <span className="muted" style={{ fontSize: 12 }}>
-          하루 합계 · {meals.length}끼
+          Daily Total · {meals.length} meals
         </span>
         <div className={s.totalValue}>
           <span>{num(kcal)}</span>
@@ -301,7 +301,7 @@ export function MealCards({
             </div>
             {m ? (
               <button type="button" className={s.mealBody} onClick={() => setEditing({ type, entry: m })}>
-                <span className={s.mealTitle}>{m.title || '제목 없음'}</span>
+                <span className={s.mealTitle}>{m.title || 'Untitled'}</span>
                 <span className={s.mealMacros}>
                   {MACROS.map((x) => (
                     <span key={x.key}>
@@ -331,8 +331,9 @@ export function MealCards({
       )}
       <ConfirmDialog
         open={!!deleting}
-        title="끼니 삭제"
-        message={deleting && `${MEAL_TYPE_KO[deleting.type]} "${deleting.title || '제목 없음'}"을(를) 지울까요?`}
+        title="Delete meal"
+        message={deleting && `Delete ${MEAL_TYPE_KO[deleting.type]} "${deleting.title || 'Untitled'}"?`}
+        confirmLabel="Delete"
         busy={remove.isPending}
         onClose={() => setDeleting(null)}
         onConfirm={() => deleting && remove.mutate(deleting, { onSuccess: () => setDeleting(null) })}
@@ -471,7 +472,7 @@ function MealModal({
         </Field>
         <span className={`${s.full} muted`} style={{ fontSize: 11.5 }}>
           Calories = Fat×9 + Carbs×4 + Protein×4
-          {merged && ' · 예전에 음식별로 적은 기록은 저장하면 이 한 줄로 합쳐져요.'}
+          {merged && ' · Older per-food entries will be merged into this one line when saved.'}
         </span>
         <div className={s.full}>
           <FormError error={save.error} />
