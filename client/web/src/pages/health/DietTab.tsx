@@ -28,6 +28,7 @@ import {
   macroShare,
   mealsOn,
   ruleText,
+  type MacroKey,
   type MealEntry,
 } from '../../lib/select/diet'
 import type { MealRecord } from '../../api/types'
@@ -38,14 +39,63 @@ import s from './Health.module.css'
 // ---------------- 목표 표시 ----------------
 
 /** 하루 합계: 지방 → 탄수 → 단백질 → 칼로리, 목표가 있으면 막대로 */
+/** 탄단지 칼로리 비율 도넛, 가운데 총 칼로리 (FatSecret처럼, 이슈 #205) */
+function MacroDonut({ share, kcal }: { share: Record<MacroKey, number>; kcal: number }) {
+  const R = 52
+  const C = 2 * Math.PI * R
+  // 조각마다 시작 위치를 미리 계산 (렌더 중에 변수를 누적하지 않게)
+  const segs = MACROS.map((m, i) => ({
+    m,
+    len: (share[m.key] / 100) * C,
+    start: MACROS.slice(0, i).reduce((a, x) => a + (share[x.key] / 100) * C, 0),
+  }))
+  return (
+    <svg
+      width="140"
+      height="140"
+      viewBox="0 0 140 140"
+      role="img"
+      aria-label={MACROS.map((m) => `${m.label} ${share[m.key]}%`).join(', ')}
+      className={s.donut}
+    >
+      <circle cx="70" cy="70" r={R} fill="none" stroke="var(--track)" strokeWidth="14" />
+      {segs
+        .filter(({ m }) => share[m.key] > 0)
+        .map(({ m, len, start }) => (
+          <circle
+            key={m.key}
+            cx="70"
+            cy="70"
+            r={R}
+            fill="none"
+            stroke={barVar(m.color)}
+            strokeWidth="14"
+            strokeDasharray={`${Math.max(0, len - 2)} ${C}`}
+            strokeDashoffset={-start}
+            transform="rotate(-90 70 70)"
+          />
+        ))}
+      <text x="70" y="68" textAnchor="middle" className={s.donutValue}>
+        {num(kcal)}
+      </text>
+      <text x="70" y="86" textAnchor="middle" className={s.donutUnit}>
+        kcal
+      </text>
+    </svg>
+  )
+}
+
 export function DaySummary({
   records,
   date,
   onGoals,
+  column,
 }: {
   records: MealRecord[]
   date: LocalDate
   onGoals: () => void
+  /** 식단 창 오른쪽 칸: 도넛 + 세로 목록 (이슈 #205) */
+  column?: boolean
 }) {
   const goal = useDietGoal()
   const meals = Object.values(mealsOn(records, date))
@@ -58,8 +108,21 @@ export function DaySummary({
   const share = macroShare(t)
   const hasAnyGoal = rows.some((r) => r.goal !== null)
   return (
-    <section className={s.summary} aria-label="하루 합계">
-      <div className={s.total}>
+    <section className={column ? `${s.summary} ${s.summaryColumn}` : s.summary} aria-label="하루 합계">
+      {column && (
+        <div className={s.donutWrap}>
+          <MacroDonut share={share} kcal={kcal} />
+          <div className={s.donutLegend}>
+            {MACROS.map((m) => (
+              <span key={m.key}>
+                <i style={{ background: barVar(m.color) }} />
+                {m.label} {share[m.key]}%
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      <div className={s.total} hidden={column}>
         <span className="muted" style={{ fontSize: 12 }}>
           하루 합계 · {meals.length}끼
         </span>
@@ -119,6 +182,7 @@ export function DaySummary({
 // ---------------- 끼니 카드 ----------------
 
 export function MealCards({
+  stacked,
   records,
   date,
   today,
@@ -126,6 +190,8 @@ export function MealCards({
   error,
   onRetry,
 }: {
+  /** 식단 창 왼쪽 칸: 아침·점심·저녁·간식을 한 줄씩 (이슈 #205) */
+  stacked?: boolean
   records: MealRecord[]
   date: LocalDate
   today: LocalDate
@@ -153,7 +219,7 @@ export function MealCards({
     )
   }
   return (
-    <div className={s.mealGrid}>
+    <div className={stacked ? `${s.mealGrid} ${s.mealStack}` : s.mealGrid}>
       {MEAL_TYPES.map((type) => {
         const m = meals[type]
         return (
