@@ -1,5 +1,4 @@
 import {
-  Bell,
   BookOpen,
   CalendarDays,
   FileText,
@@ -12,8 +11,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-export type NavKey =
-  'home' | 'hub' | 'study' | 'pknu' | 'health' | 'life' | 'schedule' | 'memo' | 'reminder' | 'settings'
+export type NavKey = 'home' | 'hub' | 'study' | 'pknu' | 'health' | 'life' | 'schedule' | 'memo' | 'settings'
 
 export interface NavItem {
   key: NavKey
@@ -33,7 +31,6 @@ export const NAV: NavItem[] = [
   { key: 'life', label: '생활 · 습관', crumb: '생활 · 습관', to: '/life', icon: Sun },
   { key: 'schedule', label: '일정', crumb: '일정', to: '/schedule', icon: CalendarDays },
   { key: 'memo', label: '메모', crumb: '메모', to: '/memo', icon: FileText },
-  { key: 'reminder', label: '리마인더', crumb: '리마인더', to: '/reminders', icon: Bell },
 ]
 
 export const SETTINGS_NAV: NavItem = { key: 'settings', label: '설정', crumb: '설정', to: '/settings', icon: Settings }

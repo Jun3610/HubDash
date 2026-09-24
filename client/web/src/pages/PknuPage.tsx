@@ -1,54 +1,38 @@
-import { useQueries } from '@tanstack/react-query'
-import { CheckCircle2, Circle, MoreHorizontal, Plus } from 'lucide-react'
-import { NotionLink } from '../components/ui/NotionLink'
+import { MoreHorizontal, Plus } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { assignmentWeeklyStats, useRunWeeklyStat } from '../api/analytics'
-import { assignments, courses, semesters } from '../api/pknu'
-import { listKey, useCreate, useRemove, useUpdate } from '../api/resource'
-import type { Assignment, AssignmentWeeklyStat, Course, Semester } from '../api/types'
+import { courses, semesters } from '../api/pknu'
+import { useCreate, useRemove, useUpdate } from '../api/resource'
+import type { Course, Semester } from '../api/types'
 import { PageContent, PageHeader } from '../components/layout/PageHeader'
 import {
   Button,
-  Checkbox,
   ConfirmDialog,
-  DdayBadge,
   EmptyState,
   Field,
   FormError,
   IconButton,
   Input,
   Modal,
-  ProgressBar,
   QueryState,
   Select,
   Table,
   Tabs,
   Tag,
-  Textarea,
   toneFor,
-  useToast,
-  type Tone,
 } from '../components/ui'
+import { NotionLink } from '../components/ui/NotionLink'
 import { courseCategoryStore } from '../config/prefs'
-import { useOptimistic } from '../hooks/useOptimistic'
 import { pickCurrentSemester, useSemesterBundle } from '../hooks/usePknu'
 import { useToday } from '../hooks/useToday'
-import { datePart, formatShortDate, shiftDate, weekdayKo, weekStartOf, type LocalDate } from '../lib/date'
-import { courseProgress, mergeWeekly, semesterStatus, weekNumber } from '../lib/select/pknu'
+import { type LocalDate } from '../lib/date'
+import { semesterStatus, weekNumber } from '../lib/select/pknu'
 import { sortBy } from '../lib/select/range'
 import { useStore } from '../lib/storage'
 import { hasErrors, isUrl, maxLen, numRange, optStr, required, type Errors } from '../lib/validate'
 import s from './pknu/Pknu.module.css'
 
-/** 과목 순서대로 사이드바 색 점과 같은 계열의 라벨 색 */
-const COURSE_TONES: Tone[] = ['blue', 'green', 'purple', 'yellow', 'orange', 'neutral']
-
-type Dialog =
-  | { kind: 'semester'; semester?: Semester }
-  | { kind: 'course'; course?: Course }
-  | { kind: 'assignment'; assignment?: Assignment }
-  | null
+type Dialog = { kind: 'semester'; semester?: Semester } | { kind: 'course'; course?: Course } | null
 
 export default function PknuPage() {
   const today = useToday()
@@ -94,17 +78,13 @@ export default function PknuPage() {
           ) : undefined
         }
       >
-        <Button disabled={!semester} onClick={() => setDialog({ kind: 'course' })}>
-          과목 추가
-        </Button>
         <Button
           variant="primary"
           icon={<Plus size={14} />}
-          disabled={bundle.courses.length === 0}
-          title={bundle.courses.length === 0 ? '과목을 먼저 추가하세요' : undefined}
-          onClick={() => setDialog({ kind: 'assignment' })}
+          disabled={!semester}
+          onClick={() => setDialog({ kind: 'course' })}
         >
-          과제 추가
+          과목 추가
         </Button>
       </PageHeader>
 
@@ -117,7 +97,7 @@ export default function PknuPage() {
           emptyView={
             <EmptyState
               title="등록된 학기가 없어요"
-              description="학기를 만들고 과목과 과제를 추가해 보세요."
+              description="학기를 만들고 과목을 추가해 보세요."
               action={
                 <Button variant="primary" onClick={() => setDialog({ kind: 'semester' })}>
                   학기 추가
@@ -134,28 +114,13 @@ export default function PknuPage() {
                 today={today}
                 onEdit={() => setDialog({ kind: 'semester', semester })}
               />
-              <div className={s.grid}>
-                <div className={s.col}>
-                  <CoursesTable
-                    courseList={bundle.courses}
-                    byCourse={bundle.assignmentsByCourse}
-                    loading={bundle.isLoading}
-                    error={bundle.error}
-                    today={today}
-                    onAdd={() => setDialog({ kind: 'course' })}
-                    onEdit={(course) => setDialog({ kind: 'course', course })}
-                  />
-                  <WeeklyCompletion courseList={bundle.courses} />
-                </div>
-                <AssignmentList
-                  list={bundle.assignments}
-                  courseList={bundle.courses}
-                  loading={bundle.isLoading}
-                  today={today}
-                  onEdit={(assignment) => setDialog({ kind: 'assignment', assignment })}
-                  onAdd={() => setDialog({ kind: 'assignment' })}
-                />
-              </div>
+              <CoursesTable
+                courseList={bundle.courses}
+                loading={bundle.isLoading}
+                error={bundle.error}
+                onAdd={() => setDialog({ kind: 'course' })}
+                onEdit={(course) => setDialog({ kind: 'course', course })}
+              />
             </>
           )}
         </QueryState>
@@ -173,14 +138,6 @@ export default function PknuPage() {
           semesterList={sorted}
           semesterId={semester.id}
           course={dialog.course}
-          onClose={() => setDialog(null)}
-        />
-      )}
-      {dialog?.kind === 'assignment' && (
-        <AssignmentModal
-          courseList={bundle.courses}
-          today={today}
-          assignment={dialog.assignment}
           onClose={() => setDialog(null)}
         />
       )}
@@ -241,31 +198,24 @@ function SemesterSummary({
 
 function CoursesTable({
   courseList,
-  byCourse,
   loading,
   error,
-  today,
   onAdd,
   onEdit,
 }: {
   courseList: Course[]
-  byCourse: Map<number, Assignment[]>
   loading: boolean
   error: unknown
-  today: LocalDate
   onAdd: () => void
   onEdit: (c: Course) => void
 }) {
   const categories = useStore(courseCategoryStore)
-  const rows = courseList.map((c, i) => ({ c, i, p: courseProgress(byCourse.get(c.id) ?? [], today) }))
-  // 다음 마감이 가까운 과목 먼저, 마감 없는 과목은 뒤로
-  const ordered = sortBy(rows, (r) => r.p.next?.dueDate ?? '9999')
+  const ordered = courseList.map((c, i) => ({ c, i }))
   return (
     <section className={s.box}>
       <div className={s.boxHead}>
         <h2>과목</h2>
         <Tag mono>{courseList.length}</Tag>
-        <span className={s.right}>다음 마감 순</span>
       </div>
       {loading && courseList.length === 0 ? (
         <div style={{ padding: '8px 14px' }}>
@@ -299,16 +249,10 @@ function CoursesTable({
               <th scope="col" className="num" style={{ width: 48 }}>
                 학점
               </th>
-              <th scope="col" style={{ width: 170 }}>
-                과제
-              </th>
-              <th scope="col" className="num" style={{ width: 80 }}>
-                다음 마감
-              </th>
             </tr>
           </thead>
           <tbody>
-            {ordered.map(({ c, i, p }) => (
+            {ordered.map(({ c, i }) => (
               <tr key={c.id}>
                 <td>
                   <button type="button" className={s.courseName} onClick={() => onEdit(c)}>
@@ -320,217 +264,11 @@ function CoursesTable({
                 </td>
                 <td className={`${s.hideMobile} muted`}>{c.professor ?? '—'}</td>
                 <td className="num mono">{c.credit}</td>
-                <td>
-                  <div className={s.progress}>
-                    <ProgressBar
-                      value={p.total ? (p.done / p.total) * 100 : 0}
-                      color="green"
-                      label={`${c.name} 과제 진행`}
-                    />
-                    <span className={s.ratio}>
-                      {p.done}/{p.total}
-                    </span>
-                  </div>
-                </td>
-                <td style={{ textAlign: 'right' }}>
-                  {p.next ? (
-                    <DdayBadge due={p.next.dueDate} today={today} />
-                  ) : (
-                    <Tag mono tone="gray">
-                      —
-                    </Tag>
-                  )}
-                </td>
               </tr>
             ))}
           </tbody>
         </Table>
       )}
-    </section>
-  )
-}
-
-// ---- 주간 과제 완료율 ----
-
-function WeeklyCompletion({ courseList }: { courseList: Course[] }) {
-  const today = useToday()
-  const toast = useToast()
-  const run = useRunWeeklyStat(assignmentWeeklyStats)
-  const results = useQueries({
-    queries: courseList.map((c) => {
-      const q = { courseId: c.id, size: 20, sort: 'weekStart,desc' }
-      return { queryKey: listKey(assignmentWeeklyStats.path, q), queryFn: () => assignmentWeeklyStats.list(q) }
-    }),
-  })
-  const loading = results.some((r) => r.isLoading)
-  const error = results.find((r) => r.error)?.error
-  const rows: AssignmentWeeklyStat[] = results.flatMap((r) => r.data?.content ?? [])
-  const weeks = mergeWeekly(rows, 4)
-  const lastWeek = shiftDate(weekStartOf(today), -7)
-  return (
-    <section className={s.box} style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>주간 과제 완료율</h2>
-        <span className={`muted ${s.hideMobile}`} style={{ fontSize: 12 }}>
-          assignment-weekly-stats
-        </span>
-        <Button
-          size="sm"
-          style={{ marginLeft: 'auto' }}
-          disabled={run.isPending}
-          title={`${lastWeek} 주를 다시 계산`}
-          onClick={() =>
-            run.mutate(lastWeek, {
-              onSuccess: (r) =>
-                toast.success(`통계를 다시 계산했어요`, `#${r.jobExecutionId} ${r.status} · ${r.weekStart} 주`),
-            })
-          }
-        >
-          {run.isPending ? '계산 중…' : '통계 다시 계산'}
-        </Button>
-      </div>
-      <QueryState
-        loading={loading}
-        error={error}
-        empty={weeks.length === 0}
-        emptyView={<EmptyState compact title="아직 주간 통계가 없어요 — 다시 계산을 눌러 보세요" />}
-      >
-        <div className={s.weeks}>
-          {weeks.map((w) => {
-            const pct = Math.round(w.rate * 100)
-            return (
-              <div key={w.weekStart} className={s.week}>
-                <span className={s.weekLabel}>{formatShortDate(w.weekStart)} 주</span>
-                <div className={s.weekValue}>
-                  <b>{pct}</b>
-                  <span>%</span>
-                  <span>
-                    {w.done}/{w.total}
-                  </span>
-                </div>
-                <ProgressBar value={pct} color={pct >= 70 ? 'green' : 'yellow'} thin />
-              </div>
-            )
-          })}
-        </div>
-      </QueryState>
-    </section>
-  )
-}
-
-// ---- 과제 목록 (GitHub Issues 모양) ----
-
-function AssignmentList({
-  list,
-  courseList,
-  loading,
-  today,
-  onEdit,
-  onAdd,
-}: {
-  list: Assignment[]
-  courseList: Course[]
-  loading: boolean
-  today: LocalDate
-  onEdit: (a: Assignment) => void
-  onAdd: () => void
-}) {
-  const [show, setShow] = useState<'open' | 'closed'>('open')
-  const update = useUpdate(assignments)
-  const opt = useOptimistic<number>()
-  const courseIdx = new Map(courseList.map((c, i) => [c.id, i]))
-  const courseName = new Map(courseList.map((c) => [c.id, c.name]))
-  const isDone = (a: Assignment) => opt.value(a.id, a.completed)
-  const open = sortBy(
-    list.filter((a) => !isDone(a)),
-    (a) => a.dueDate,
-  )
-  const closed = sortBy(
-    list.filter((a) => isDone(a)),
-    (a) => a.updatedAt,
-    'desc',
-  )
-  const shown = show === 'open' ? open : closed
-
-  const toggle = (a: Assignment) => {
-    const next = !isDone(a)
-    opt.set(a.id, next)
-    update.mutate(
-      { id: a.id, body: { courseId: a.courseId, title: a.title, dueDate: a.dueDate, completed: next, notes: a.notes } },
-      { onSettled: () => opt.clear(a.id) },
-    )
-  }
-
-  return (
-    <section className={s.box} aria-label="과제 목록">
-      <div className={s.issueTabs}>
-        <button type="button" className={s.issueTab} aria-pressed={show === 'open'} onClick={() => setShow('open')}>
-          <Circle size={15} color="var(--green)" strokeWidth={2} />
-          {open.length} 진행 중
-        </button>
-        <button type="button" className={s.issueTab} aria-pressed={show === 'closed'} onClick={() => setShow('closed')}>
-          <CheckCircle2 size={15} color="var(--purple)" strokeWidth={2} />
-          {closed.length} 완료
-        </button>
-        <span className={`muted`} style={{ marginLeft: 'auto', fontSize: 12 }}>
-          {show === 'open' ? '마감순' : '최근 완료순'}
-        </span>
-      </div>
-      <div className={s.issueList}>
-        {loading && list.length === 0 ? (
-          <div style={{ padding: '8px 14px' }}>
-            <QueryState loading error={null}>
-              {null}
-            </QueryState>
-          </div>
-        ) : shown.length === 0 ? (
-          <EmptyState
-            title={show === 'open' ? '진행 중인 과제가 없어요' : '완료한 과제가 없어요'}
-            action={
-              show === 'open' && courseList.length > 0 ? (
-                <Button variant="primary" onClick={onAdd}>
-                  과제 추가
-                </Button>
-              ) : undefined
-            }
-          />
-        ) : (
-          shown.map((a) => {
-            const done = isDone(a)
-            const idx = courseIdx.get(a.courseId) ?? 0
-            return (
-              <div key={a.id} className={s.issue}>
-                <button
-                  type="button"
-                  className={s.state}
-                  aria-label={done ? `${a.title} 다시 열기` : `${a.title} 완료로 표시`}
-                  onClick={() => toggle(a)}
-                >
-                  {done ? (
-                    <CheckCircle2 size={16} color="var(--purple)" strokeWidth={2} />
-                  ) : (
-                    <Circle size={16} color="var(--green)" strokeWidth={2} />
-                  )}
-                </button>
-                <div className={s.issueBody}>
-                  <div className={s.issueTitle}>
-                    <button type="button" onClick={() => onEdit(a)}>
-                      {a.title}
-                    </button>
-                    <Tag tone={COURSE_TONES[idx % COURSE_TONES.length]}>{courseName.get(a.courseId)}</Tag>
-                  </div>
-                  <span className={s.meta}>
-                    {done
-                      ? `${formatShortDate(datePart(a.updatedAt))} 완료`
-                      : `${formatShortDate(a.dueDate)} (${weekdayKo(a.dueDate)}) 마감${a.notes ? ' · 메모 있음' : ''}`}
-                  </span>
-                </div>
-                <DdayBadge due={a.dueDate} today={today} completed={done} />
-              </div>
-            )
-          })
-        )}
-      </div>
     </section>
   )
 }
@@ -674,8 +412,10 @@ function CourseModal({
       name: d.name.trim(),
       professor: optStr(d.professor),
       credit: Number(d.credit),
-      // 수정할 때 빠뜨리면 서버가 기존 노션 링크를 지우므로 항상 보낸다
+      // 수정할 때 빠뜨리면 서버가 기존 값을 지우므로 항상 보낸다
       notionUrl: optStr(d.notionUrl),
+      grade: course?.grade ?? null,
+      memo: course?.memo ?? null,
     }
     const done = (x: Course) => {
       saveCategory(x.id)
@@ -748,111 +488,10 @@ function CourseModal({
       <ConfirmDialog
         open={confirm}
         title="과목 삭제"
-        message="과제가 남아 있으면 서버가 거부할 수 있어요. 지울까요?"
+        message="이 과목을 지울까요? 성적과 메모도 함께 지워져요."
         busy={remove.isPending}
         onClose={() => setConfirm(false)}
         onConfirm={() => course && remove.mutate(course.id, { onSuccess: onClose, onError: () => setConfirm(false) })}
-      />
-    </Modal>
-  )
-}
-
-function AssignmentModal({
-  courseList,
-  today,
-  assignment,
-  onClose,
-}: {
-  courseList: Course[]
-  today: LocalDate
-  assignment?: Assignment
-  onClose: () => void
-}) {
-  const [d, setD] = useState({
-    courseId: String(assignment?.courseId ?? courseList[0]?.id ?? ''),
-    title: assignment?.title ?? '',
-    dueDate: assignment?.dueDate ?? shiftDate(today, 7),
-    completed: assignment?.completed ?? false,
-    notes: assignment?.notes ?? '',
-  })
-  const [errors, setErrors] = useState<Errors>({})
-  const [confirm, setConfirm] = useState(false)
-  const create = useCreate(assignments)
-  const update = useUpdate(assignments)
-  const remove = useRemove(assignments)
-  const m = assignment ? update : create
-  const submit = (e: FormEvent) => {
-    e.preventDefault()
-    const errs = {
-      courseId: required(d.courseId, '과목'),
-      title: required(d.title, '제목') ?? maxLen(d.title, 200),
-      dueDate: required(d.dueDate, '마감일'),
-      notes: maxLen(d.notes, 1000),
-    }
-    setErrors(errs)
-    if (hasErrors(errs)) return
-    const body = {
-      courseId: Number(d.courseId),
-      title: d.title.trim(),
-      dueDate: d.dueDate,
-      completed: d.completed,
-      notes: optStr(d.notes),
-    }
-    if (assignment) update.mutate({ id: assignment.id, body }, { onSuccess: onClose })
-    else create.mutate(body, { onSuccess: onClose })
-  }
-  return (
-    <Modal
-      open
-      onClose={onClose}
-      title={assignment ? '과제 수정' : '과제 추가'}
-      footer={
-        <>
-          {assignment && (
-            <Button variant="danger" style={{ marginRight: 'auto' }} onClick={() => setConfirm(true)}>
-              삭제
-            </Button>
-          )}
-          <Button onClick={onClose}>취소</Button>
-          <Button variant="primary" type="submit" form="assignment-form" disabled={m.isPending}>
-            저장
-          </Button>
-        </>
-      }
-    >
-      <form id="assignment-form" className={s.formGrid} onSubmit={submit} noValidate>
-        <Field label="제목" required error={errors.title} className={s.full}>
-          <Input value={d.title} onChange={(e) => setD({ ...d, title: e.target.value })} />
-        </Field>
-        <Field label="과목" required error={errors.courseId}>
-          <Select value={d.courseId} onChange={(e) => setD({ ...d, courseId: e.target.value })}>
-            {courseList.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field label="마감일" required error={errors.dueDate}>
-          <Input type="date" mono value={d.dueDate} onChange={(e) => setD({ ...d, dueDate: e.target.value })} />
-        </Field>
-        <Field label="메모" error={errors.notes} className={s.full}>
-          <Textarea rows={3} value={d.notes} onChange={(e) => setD({ ...d, notes: e.target.value })} />
-        </Field>
-        <div className={s.full}>
-          <Checkbox checked={d.completed} onChange={(v) => setD({ ...d, completed: v })} label="완료" />
-        </div>
-        <div className={s.full}>
-          <FormError error={m.error ?? remove.error} />
-        </div>
-      </form>
-      <ConfirmDialog
-        open={confirm}
-        title="과제 삭제"
-        message={`"${assignment?.title}"을(를) 지울까요?`}
-        busy={remove.isPending}
-        onClose={() => setConfirm(false)}
-        onConfirm={() => assignment && remove.mutate(assignment.id, { onSuccess: onClose })}
       />
     </Modal>
   )

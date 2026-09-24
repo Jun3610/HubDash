@@ -1,10 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { BookMarked, ChevronDown, Search, Settings } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { connectionStatus } from '../../api/client'
-import { BIG_PAGE, useList } from '../../api/resource'
-import { reminders } from '../../api/reminder'
 import { useProfile } from '../../api/user'
 import { connectionStore, displayHost } from '../../config/connection'
 import { pinnedLinksStore } from '../../config/prefs'
@@ -12,7 +10,7 @@ import { useActivity } from '../../hooks/useActivity'
 import { useAllHubLinks } from '../../hooks/useHub'
 import { courseColor, useSemesterBundle } from '../../hooks/usePknu'
 import { useToday } from '../../hooks/useToday'
-import { daysUntil, ddayLabel, ddayTone, shiftDate, weekDays } from '../../lib/date'
+import { shiftDate, weekDays } from '../../lib/date'
 import { initials } from '../../lib/format'
 import { currentStreak, heatLevel } from '../../lib/heatmap'
 import { useStore } from '../../lib/storage'
@@ -31,7 +29,6 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
 
   const pknu = useSemesterBundle()
   const hub = useAllHubLinks()
-  const rem = useList(reminders, { size: BIG_PAGE, sort: 'targetAt,asc' })
   const activity = useActivity()
 
   const [semOpen, setSemOpen] = useState(true)
@@ -41,8 +38,6 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
 
   const counts: Partial<Record<string, number>> = {
     hub: hub.links.length || undefined,
-    pknu: pknu.assignments.filter((a) => !a.completed).length || undefined,
-    reminder: (rem.data?.content ?? []).filter((r) => !r.sent).length || undefined,
   }
 
   const days = weekDays(today)
@@ -52,16 +47,7 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
   const weekTotal = weekCounts.reduce((a, b) => a + b, 0)
   const streak = currentStreak(activity.counts, today)
 
-  const courseRows = useMemo(
-    () =>
-      pknu.courses.map((c, i) => {
-        const next = (pknu.assignmentsByCourse.get(c.id) ?? [])
-          .filter((a) => !a.completed && a.dueDate >= today)
-          .sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1))[0]
-        return { course: c, color: courseColor(i), next }
-      }),
-    [pknu.courses, pknu.assignmentsByCourse, today],
-  )
+  const courseRows = pknu.courses.map((c, i) => ({ course: c, color: courseColor(i) }))
   const credits = pknu.courses.reduce((sum, c) => sum + c.credit, 0)
   const pinnedLinks = hub.links.filter((l) => pinned.includes(l.id))
 
@@ -170,9 +156,7 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
                 <NavLink to={n.to} end={n.to === '/'} className={cx(s.item, active && s.itemActive)}>
                   <Icon size={16} strokeWidth={1.7} aria-hidden="true" />
                   <span className={s.itemLabel}>{n.label}</span>
-                  {count !== undefined && (
-                    <span className={cx(s.count, n.key === 'reminder' && s.countAccent)}>{count}</span>
-                  )}
+                  {count !== undefined && <span className={s.count}>{count}</span>}
                 </NavLink>
               </li>
             )
@@ -196,26 +180,12 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
             (courseRows.length === 0 ? (
               <span className={s.subEmpty}>{pknu.isLoading ? '불러오는 중…' : '등록된 과목이 없어요'}</span>
             ) : (
-              courseRows.map(({ course, color, next }) => {
-                const d = next ? daysUntil(next.dueDate, today) : null
-                const tone = d !== null ? ddayTone(d) : null
-                return (
-                  <Link
-                    key={course.id}
-                    to="/pknu"
-                    className={s.subItem}
-                    title={next ? `${next.title} · ${next.dueDate}` : undefined}
-                  >
-                    <span className={s.dot} style={{ background: color }} />
-                    <span className={s.subLabel}>{course.name}</span>
-                    {d !== null && (
-                      <span className={cx(s.due, tone === 'red' && s.dueRed, tone === 'yellow' && s.dueYellow)}>
-                        {ddayLabel(d)}
-                      </span>
-                    )}
-                  </Link>
-                )
-              })
+              courseRows.map(({ course, color }) => (
+                <Link key={course.id} to="/pknu" className={s.subItem}>
+                  <span className={s.dot} style={{ background: color }} />
+                  <span className={s.subLabel}>{course.name}</span>
+                </Link>
+              ))
             ))}
         </div>
 

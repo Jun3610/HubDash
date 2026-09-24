@@ -570,7 +570,7 @@ function BatchSection() {
           월요일 기준으로 계산해요 → <span className="mono">{monday}</span>
         </div>
       )}
-      {WEEKLY_STATS.map((stat) => (
+      {WEEKLY_STATS.filter((stat) => stat.key !== 'assignment').map((stat) => (
         <JobRow key={stat.key} stat={stat} weekStart={monday} />
       ))}
       <div className={s.foot}>POST …/batch-runs 응답의 jobExecutionId · status를 옆에 보여줘요.</div>

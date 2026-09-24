@@ -1,22 +1,21 @@
-import { FileText, GraduationCap, Link2, Search } from 'lucide-react'
+import { FileText, Link2, Search } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { memos } from '../../api/memo'
 import { BIG_PAGE, useList } from '../../api/resource'
 import { hostOf, useAllHubLinks } from '../../hooks/useHub'
-import { useSemesterBundle } from '../../hooks/usePknu'
 import s from './Search.module.css'
 
 interface Hit {
   key: string
-  group: '메모' | '허브 링크' | '과제'
+  group: '메모' | '허브 링크'
   title: string
   meta: string
   run: () => void
 }
 
-/** 전역 검색: 메모 제목, 허브 링크, 과제 제목 */
+/** 전역 검색: 메모 제목, 허브 링크 */
 export function SearchPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
   // 열 때마다 새로 마운트해 검색어·선택을 초기화한다
   return open ? <Palette onClose={onClose} /> : null
@@ -29,7 +28,6 @@ function Palette({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate()
   const memoList = useList(memos, { size: BIG_PAGE, sort: 'updatedAt,desc' })
   const hub = useAllHubLinks()
-  const pknu = useSemesterBundle()
 
   useEffect(() => inputRef.current?.focus(), [])
 
@@ -64,22 +62,11 @@ function Palette({ onClose }: { onClose: () => void }) {
           },
         })
     }
-    for (const a of pknu.assignments) {
-      if (match(a.title))
-        out.push({
-          key: `a${a.id}`,
-          group: '과제',
-          title: a.title,
-          meta: a.dueDate.slice(5).replace('-', '.'),
-          run: go('/pknu'),
-        })
-    }
     // 그룹별 최대 8개
     const limited: Hit[] = []
-    for (const g of ['메모', '허브 링크', '과제'] as const)
-      limited.push(...out.filter((h) => h.group === g).slice(0, 8))
+    for (const g of ['메모', '허브 링크'] as const) limited.push(...out.filter((h) => h.group === g).slice(0, 8))
     return limited
-  }, [q, memoList.data, hub.links, pknu.assignments, navigate, onClose])
+  }, [q, memoList.data, hub.links, navigate, onClose])
 
   const onKey = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') onClose()
@@ -94,7 +81,7 @@ function Palette({ onClose }: { onClose: () => void }) {
     }
   }
 
-  const ICON = { 메모: FileText, '허브 링크': Link2, 과제: GraduationCap }
+  const ICON = { 메모: FileText, '허브 링크': Link2 }
   let lastGroup = ''
 
   return createPortal(
@@ -105,7 +92,7 @@ function Palette({ onClose }: { onClose: () => void }) {
           <input
             ref={inputRef}
             className={s.input}
-            placeholder="메모, 허브 링크, 과제 검색"
+            placeholder="메모, 허브 링크 검색"
             value={q}
             onChange={(e) => {
               setQ(e.target.value)
