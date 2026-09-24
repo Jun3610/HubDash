@@ -161,6 +161,9 @@
 
 /* 카드 그림자: 흰 테두리와 같이 명암을 준다 (이슈 #148) */
 :root {
+  /* 본문은 노션처럼 가운데, 넓은 화면에서는 양옆 여백 (이슈 #154) */
+  --page-max: 1200px;
+  --page-x: max(28px, calc((100% - var(--page-max)) / 2));
   --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 18px rgba(0, 0, 0, 0.28);
 }
 :root[data-theme='light'] {
@@ -169,7 +172,8 @@
 
 /* 테두리 색 (설정 > 화면 > 테두리, 이슈 #132 → #148에서 흰색을 기본으로) */
 :root[data-border='white'] {
-  --border: rgba(255, 255, 255, 0.5);
+  /* 사이드바 '이번 주 기록' 상자와 같은 은은한 테두리 (이슈 #154) */
+  --border: rgba(255, 255, 255, 0.28);
   --sb-border: rgba(255, 255, 255, 0.28);
 }
 :root[data-theme='light'][data-border='white'] {

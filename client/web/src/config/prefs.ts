@@ -53,7 +53,7 @@ export const navOrderStore = createStore<string[]>('hubdash.navOrder', [])
 
 /** 카드·입력칸 테두리 색 (이슈 #132) */
 export const BORDERS = [
-  { key: 'white', label: '흰색 + 그림자' },
+  { key: 'white', label: '은은한 흰색 + 그림자' },
   { key: 'accent', label: '강조색 섞기' },
   { key: 'gray', label: '기존 회색' },
   { key: 'light', label: '밝은 회색' },

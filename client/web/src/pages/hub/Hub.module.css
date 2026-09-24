@@ -19,7 +19,7 @@
   font-weight: 400;
 }
 .main {
-  padding: 20px 28px 24px;
+  padding: 20px var(--page-x) 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
