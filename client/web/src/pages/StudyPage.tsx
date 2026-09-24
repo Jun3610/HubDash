@@ -77,6 +77,7 @@ export default function StudyPage() {
   const [topicDialog, setTopicDialog] = useState<{ topic?: StudyTopic } | null>(null)
   const [editLog, setEditLog] = useState<StudyProgress | null>(null)
   const formRef = useRef<HTMLSelectElement>(null)
+  const [adding, setAdding] = useState(false)
   const data = useStudyData()
   const colorIdx = new Map(data.topics.map((t, i) => [t.id, i]))
   const peekTopic = data.topics.find((t) => t.id === topicId)
@@ -105,7 +106,7 @@ export default function StudyPage() {
         <Button
           variant="primary"
           icon={<Plus size={14} />}
-          onClick={() => formRef.current?.focus()}
+          onClick={() => setAdding(true)}
           disabled={!data.topics.length}
         >
           Log Study
@@ -136,7 +137,7 @@ export default function StudyPage() {
             <Kpis progresses={data.progresses} topics={data.topics} today={today} />
             <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div className={s.sectionHead}>
-                <h2>주제</h2>
+                <h2>Topics</h2>
                 <span className="muted" style={{ fontSize: 12 }}>
                   막대 = 최근 8주 공부 시간 · 누르면 주제 기록
                 </span>
@@ -166,13 +167,13 @@ export default function StudyPage() {
           </QueryState>
         </section>
 
-        <aside className={s.aside} aria-label="빠른 기록">
+        <aside className={s.aside} aria-label="Quick Log">
           <QuickForm
             key={params.get('new') ?? 'form'}
             topics={data.topics}
             today={today}
             selectRef={formRef}
-            autoFocus={params.get('new') === '1'}
+            autoFocus={false}
           />
           <WeekSplit
             topics={data.topics}
@@ -226,7 +227,26 @@ export default function StudyPage() {
       )}
 
       {topicDialog && <TopicModal topic={topicDialog.topic} onClose={() => setTopicDialog(null)} />}
-      {editLog && <ProgressModal log={editLog} topics={data.topics} onClose={() => setEditLog(null)} />}
+      {editLog && <ProgressModal log={editLog} topics={data.topics} today={today} onClose={() => setEditLog(null)} />}
+      {/* 빠른 기록(?new=1)이나 Log Study로 들어오면 바로 추가 창 (주제가 불러와진 뒤) */}
+      {(adding || params.get('new') === '1') && data.topics.length > 0 && (
+        <ProgressModal
+          topics={data.topics}
+          today={today}
+          onClose={() => {
+            setAdding(false)
+            if (params.get('new'))
+              setParams(
+                (p) => {
+                  const n = new URLSearchParams(p)
+                  n.delete('new')
+                  return n
+                },
+                { replace: true },
+              )
+          }}
+        />
+      )}
     </>
   )
 }
@@ -361,7 +381,7 @@ function LogTable({
       </div>
       {list.length === 0 ? (
         <div className={s.pad}>
-          <EmptyState compact title="아직 기록이 없어요 — 오른쪽 빠른 기록으로 추가해 보세요" />
+          <EmptyState compact title="아직 기록이 없어요 — Log Study나 오른쪽 Quick Log로 추가해 보세요" />
         </div>
       ) : (
         <Table>
@@ -534,8 +554,8 @@ function QuickForm({
       className={s.box}
       style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}
     >
-      <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>빠른 기록</h2>
-      <Field label="주제" required error={errors.topicId}>
+      <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>Quick Log</h2>
+      <Field label="Topic" required error={errors.topicId}>
         <Select
           ref={selectRef}
           value={topicId}
@@ -550,10 +570,10 @@ function QuickForm({
         </Select>
       </Field>
       <div className={s.two}>
-        <Field label="날짜" required error={errors.studiedAt}>
+        <Field label="Date" required error={errors.studiedAt}>
           <Input type="date" mono value={d.studiedAt} onChange={(e) => setD({ ...d, studiedAt: e.target.value })} />
         </Field>
-        <Field label="분" required error={errors.minutes}>
+        <Field label="Minutes" required error={errors.minutes}>
           <Input mono inputMode="numeric" value={d.minutes} onChange={(e) => setD({ ...d, minutes: e.target.value })} />
         </Field>
       </div>
@@ -570,7 +590,7 @@ function QuickForm({
           </button>
         ))}
       </div>
-      <Field label="메모" error={errors.notes}>
+      <Field label="Note" error={errors.notes}>
         <Textarea
           rows={2}
           value={d.notes}
@@ -621,7 +641,7 @@ function WeekSplit({
       style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}
     >
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>이번 주 주제별</h2>
+        <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>This Week by Topic</h2>
         <span className="mono muted" style={{ marginLeft: 'auto', fontSize: 11.5 }}>
           {formatShortDate(from)} 주
         </span>
@@ -710,15 +730,29 @@ function TopicModal({ topic, onClose }: { topic?: StudyTopic; onClose: () => voi
   )
 }
 
-function ProgressModal({ log, topics, onClose }: { log: StudyProgress; topics: StudyTopic[]; onClose: () => void }) {
+/** 공부 기록 추가·수정 창. log가 없으면 추가 (빠른 기록·Log Study, 이슈 #197) */
+function ProgressModal({
+  log,
+  topics,
+  today,
+  onClose,
+}: {
+  log?: StudyProgress
+  topics: StudyTopic[]
+  today: LocalDate
+  onClose: () => void
+}) {
   const [d, setD] = useState({
-    topicId: String(log.topicId),
-    studiedAt: log.studiedAt,
-    minutes: String(log.minutes),
-    notes: log.notes ?? '',
+    topicId: String(log?.topicId ?? topics[0]?.id ?? ''),
+    studiedAt: log?.studiedAt ?? today,
+    minutes: String(log?.minutes ?? 50),
+    notes: log?.notes ?? '',
   })
   const [errors, setErrors] = useState<Errors>({})
   const update = useUpdate(studyProgresses)
+  const create = useCreate(studyProgresses)
+  const toast = useToast()
+  const m = log ? update : create
   const submit = (e: FormEvent) => {
     e.preventDefault()
     const errs = {
@@ -728,28 +762,30 @@ function ProgressModal({ log, topics, onClose }: { log: StudyProgress; topics: S
     }
     setErrors(errs)
     if (hasErrors(errs)) return
-    update.mutate(
-      {
-        id: log.id,
-        body: {
-          topicId: Number(d.topicId),
-          studiedAt: d.studiedAt,
-          minutes: Number(d.minutes),
-          notes: optStr(d.notes),
+    const body = {
+      topicId: Number(d.topicId),
+      studiedAt: d.studiedAt,
+      minutes: Number(d.minutes),
+      notes: optStr(d.notes),
+    }
+    if (log) update.mutate({ id: log.id, body }, { onSuccess: onClose })
+    else
+      create.mutate(body, {
+        onSuccess: () => {
+          toast.success('공부 기록을 저장했어요', `${d.minutes}분`)
+          onClose()
         },
-      },
-      { onSuccess: onClose },
-    )
+      })
   }
   return (
     <Modal
       open
       onClose={onClose}
-      title="공부 기록 수정"
+      title={log ? '공부 기록 수정' : '공부 기록 추가'}
       footer={
         <>
           <Button onClick={onClose}>취소</Button>
-          <Button variant="primary" type="submit" form="progress-form" disabled={update.isPending}>
+          <Button variant="primary" type="submit" form="progress-form" disabled={m.isPending}>
             저장
           </Button>
         </>
@@ -761,7 +797,7 @@ function ProgressModal({ log, topics, onClose }: { log: StudyProgress; topics: S
         noValidate
         style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
       >
-        <Field label="주제" required>
+        <Field label="Topic" required>
           <Select value={d.topicId} onChange={(e) => setD({ ...d, topicId: e.target.value })}>
             {topics.map((t) => (
               <option key={t.id} value={t.id}>
@@ -771,10 +807,10 @@ function ProgressModal({ log, topics, onClose }: { log: StudyProgress; topics: S
           </Select>
         </Field>
         <div className={s.two}>
-          <Field label="날짜" required error={errors.studiedAt}>
+          <Field label="Date" required error={errors.studiedAt}>
             <Input type="date" mono value={d.studiedAt} onChange={(e) => setD({ ...d, studiedAt: e.target.value })} />
           </Field>
-          <Field label="분 (1–1440)" required error={errors.minutes}>
+          <Field label="Minutes (1–1440)" required error={errors.minutes}>
             <Input
               mono
               inputMode="numeric"
@@ -783,10 +819,10 @@ function ProgressModal({ log, topics, onClose }: { log: StudyProgress; topics: S
             />
           </Field>
         </div>
-        <Field label="메모" error={errors.notes}>
+        <Field label="Note" error={errors.notes}>
           <Textarea rows={2} value={d.notes} onChange={(e) => setD({ ...d, notes: e.target.value })} />
         </Field>
-        <FormError error={update.error} />
+        <FormError error={m.error} />
       </form>
     </Modal>
   )
