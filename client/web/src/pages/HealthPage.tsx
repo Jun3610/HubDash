@@ -1,5 +1,5 @@
 import { Dumbbell, Plus, Scale, Target, Utensils } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { mealRecords } from '../api/health'
 import { useList } from '../api/resource'
@@ -8,7 +8,7 @@ import { PageHeader } from '../components/layout/PageHeader'
 import { Button, DateNav, Peek } from '../components/ui'
 import { YEAR_PAGE } from '../hooks/useActivity'
 import { useToday } from '../hooks/useToday'
-import { formatHeaderDate, type LocalDate } from '../lib/date'
+import { formatHeaderDate, shiftDate, type LocalDate } from '../lib/date'
 import { withinDateTimes } from '../lib/select/range'
 import { DaySummary, GoalModal, MealCards } from './health/DietTab'
 import s from './health/Health.module.css'
@@ -67,6 +67,26 @@ export default function HealthPage() {
     [update],
   )
   const setDate = (d: LocalDate) => update((n) => (d === today ? n.delete('date') : n.set('date', d)), true)
+  // 식단 창에서 ←/→로 하루씩 (이슈 #195). 입력 중이거나 끼니 입력 창이 위에 떠 있으면 두지 않는다
+  const dateRef = useRef({ date, setDate })
+  useEffect(() => {
+    dateRef.current = { date, setDate }
+  })
+  useEffect(() => {
+    if (peek !== 'meal') return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return
+      const el = e.target as HTMLElement
+      if (el.closest('input, textarea, select, [contenteditable="true"]')) return
+      if (document.querySelectorAll('[role="dialog"]').length > 1) return
+      e.preventDefault()
+      const { date: d, setDate: go } = dateRef.current
+      go(shiftDate(d, e.key === 'ArrowLeft' ? -1 : 1))
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [peek])
   const closeDialog = () => {
     setDialog(null)
     if (newKind === 'workout' || newKind === 'body') update((n) => n.delete('new'), true)
