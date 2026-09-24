@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { Pencil, Save } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Pencil } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { courseBody, courses } from '../api/pknu'
 import { useUpdate } from '../api/resource'
@@ -131,22 +131,39 @@ function CourseDashboard({
   const save = (patch: { grade?: Grade | null; memo?: string | null }, okText: string) =>
     update.mutate({ id: course.id, body: courseBody(course, patch) }, { onSuccess: () => toast.success(okText) })
 
-  const saveMemo = () => {
-    if (!dirty || memo.length > MEMO_MAX) return
-    save({ memo: memo.trim() ? memo : null }, '메모를 저장했어요')
-  }
-
-  // ⌘S / Ctrl+S로 메모 저장
+  // 과목 메모는 자동 저장 (이슈 #158): 입력이 멈추고 0.8초 뒤, 그리고 창을 닫을 때 남은 내용을 바로.
+  // 예전엔 저장 버튼 / ⌘S로만 보내서 Esc로 닫으면 적은 내용이 사라졌다
+  const latest = useRef({ memo, dirty, course })
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
-        e.preventDefault()
-        saveMemo()
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    latest.current = { memo, dirty, course }
   })
+  const sentMemo = useRef<string | null>(null)
+  const saveMemo = (text: string, base: Course) => {
+    if (text.length > MEMO_MAX || text === sentMemo.current) return
+    sentMemo.current = text
+    update.mutate(
+      { id: base.id, body: courseBody(base, { memo: text.trim() ? text : null }) },
+      {
+        onError: () => {
+          sentMemo.current = null
+        },
+      },
+    )
+  }
+  useEffect(() => {
+    if (!dirty || update.isPending) return
+    const t = setTimeout(() => saveMemo(memo, course), 800)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memo, dirty, update.isPending])
+  useEffect(
+    () => () => {
+      const l = latest.current
+      if (l.dirty) saveMemo(l.memo, l.course)
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  )
 
   const sem = gpaOf(sameSemester)
   const total = gpaOf(allCourses)
@@ -240,24 +257,23 @@ function CourseDashboard({
       <Card>
         <SectionHeader
           title="과목 메모"
-          meta={dirty ? '저장 안 됨' : course.memo ? '저장됨' : undefined}
-          actions={
-            <Button
-              size="sm"
-              variant="primary"
-              icon={<Save size={13} />}
-              disabled={!dirty || update.isPending || memo.length > MEMO_MAX}
-              onClick={saveMemo}
-            >
-              저장
-            </Button>
+          meta={
+            memo.length > MEMO_MAX
+              ? `${MEMO_MAX.toLocaleString()}자까지만 저장돼요`
+              : update.isPending
+                ? '저장 중…'
+                : dirty
+                  ? '곧 자동 저장'
+                  : course.memo
+                    ? '저장됨'
+                    : '적으면 자동 저장'
           }
         />
         <MarkdownEditor
           label="과목 메모"
           value={course.memo ?? ''}
           onChange={setMemo}
-          placeholder="시험 범위, 과제 방식 같은 걸 적어 두세요 — # 제목, - 목록, [] 할 일 (⌘S로 저장)"
+          placeholder="시험 범위, 과제 방식 같은 걸 적어 두세요 — # 제목, - 목록, [] 할 일"
         />
         <span className={s.memoCount} data-over={memo.length > MEMO_MAX}>
           {memo.length.toLocaleString()} / {MEMO_MAX.toLocaleString()}

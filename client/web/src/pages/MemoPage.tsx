@@ -320,7 +320,8 @@ function Editor({
     return () => {
       window.removeEventListener('beforeunload', warn)
       const l = latest.current
-      if (l.dirty && !l.problem && idRef.current) save(l.d)
+      // 새 메모도 0.8초 안에 닫으면 여기서 만든다 (이슈 #158)
+      if (l.dirty && !l.problem) save(l.d)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
