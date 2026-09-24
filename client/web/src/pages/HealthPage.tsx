@@ -85,7 +85,7 @@ export default function HealthPage() {
           운동
         </Button>
         <Button variant="primary" icon={<Plus size={14} />} onClick={() => openPeek('meal')}>
-          끼니 기록
+          식단 추가
         </Button>
       </PageHeader>
 
