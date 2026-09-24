@@ -41,7 +41,7 @@ class FlywayMigrationIntegrationTest {
                         .as("migration V%s applied successfully", resultSet.getString("version"))
                         .isTrue();
             }
-            assertThat(count).isEqualTo(25);
+            assertThat(count).isEqualTo(26);
         }
     }
 
