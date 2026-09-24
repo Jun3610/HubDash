@@ -55,7 +55,7 @@ export default function HomePage() {
         <span className="mono muted" style={{ fontSize: 12 }}>
           {formatHeaderDate(today)}
         </span>
-        <Button variant="primary" icon={<Plus size={14} />} onClick={quick}>
+        <Button variant="primary" icon={<Plus size={14} />} onClick={quick} title="⌘ + Enter">
           빠른 기록
         </Button>
       </PageHeader>
