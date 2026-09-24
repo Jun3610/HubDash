@@ -1,15 +1,683 @@
-import { PageContent, PageHeader } from '../components/layout/PageHeader'
-import { Card, EmptyState } from '../components/ui'
+import { Bell, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
+import { useState, type FormEvent } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { reminders } from '../api/reminder'
+import { BIG_PAGE, useCreate, useList, useRemove, useUpdate } from '../api/resource'
+import { events } from '../api/schedule'
+import type { ScheduleEvent } from '../api/types'
+import { PageHeader } from '../components/layout/PageHeader'
+import {
+  Button,
+  Checkbox,
+  ConfirmDialog,
+  EmptyState,
+  Field,
+  FormError,
+  IconButton,
+  Input,
+  Modal,
+  QueryState,
+  Segmented,
+  Textarea,
+} from '../components/ui'
+import miscStyles from '../components/ui/Misc.module.css'
+import { useAllEvents } from '../hooks/useEvents'
+import { useNow, useToday } from '../hooks/useToday'
+import { useUrlState } from '../hooks/useUrlState'
+import {
+  datePart,
+  formatShortDate,
+  formatTime,
+  shiftDate,
+  toLocalDateTime,
+  weekDays,
+  weekdayKo,
+  type LocalDate,
+} from '../lib/date'
+import { whenLabel } from '../lib/select/reminder'
+import {
+  allDayOn,
+  eventsOn,
+  eventTimeLabel,
+  GRID_END_HOUR,
+  GRID_START_HOUR,
+  monthGrid,
+  placeDay,
+  upcoming,
+} from '../lib/select/schedule'
+import { hasErrors, maxLen, optStr, required, type Errors } from '../lib/validate'
+import s from './schedule/Schedule.module.css'
+
+type View = 'month' | 'week' | 'list'
+const HOUR_PX = 56
+const PX_PER_MIN = HOUR_PX / 60
+const HOURS = Array.from(
+  { length: GRID_END_HOUR - GRID_START_HOUR },
+  (_, i) => `${String(GRID_START_HOUR + i).padStart(2, '0')}:00`,
+)
 
 export default function SchedulePage() {
+  const today = useToday()
+  const now = toLocalDateTime(useNow())
+  const [view, setView] = useUrlState('view', 'week')
+  const [anchor, setAnchor] = useUrlState('date', today)
+  const [selectedId, setSelectedId] = useUrlState('event', '')
+  const [params, setParams] = useSearchParams()
+  const [dialog, setDialog] = useState<{ event?: ScheduleEvent; date?: LocalDate } | null>(null)
+  const list = useAllEvents()
+  const all = list.data?.content ?? []
+  const selected = all.find((e) => String(e.id) === selectedId) ?? null
+
+  // 빠른 기록(?new=1)으로 들어오면 추가 창
+  const quickNew = params.get('new') === '1'
+  const active = dialog ?? (quickNew ? {} : null)
+  const closeDialog = () => {
+    setDialog(null)
+    if (quickNew)
+      setParams(
+        (p) => {
+          const n = new URLSearchParams(p)
+          n.delete('new')
+          return n
+        },
+        { replace: true },
+      )
+  }
+
+  const step = view === 'month' ? 'month' : view === 'week' ? 7 : 'month'
+  const move = (dir: 1 | -1) => {
+    if (step === 7) setAnchor(shiftDate(anchor, 7 * dir))
+    else {
+      const y = Number(anchor.slice(0, 4))
+      const m = Number(anchor.slice(5, 7)) - 1 + dir
+      const d = new Date(y, m, 1)
+      setAnchor(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`)
+    }
+  }
+  const days = weekDays(anchor)
+  const rangeLabel =
+    view === 'week'
+      ? `${days[0].replaceAll('-', '.')} – ${formatShortDate(days[6])}`
+      : `${anchor.slice(0, 4)}.${anchor.slice(5, 7)}`
+
   return (
     <>
-      <PageHeader title="일정" />
-      <PageContent>
-        <Card>
-          <EmptyState title="화면 준비 중" description="곧 구현됩니다." />
-        </Card>
-      </PageContent>
+      <PageHeader
+        title="일정"
+        tabs={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Segmented<View>
+              label="보기"
+              value={view as View}
+              onChange={setView}
+              items={[
+                { key: 'month', label: '월' },
+                { key: 'week', label: '주' },
+                { key: 'list', label: '목록' },
+              ]}
+            />
+            <div className={miscStyles.dateNav}>
+              <button
+                type="button"
+                className={miscStyles.navBtn}
+                aria-label={view === 'week' ? '이전 주' : '이전 달'}
+                onClick={() => move(-1)}
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <button type="button" className={miscStyles.todayBtn} onClick={() => setAnchor(today)}>
+                오늘
+              </button>
+              <button
+                type="button"
+                className={miscStyles.navBtn}
+                aria-label={view === 'week' ? '다음 주' : '다음 달'}
+                onClick={() => move(1)}
+              >
+                <ChevronRight size={14} />
+              </button>
+              <span className={miscStyles.dateLabel} aria-live="polite">
+                {rangeLabel}
+              </span>
+            </div>
+          </div>
+        }
+      >
+        <Button variant="primary" icon={<Plus size={14} />} onClick={() => setDialog({ date: anchor })}>
+          일정 추가
+        </Button>
+      </PageHeader>
+
+      <div className={s.layout}>
+        <section
+          aria-label={view === 'week' ? '주간 캘린더' : view === 'month' ? '월간 캘린더' : '일정 목록'}
+          className={s.cal}
+        >
+          <QueryState loading={list.isLoading} error={list.error} onRetry={() => void list.refetch()} lines={8}>
+            {view === 'week' && (
+              <WeekView
+                days={days}
+                today={today}
+                now={now}
+                events={all}
+                selectedId={selected?.id}
+                onSelect={(e) => setSelectedId(String(e.id))}
+              />
+            )}
+            {view === 'month' && (
+              <MonthView
+                anchor={anchor}
+                today={today}
+                events={all}
+                selectedId={selected?.id}
+                onSelect={(e) => setSelectedId(String(e.id))}
+                onDay={(d) => {
+                  setAnchor(d)
+                  setView('week')
+                }}
+              />
+            )}
+            {view === 'list' && (
+              <ListView
+                anchor={anchor}
+                today={today}
+                events={all}
+                selectedId={selected?.id}
+                onSelect={(e) => setSelectedId(String(e.id))}
+              />
+            )}
+          </QueryState>
+        </section>
+
+        <aside className={s.aside}>
+          {selected ? (
+            <Detail
+              event={selected}
+              today={today}
+              onEdit={() => setDialog({ event: selected })}
+              onDeleted={() => setSelectedId(null)}
+            />
+          ) : (
+            <div className={s.box} style={{ padding: 14 }}>
+              <span className="muted" style={{ fontSize: 12.5 }}>
+                일정을 누르면 여기에 자세히 보여요.
+              </span>
+            </div>
+          )}
+          <section className={s.box} aria-label="다가오는 일정">
+            <div className={s.boxHead}>
+              <h2>다가오는 일정</h2>
+              <span className="muted" style={{ marginLeft: 'auto', fontSize: 12 }}>
+                7일
+              </span>
+            </div>
+            <UpcomingList
+              events={all}
+              now={now}
+              onSelect={(e) => {
+                setSelectedId(String(e.id))
+                setAnchor(datePart(e.startAt))
+              }}
+            />
+          </section>
+        </aside>
+      </div>
+
+      {active && (
+        <EventModal
+          event={active.event}
+          date={active.date ?? anchor}
+          onClose={closeDialog}
+          onSaved={(e) => setSelectedId(String(e.id))}
+        />
+      )}
     </>
+  )
+}
+
+// ---- 주 보기 ----
+
+function WeekView({
+  days,
+  today,
+  now,
+  events: list,
+  selectedId,
+  onSelect,
+}: {
+  days: LocalDate[]
+  today: LocalDate
+  now: string
+  events: ScheduleEvent[]
+  selectedId?: number
+  onSelect: (e: ScheduleEvent) => void
+}) {
+  const nowMin = Number(now.slice(11, 13)) * 60 + Number(now.slice(14, 16)) - GRID_START_HOUR * 60
+  const showNow = nowMin >= 0 && nowMin <= (GRID_END_HOUR - GRID_START_HOUR) * 60
+  return (
+    <>
+      <div className={`${s.weekRow} ${s.dayHead}`}>
+        <span />
+        {days.map((d, i) => (
+          <div key={d} data-today={d === today} data-weekend={i >= 5}>
+            <span className={s.dow}>{weekdayKo(d)}</span>
+            <span className={s.num}>{Number(d.slice(8))}</span>
+          </div>
+        ))}
+      </div>
+      <div className={`${s.weekRow} ${s.allDayRow}`}>
+        <span className={s.allDayLabel}>종일</span>
+        {days.map((d) => (
+          <div key={d} className={s.allDayCell}>
+            {allDayOn(list, d).map((e) => (
+              <button
+                key={e.id}
+                type="button"
+                className={s.allDayChip}
+                aria-pressed={e.id === selectedId}
+                onClick={() => onSelect(e)}
+                title={e.title}
+              >
+                {e.title}
+              </button>
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className={s.body}>
+        <div className={s.weekRow}>
+          <div className={s.hours} aria-hidden="true">
+            {HOURS.map((h) => (
+              <span key={h}>{h}</span>
+            ))}
+          </div>
+          {days.map((d) => (
+            <div key={d} className={s.col} data-today={d === today}>
+              {HOURS.map((h) => (
+                <div key={h} className={s.slot} />
+              ))}
+              {placeDay(list, d).map((p) => {
+                const w = 100 / p.lanes
+                return (
+                  <button
+                    key={p.event.id}
+                    type="button"
+                    className={s.event}
+                    aria-pressed={p.event.id === selectedId}
+                    onClick={() => onSelect(p.event)}
+                    title={`${p.event.title} ${formatTime(p.event.startAt)}–${formatTime(p.event.endAt)}`}
+                    style={{
+                      top: p.top * PX_PER_MIN,
+                      height: Math.max(p.height * PX_PER_MIN - 2, 18),
+                      left: `calc(${p.lane * w}% + 3px)`,
+                      width: `calc(${w}% - 6px)`,
+                      borderTopStyle: p.clippedTop ? 'dashed' : undefined,
+                      borderBottomStyle: p.clippedBottom ? 'dashed' : undefined,
+                    }}
+                  >
+                    <span className={s.eventTitle}>{p.event.title}</span>
+                    <span className={s.eventTime}>
+                      {formatTime(p.event.startAt)}–{formatTime(p.event.endAt)}
+                    </span>
+                    {p.event.location && <span className={s.eventLoc}>{p.event.location}</span>}
+                  </button>
+                )
+              })}
+              {d === today && showNow && (
+                <div
+                  className={s.nowLine}
+                  style={{ top: nowMin * PX_PER_MIN }}
+                  aria-label={`현재 시각 ${now.slice(11, 16)}`}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  )
+}
+
+// ---- 월 보기 ----
+
+function MonthView({
+  anchor,
+  today,
+  events: list,
+  selectedId,
+  onSelect,
+  onDay,
+}: {
+  anchor: LocalDate
+  today: LocalDate
+  events: ScheduleEvent[]
+  selectedId?: number
+  onSelect: (e: ScheduleEvent) => void
+  onDay: (d: LocalDate) => void
+}) {
+  const grid = monthGrid(anchor)
+  const month = anchor.slice(0, 7)
+  return (
+    <div className={s.monthGrid}>
+      {['월', '화', '수', '목', '금', '토', '일'].map((d) => (
+        <div key={d} className={s.monthHead}>
+          {d}
+        </div>
+      ))}
+      {grid.map((d) => {
+        const on = eventsOn(list, d)
+        return (
+          <div key={d} className={s.monthCell} data-out={!d.startsWith(month)} data-today={d === today}>
+            <button type="button" className={s.monthNum} onClick={() => onDay(d)} aria-label={`${d} 주 보기`}>
+              {Number(d.slice(8))}
+            </button>
+            {on.slice(0, 3).map((e) => (
+              <button
+                key={e.id}
+                type="button"
+                className={s.monthItem}
+                aria-pressed={e.id === selectedId}
+                onClick={() => onSelect(e)}
+                title={e.title}
+              >
+                <span className={s.t}>{e.allDay ? '종일' : formatTime(e.startAt)}</span>
+                {e.title}
+              </button>
+            ))}
+            {on.length > 3 && <span className={s.more}>+{on.length - 3}</span>}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ---- 목록 보기 (그 달) ----
+
+function ListView({
+  anchor,
+  today,
+  events: list,
+  selectedId,
+  onSelect,
+}: {
+  anchor: LocalDate
+  today: LocalDate
+  events: ScheduleEvent[]
+  selectedId?: number
+  onSelect: (e: ScheduleEvent) => void
+}) {
+  const month = anchor.slice(0, 7)
+  const days = monthGrid(anchor).filter((d) => d.startsWith(month))
+  const rows = days.map((d) => ({ d, on: eventsOn(list, d) })).filter((r) => r.on.length > 0)
+  if (rows.length === 0) return <EmptyState title="이 달에는 일정이 없어요" />
+  return (
+    <div>
+      {rows.map(({ d, on }) => (
+        <div key={d} className={s.listDay}>
+          <span className={s.listDate} data-today={d === today}>
+            {formatShortDate(d)} {weekdayKo(d)}
+          </span>
+          <div>
+            {on.map((e) => (
+              <button
+                key={e.id}
+                type="button"
+                className={s.listItem}
+                aria-pressed={e.id === selectedId}
+                onClick={() => onSelect(e)}
+              >
+                <span className="mono muted" style={{ fontSize: 12 }}>
+                  {e.allDay ? '종일' : `${eventTimeLabel(e, d)}–${formatTime(e.endAt)}`}
+                </span>
+                <span className="ellipsis" style={{ color: 'var(--text-strong)' }}>
+                  {e.title}
+                  {e.location && <span className="muted"> · {e.location}</span>}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ---- 오른쪽 ----
+
+function Detail({
+  event,
+  today,
+  onEdit,
+  onDeleted,
+}: {
+  event: ScheduleEvent
+  today: LocalDate
+  onEdit: () => void
+  onDeleted: () => void
+}) {
+  const [confirm, setConfirm] = useState(false)
+  const remove = useRemove(events)
+  const rem = useList(reminders, { size: BIG_PAGE, sort: 'targetAt,asc' })
+  const linked = (rem.data?.content ?? []).filter((r) => r.targetDomain === 'schedule' && r.targetEntityId === event.id)
+  const sd = datePart(event.startAt)
+  const ed = datePart(event.endAt)
+  const time = event.allDay
+    ? sd === ed
+      ? `${formatShortDate(sd)} ${weekdayKo(sd)} 종일`
+      : `${formatShortDate(sd)} – ${formatShortDate(ed)} 종일`
+    : sd === ed
+      ? `${formatShortDate(sd)} ${weekdayKo(sd)} ${formatTime(event.startAt)} – ${formatTime(event.endAt)}`
+      : `${formatShortDate(sd)} ${formatTime(event.startAt)} – ${formatShortDate(ed)} ${formatTime(event.endAt)}`
+  return (
+    <section className={s.detail} aria-label="선택한 일정">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 11.5, color: 'var(--accent)' }}>선택한 일정</span>
+        <Button size="sm" style={{ marginLeft: 'auto' }} onClick={onEdit}>
+          수정
+        </Button>
+        <IconButton
+          label="삭제"
+          size="sm"
+          style={{ color: 'var(--red)', border: '1px solid var(--border)', background: 'var(--fill)' }}
+          onClick={() => setConfirm(true)}
+        >
+          <Trash2 size={13} />
+        </IconButton>
+      </div>
+      <h2>{event.title}</h2>
+      <dl className={s.dl}>
+        <dt>시간</dt>
+        <dd className="mono">{time}</dd>
+        <dt>장소</dt>
+        <dd>{event.location ?? '—'}</dd>
+        <dt>종일</dt>
+        <dd>{event.allDay ? '예' : '아니요'}</dd>
+        <dt>메모</dt>
+        <dd style={{ color: 'var(--text-body)', whiteSpace: 'pre-wrap' }}>{event.description ?? '—'}</dd>
+      </dl>
+      <div className={s.reminderLine}>
+        <Bell size={14} />
+        {linked.length ? (
+          <span className="ellipsis">리마인더 {linked.map((r) => whenLabel(r.targetAt, today)).join(', ')}</span>
+        ) : (
+          <span>연결된 리마인더 없음</span>
+        )}
+        <Link to={`/reminders?new=1&domain=schedule&entity=${event.id}`} style={{ marginLeft: 'auto' }}>
+          {linked.length ? '추가' : '만들기'}
+        </Link>
+      </div>
+      <ConfirmDialog
+        open={confirm}
+        title="일정 삭제"
+        message={`"${event.title}"을(를) 지울까요?`}
+        busy={remove.isPending}
+        onClose={() => setConfirm(false)}
+        onConfirm={() =>
+          remove.mutate(event.id, {
+            onSuccess: () => {
+              setConfirm(false)
+              onDeleted()
+            },
+          })
+        }
+      />
+    </section>
+  )
+}
+
+function UpcomingList({
+  events: list,
+  now,
+  onSelect,
+}: {
+  events: ScheduleEvent[]
+  now: string
+  onSelect: (e: ScheduleEvent) => void
+}) {
+  const items = upcoming(list, now, 7).slice(0, 8)
+  if (items.length === 0)
+    return (
+      <div style={{ padding: '10px 14px' }} className="muted">
+        7일 안에 일정이 없어요
+      </div>
+    )
+  return (
+    <>
+      {items.map((e) => (
+        <button key={e.id} type="button" className={s.up} onClick={() => onSelect(e)}>
+          <div className={s.upWhen}>
+            <span>{formatShortDate(datePart(e.startAt))}</span>
+            <span>{e.allDay ? '종일' : formatTime(e.startAt)}</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <span className="ellipsis" style={{ color: 'var(--text-strong)' }}>
+              {e.title}
+            </span>
+            {e.location && (
+              <span className="muted ellipsis" style={{ fontSize: 11.5 }}>
+                {e.location}
+              </span>
+            )}
+          </div>
+        </button>
+      ))}
+    </>
+  )
+}
+
+// ---- 추가·수정 ----
+
+function EventModal({
+  event,
+  date,
+  onClose,
+  onSaved,
+}: {
+  event?: ScheduleEvent
+  date: LocalDate
+  onClose: () => void
+  onSaved: (e: ScheduleEvent) => void
+}) {
+  const [d, setD] = useState({
+    title: event?.title ?? '',
+    allDay: event?.allDay ?? false,
+    startDate: event ? datePart(event.startAt) : date,
+    startTime: event && !event.allDay ? formatTime(event.startAt) : '10:00',
+    endDate: event ? datePart(event.endAt) : date,
+    endTime: event && !event.allDay ? formatTime(event.endAt) : '11:00',
+    location: event?.location ?? '',
+    description: event?.description ?? '',
+  })
+  const [errors, setErrors] = useState<Errors>({})
+  const create = useCreate(events)
+  const update = useUpdate(events)
+  const m = event ? update : create
+  const startAt = `${d.startDate}T${d.allDay ? '00:00' : d.startTime}:00`
+  const endAt = `${d.endDate}T${d.allDay ? '23:59' : d.endTime}:00`
+  const submit = (e: FormEvent) => {
+    e.preventDefault()
+    const errs = {
+      title: required(d.title, '제목') ?? maxLen(d.title, 200),
+      startDate: required(d.startDate, '시작일'),
+      endDate: required(d.endDate, '종료일') ?? (endAt <= startAt ? '끝나는 시각이 시작보다 늦어야 해요' : undefined),
+      location: maxLen(d.location, 200),
+      description: maxLen(d.description, 2000),
+    }
+    setErrors(errs)
+    if (hasErrors(errs)) return
+    const body = {
+      title: d.title.trim(),
+      startAt,
+      endAt,
+      allDay: d.allDay,
+      location: optStr(d.location),
+      description: optStr(d.description),
+    }
+    const done = (x: ScheduleEvent) => {
+      onSaved(x)
+      onClose()
+    }
+    if (event) update.mutate({ id: event.id, body }, { onSuccess: done })
+    else create.mutate(body, { onSuccess: done })
+  }
+  const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const v = e.target.value
+    // 시작일을 바꾸면 종료일이 앞서지 않게 같이 옮긴다
+    if (k === 'startDate' && d.endDate < v) setD({ ...d, startDate: v, endDate: v })
+    else setD({ ...d, [k]: v })
+  }
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={event ? '일정 수정' : '일정 추가'}
+      footer={
+        <>
+          <Button onClick={onClose}>취소</Button>
+          <Button variant="primary" type="submit" form="event-form" disabled={m.isPending}>
+            저장
+          </Button>
+        </>
+      }
+    >
+      <form id="event-form" className={s.formGrid} onSubmit={submit} noValidate>
+        <Field label="제목" required error={errors.title} className={s.full}>
+          <Input value={d.title} onChange={set('title')} />
+        </Field>
+        <div className={s.full}>
+          <Checkbox checked={d.allDay} onChange={(v) => setD({ ...d, allDay: v })} label="종일" />
+        </div>
+        <Field label="시작일" required error={errors.startDate}>
+          <Input type="date" mono value={d.startDate} onChange={set('startDate')} />
+        </Field>
+        {!d.allDay ? (
+          <Field label="시작 시각" required>
+            <Input type="time" mono value={d.startTime} onChange={set('startTime')} />
+          </Field>
+        ) : (
+          <span />
+        )}
+        <Field label="종료일" required error={errors.endDate}>
+          <Input type="date" mono value={d.endDate} onChange={set('endDate')} />
+        </Field>
+        {!d.allDay ? (
+          <Field label="종료 시각" required>
+            <Input type="time" mono value={d.endTime} onChange={set('endTime')} />
+          </Field>
+        ) : (
+          <span />
+        )}
+        <Field label="장소" error={errors.location} className={s.full}>
+          <Input value={d.location} onChange={set('location')} />
+        </Field>
+        <Field label="메모" error={errors.description} className={s.full}>
+          <Textarea rows={3} value={d.description} onChange={set('description')} />
+        </Field>
+        <div className={s.full}>
+          <FormError error={m.error} />
+        </div>
+      </form>
+    </Modal>
   )
 }
