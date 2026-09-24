@@ -297,3 +297,25 @@
   margin-right: 6px;
   color: var(--text-muted);
 }
+
+/* Study 안의 허브 구역 (이슈 #162) */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sectionHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sectionHead h2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+button.catCard {
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}

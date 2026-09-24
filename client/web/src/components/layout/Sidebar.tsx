@@ -50,9 +50,7 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
   const [weekOffset, setWeekOffset] = useState(0)
   const [picked, setPicked] = useState<string | null>(null)
 
-  const counts: Partial<Record<string, number>> = {
-    hub: hub.links.length || undefined,
-  }
+  const counts: Partial<Record<string, number>> = {}
 
   const days = weekDays(shiftDate(today, weekOffset * 7))
   const weekCounts = days.map((d) => activity.counts.get(d) ?? 0)

@@ -467,7 +467,7 @@ function HubCard() {
             label="링크 추가"
             size="sm"
             style={{ border: '1px solid var(--border)' }}
-            onClick={() => navigate('/hub?new=1')}
+            onClick={() => navigate('/study')}
           >
             <Plus size={14} />
           </IconButton>
@@ -478,11 +478,11 @@ function HubCard() {
         error={hub.error}
         onRetry={hub.refetch}
         empty={hub.categories.length === 0}
-        emptyView={<EmptyState compact title="카테고리가 없어요" action={<Link to="/hub">허브로</Link>} />}
+        emptyView={<EmptyState compact title="카테고리가 없어요" action={<Link to="/study">Study로</Link>} />}
       >
         <div className={s.hubGrid}>
           {hub.categories.slice(0, 9).map((c) => (
-            <Link key={c.id} to={`/hub/${c.id}`} className={s.hubItem}>
+            <Link key={c.id} to={`/study?hub=${c.id}`} className={s.hubItem}>
               <span className={s.abbr}>{abbr(c.name)}</span>
               <span className="ellipsis" style={{ flexGrow: 1 }}>
                 {c.name}

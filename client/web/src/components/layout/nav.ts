@@ -1,16 +1,6 @@
-import {
-  BookOpen,
-  CalendarDays,
-  FileText,
-  GraduationCap,
-  Heart,
-  House,
-  Link2,
-  Settings,
-  type LucideIcon,
-} from 'lucide-react'
+import { BookOpen, CalendarDays, FileText, GraduationCap, Heart, House, Settings, type LucideIcon } from 'lucide-react'
 
-export type NavKey = 'home' | 'hub' | 'study' | 'pknu' | 'health' | 'schedule' | 'memo' | 'settings'
+export type NavKey = 'home' | 'study' | 'pknu' | 'health' | 'schedule' | 'memo' | 'settings'
 
 export interface NavItem {
   key: NavKey
@@ -23,7 +13,6 @@ export interface NavItem {
 
 export const NAV: NavItem[] = [
   { key: 'home', label: 'Home', crumb: 'Home', to: '/', icon: House },
-  { key: 'hub', label: 'Hub', crumb: 'Hub', to: '/hub', icon: Link2 },
   { key: 'study', label: 'Study', crumb: 'Study', to: '/study', icon: BookOpen },
   { key: 'pknu', label: 'PKNU', crumb: 'PKNU', to: '/pknu', icon: GraduationCap },
   { key: 'health', label: 'Health', crumb: 'Health', to: '/health', icon: Heart },

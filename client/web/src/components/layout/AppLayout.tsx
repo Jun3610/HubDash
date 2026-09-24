@@ -22,7 +22,7 @@ const MOBILE_TABS = [
   NAV.find((n) => n.key === 'home')!,
   NAV.find((n) => n.key === 'health')!,
   { ...NAV.find((n) => n.key === 'pknu')!, label: 'PKNU' },
-  NAV.find((n) => n.key === 'hub')!,
+  NAV.find((n) => n.key === 'study')!,
 ]
 
 export function AppLayout() {

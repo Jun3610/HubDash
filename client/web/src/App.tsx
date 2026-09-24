@@ -6,7 +6,7 @@ import { accentStore, applyAccent, applyBorder, applyTheme, avatarColorStore, bo
 import { useStore } from './lib/storage'
 import HealthPage from './pages/HealthPage'
 import HomePage from './pages/HomePage'
-import HubPage from './pages/HubPage'
+import { HubRedirect } from './pages/hub/HubSection'
 import MemoPage from './pages/MemoPage'
 import NotFoundPage from './pages/NotFoundPage'
 import { CourseRedirect } from './pages/CoursePage'
@@ -30,9 +30,9 @@ const router = createBrowserRouter(
         { path: '/life', element: <Navigate to="/memo?tab=habits" replace /> },
         { path: '/schedule', element: <SchedulePage /> },
         { path: '/memo', element: <MemoPage /> },
-        { path: '/hub', element: <HubPage /> },
-        // 카테고리는 세부 페이지 (이슈 #152)
-        { path: '/hub/:id', element: <HubPage /> },
+        // 허브는 Study로 합쳤다 (이슈 #162) — 예전 주소는 Study의 허브 창으로
+        { path: '/hub', element: <HubRedirect /> },
+        { path: '/hub/:id', element: <HubRedirect /> },
         // 리마인더는 화면에서 뺐다(이슈 #135) — 예전 주소는 홈으로
         { path: '/reminders', element: <Navigate to="/" replace /> },
         { path: '/settings', element: <SettingsRedirect /> },
