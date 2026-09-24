@@ -33,6 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,7 +49,7 @@ class AnalyticsBatchSchedulerTest {
 
     @BeforeEach
     void setUp() {
-        scheduler = new AnalyticsBatchScheduler(runner);
+        scheduler = new AnalyticsBatchScheduler(runner, true);
         schedulerLogger = (Logger) LoggerFactory.getLogger(AnalyticsBatchScheduler.class);
         logs = new ListAppender<>();
         logs.start();
@@ -147,6 +148,27 @@ class AnalyticsBatchSchedulerTest {
         scheduler.runMealWeeklyStat();
 
         verify(runner).run(eq(MealWeeklyStatJobConfig.JOB_NAME), isNull());
+    }
+
+    @Test
+    void startupCatchUpRunsAllFiveJobsForTheLastCompletedWeek() throws Exception {
+        JobExecution completed = execution(BatchStatus.COMPLETED, ExitStatus.COMPLETED, List.of());
+        when(runner.run(any(), isNull())).thenReturn(completed);
+
+        scheduler.catchUpOnStartup();
+
+        verify(runner).run(eq(HabitWeeklyStatJobConfig.JOB_NAME), isNull());
+        verify(runner).run(eq(StudyTopicWeeklyStatJobConfig.JOB_NAME), isNull());
+        verify(runner).run(eq(HealthLogWeeklyStatJobConfig.JOB_NAME), isNull());
+        verify(runner).run(eq(AssignmentWeeklyStatJobConfig.JOB_NAME), isNull());
+        verify(runner).run(eq(MealWeeklyStatJobConfig.JOB_NAME), isNull());
+    }
+
+    @Test
+    void startupCatchUpCanBeTurnedOff() throws Exception {
+        new AnalyticsBatchScheduler(runner, false).catchUpOnStartup();
+
+        verify(runner, never()).run(any(), any());
     }
 
     @Test
