@@ -26,8 +26,11 @@ COPY --from=build --chown=hubdash:hubdash /workspace/app.jar app.jar
 USER hubdash
 EXPOSE 8080
 
+# 시간대: 서버가 LocalDateTime.now()로 찍는 createdAt/updatedAt과 "오늘" 계산을 사용자가 입력하는 값(KST)과 맞춘다.
+# 설정하지 않으면 컨테이너 기본값 UTC로 저장돼 9시간 어긋난다(이슈 #120).
+ENV TZ=Asia/Seoul
 # 컨테이너 메모리 한도(cgroup)의 일정 비율만 힙으로 쓴다. 필요하면 JAVA_OPTS로 덮어쓴다.
-ENV JAVA_OPTS="-XX:MaxRAMPercentage=75"
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -Duser.timezone=Asia/Seoul"
 # 이미지는 기본으로 prod 프로파일 — API_KEY/DB_PASSWORD를 빠뜨리면 개발용 기본값으로 뜨지 않고 기동이 실패한다.
 ENV SPRING_PROFILES_ACTIVE=prod
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]
