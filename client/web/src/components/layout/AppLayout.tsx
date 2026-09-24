@@ -1,5 +1,5 @@
 import { Plus, Search } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useProfile } from '../../api/user'
 import { useToday } from '../../hooks/useToday'
@@ -30,6 +30,18 @@ export function AppLayout() {
   const openSearch = useCallback(() => setSearchOpen(true), [])
   const closeSearch = useCallback(() => setSearchOpen(false), [])
   useSearchHotkey(openSearch)
+  // ⌘/Ctrl + . → 홈 (이슈 #201)
+  const navigate = useNavigate()
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key === '.') {
+        e.preventDefault()
+        navigate('/')
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [navigate])
 
   return (
     <QuickRecordProvider>

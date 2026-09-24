@@ -82,12 +82,12 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
     status === 'online' ? 'var(--sb-online)' : status === 'unknown' ? 'var(--sb-offline)' : 'var(--sb-error)'
   const connText =
     status === 'online'
-      ? 'API 연결됨'
+      ? 'API connected'
       : status === 'unauthorized'
-        ? 'API 키 오류'
+        ? 'API key error'
         : status === 'offline'
-          ? '연결 끊김'
-          : '확인 중'
+          ? 'Disconnected'
+          : 'Checking'
 
   return (
     <nav aria-label="주 메뉴" className={s.nav}>
@@ -139,7 +139,7 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
           <button type="button" className={s.search} onClick={onSearch}>
             <Search size={14} strokeWidth={1.8} />
             <span style={{ flexGrow: 1 }}>
-              <span className={s.kbd}>/</span> 로 검색
+              <span className={s.kbd}>/</span> Search
             </span>
             <span className="mono" style={{ fontSize: 11 }}>
               ⌘K
@@ -185,12 +185,12 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
                 <span className={s.dayTitle}>{formatHeaderDate(picked)}</span>
                 {pickedItems.length === 0 ? (
                   <span className={s.subEmpty} style={{ padding: 0 }}>
-                    일정이 없어요
+                    No schedule
                   </span>
                 ) : (
                   pickedItems.map((e) => (
                     <Link key={e.id} to={`/schedule?date=${picked}&event=${e.id}`} className={s.dayItem}>
-                      <span className={s.dayDomain}>{e.allDay ? '종일' : e.startAt.slice(11, 16)}</span>
+                      <span className={s.dayDomain}>{e.allDay ? 'All day' : e.startAt.slice(11, 16)}</span>
                       <span className="ellipsis">{e.title}</span>
                     </Link>
                   ))
@@ -228,8 +228,8 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
             onClick={() => setSemOpen((v) => !v)}
           >
             <ChevronDown size={12} strokeWidth={2.2} aria-hidden="true" />
-            학기
-            {pknu.courses.length > 0 && <span className={s.sectionMeta}>{credits}학점</span>}
+            Semester
+            {pknu.courses.length > 0 && <span className={s.sectionMeta}>{credits} credits</span>}
           </button>
           <div className={s.semRow}>
             {pknu.semesters.length > 0 && (
@@ -259,7 +259,7 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
           </div>
           {semOpen &&
             (pknu.courses.length === 0 ? (
-              <span className={s.subEmpty}>{pknu.isLoading ? '불러오는 중…' : '등록된 과목이 없어요'}</span>
+              <span className={s.subEmpty}>{pknu.isLoading ? 'Loading…' : 'No courses'}</span>
             ) : (
               pknu.courses.map((course) => (
                 <Link key={course.id} to={peekTo('course', course.id)} className={s.subItem}>
@@ -278,11 +278,11 @@ export function Sidebar({ onSearch }: { onSearch: () => void }) {
             onClick={() => setPinOpen((v) => !v)}
           >
             <ChevronDown size={12} strokeWidth={2.2} aria-hidden="true" />
-            고정한 링크
+            Pinned Links
           </button>
           {pinOpen &&
             (pinnedLinks.length === 0 ? (
-              <span className={s.subEmpty}>허브에서 링크를 고정해 보세요</span>
+              <span className={s.subEmpty}>Pin links from Study → Hub</span>
             ) : (
               pinnedLinks.map((l) => (
                 <a key={l.id} href={browserUrl(l.url)} target="_blank" rel="noopener noreferrer" className={s.subItem}>
@@ -348,7 +348,7 @@ function WorkspaceMenu({ onClose, onRefresh }: { onClose: () => void; onRefresh:
         }}
       >
         <Link role="menuitem" to={peekTo('settings', 1)} onClick={onClose} className={s.subItem}>
-          설정 열기
+          Open Settings
         </Link>
         <button
           role="menuitem"
@@ -357,7 +357,7 @@ function WorkspaceMenu({ onClose, onRefresh }: { onClose: () => void; onRefresh:
           className={s.subItem}
           style={{ background: 'transparent', border: 0, textAlign: 'left' }}
         >
-          데이터 새로고침
+          Refresh Data
         </button>
       </div>
     </>

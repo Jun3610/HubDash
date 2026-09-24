@@ -6,11 +6,11 @@ import s from './Layout.module.css'
 import { QuickContext } from './quickContext'
 
 const ITEMS = [
-  { to: '/health?new=meal', icon: Utensils, label: '끼니 추가', sub: '식단' },
-  { to: '/study?new=1', icon: BookOpen, label: '공부 기록', sub: '분 단위' },
-  { to: '/memo?tab=habits', icon: CheckSquare, label: '습관 체크', sub: '오늘' },
-  { to: '/memo?new=1', icon: FileText, label: '메모 쓰기', sub: '마크다운' },
-  { to: '/schedule?new=1', icon: CalendarPlus, label: '일정 추가', sub: '캘린더' },
+  { to: '/health?new=meal', icon: Utensils, label: 'Add Meal', sub: 'Diet' },
+  { to: '/study?new=1', icon: BookOpen, label: 'Log Study', sub: 'Minutes' },
+  { to: '/memo?tab=habits', icon: CheckSquare, label: 'Check Habits', sub: 'Today' },
+  { to: '/memo?new=1', icon: FileText, label: 'Write Memo', sub: 'Markdown' },
+  { to: '/schedule?new=1', icon: CalendarPlus, label: 'Add Schedule', sub: 'Calendar' },
 ]
 
 export function QuickRecordProvider({ children }: { children: ReactNode }) {
@@ -68,7 +68,7 @@ export function QuickRecordProvider({ children }: { children: ReactNode }) {
   return (
     <QuickContext.Provider value={show}>
       {children}
-      <Modal open={open} onClose={() => setOpen(false)} title="빠른 기록 · ⌘↵">
+      <Modal open={open} onClose={() => setOpen(false)} title="Quick Log · ⌘↵">
         <div className={s.quickGrid} role="listbox" aria-label="빠른 기록 항목" onKeyDown={onGridKey}>
           {ITEMS.map((it, i) => (
             <Link

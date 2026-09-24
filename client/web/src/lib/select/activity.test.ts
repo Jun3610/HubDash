@@ -69,7 +69,7 @@ describe('activityOn', () => {
   it('그날 기록만 도메인별로 모은다', () => {
     const items = activityOn(src, '2026-09-22')
     expect(items.map((i) => i.text)).toEqual([
-      '아침 오트밀 · 285kcal',
+      'Breakfast 오트밀 · 285kcal',
       '러닝 40m',
       '07:30 70.2kg',
       '자료구조 1h 30m',
