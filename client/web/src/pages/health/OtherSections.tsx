@@ -1,13 +1,10 @@
 import { Plus } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
 import { healthLogs, workoutLogs } from '../../api/health'
 import { useCreate, useRemove, useUpdate } from '../../api/resource'
-import type { HealthLog, HealthLogWeeklyStat, MealWeeklyStat, WorkoutLog } from '../../api/types'
+import type { HealthLog, WorkoutLog } from '../../api/types'
 import {
-  BarChart,
   Button,
-  Card,
   ConfirmDialog,
   EmptyState,
   Field,
@@ -16,189 +13,14 @@ import {
   Modal,
   QueryState,
   RowActions,
-  SectionHeader,
-  Sparkline,
   Table,
   Textarea,
 } from '../../components/ui'
-import { goalsStore } from '../../config/goals'
-import { formatShortDate, shiftDate, weekStartOf, type LocalDate } from '../../lib/date'
+import { toLocalDateTime, type LocalDate } from '../../lib/date'
 import { num } from '../../lib/format'
-import { sortBy, withinDates } from '../../lib/select/range'
-import { useStore } from '../../lib/storage'
 import { hasErrors, maxLen, numRange, optNum, optStr, required, type Errors } from '../../lib/validate'
-import { SLEEP_GOAL, useBodyLogs, useBodyStats, useMealStats, useWorkouts } from './data'
+import { SLEEP_GOAL, useBodyLogs, useWorkouts } from './data'
 import s from './Health.module.css'
-
-// ================= 오른쪽 칸 =================
-
-export function WeeklyCaloriesCard() {
-  const goals = useStore(goalsStore)
-  const stats = useMealStats()
-  const weeks: MealWeeklyStat[] = sortBy(stats.data?.content ?? [], (w) => w.weekStart)
-  const latest = weeks[weeks.length - 1]
-  return (
-    <Card>
-      <SectionHeader
-        title="주간 평균 칼로리"
-        actions={
-          <span className="muted" style={{ fontSize: 11.5 }}>
-            최근 8주
-          </span>
-        }
-      />
-      <QueryState
-        loading={stats.isLoading}
-        error={stats.error}
-        onRetry={() => void stats.refetch()}
-        empty={weeks.length === 0}
-        emptyView={
-          <EmptyState compact title="주간 통계가 아직 없어요" action={<Link to="/settings">설정에서 계산</Link>} />
-        }
-      >
-        <BarChart
-          label="최근 8주 주간 평균 칼로리"
-          goal={goals.calories}
-          data={weeks.map((w) => ({
-            key: w.weekStart,
-            value: w.avgCalories ?? 0,
-            label: `${w.weekStart} 주 · ${num(w.avgCalories)} kcal`,
-            color: (w.avgCalories ?? 0) > goals.calories ? 'orange' : 'blue',
-          }))}
-          axis={[formatShortDate(weeks[0]?.weekStart ?? ''), formatShortDate(latest?.weekStart ?? '')]}
-        />
-        {latest && (
-          <div className={s.stat3}>
-            <div>
-              <span>평균 단백질</span>
-              <span>{num(latest.avgProteinG)}g</span>
-            </div>
-            <div>
-              <span>평균 탄수</span>
-              <span>{num(latest.avgCarbsG)}g</span>
-            </div>
-            <div>
-              <span>기록 일수</span>
-              <span>{latest.dayCount}/7</span>
-            </div>
-          </div>
-        )}
-      </QueryState>
-    </Card>
-  )
-}
-
-export function WorkoutAsideCard({ today, onAdd }: { today: LocalDate; onAdd: () => void }) {
-  const list = useWorkouts()
-  const items = list.data?.content ?? []
-  const from = weekStartOf(today)
-  const week = withinDates(items, (w) => w.performedAt, from, shiftDate(from, 6))
-  return (
-    <Card>
-      <SectionHeader
-        title="운동"
-        meta={`이번 주 ${week.length}회 · ${num(week.reduce((a, w) => a + w.durationMinutes, 0))}분`}
-        actions={
-          <Button variant="link" size="sm" onClick={onAdd}>
-            + 기록
-          </Button>
-        }
-      />
-      <QueryState
-        loading={list.isLoading}
-        error={list.error}
-        onRetry={() => void list.refetch()}
-        empty={items.length === 0}
-        emptyView={<EmptyState compact title="운동 기록이 없어요" />}
-      >
-        {items.slice(0, 4).map((w) => (
-          <div key={w.id} className={s.wrow} style={{ gridTemplateColumns: '44px minmax(0, 1fr) auto' }}>
-            <span className={s.mono}>{formatShortDate(w.performedAt)}</span>
-            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <span className="ellipsis" style={{ color: 'var(--text-strong)' }}>
-                {w.type}
-              </span>
-              {w.notes && (
-                <span className="ellipsis muted" style={{ fontSize: 11.5 }}>
-                  {w.notes}
-                </span>
-              )}
-            </div>
-            <span className={s.mono} style={{ color: '#b3b3b3' }}>
-              {w.durationMinutes}분
-            </span>
-          </div>
-        ))}
-      </QueryState>
-    </Card>
-  )
-}
-
-export function BodyAsideCard({ onAdd }: { onAdd: () => void }) {
-  const list = useBodyLogs()
-  const logs = sortBy(list.data?.content ?? [], (l) => l.recordedAt) // 오래된 → 최근
-  const weights = logs.filter((l) => l.weightKg !== null)
-  const lastW = weights[weights.length - 1]
-  const prevW = weights[weights.length - 2]
-  const delta = lastW && prevW ? (lastW.weightKg as number) - (prevW.weightKg as number) : null
-  const recent = logs.slice(-7).filter((l) => l.sleepHours !== null)
-  const sleepAvg = recent.length ? recent.reduce((a, l) => a + (l.sleepHours as number), 0) / recent.length : null
-  const tail = logs.slice(-14)
-  return (
-    <Card>
-      <SectionHeader
-        title="체중 · 수면"
-        actions={
-          <Button variant="link" size="sm" onClick={onAdd}>
-            + 기록
-          </Button>
-        }
-      />
-      <QueryState
-        loading={list.isLoading}
-        error={list.error}
-        onRetry={() => void list.refetch()}
-        empty={logs.length === 0}
-        emptyView={<EmptyState compact title="체중·수면 기록이 없어요" />}
-      >
-        <div className={s.body2}>
-          <div className={s.metric}>
-            <span className="muted" style={{ fontSize: 11.5 }}>
-              체중
-            </span>
-            <div className={s.metricValue}>
-              <b>{num(lastW?.weightKg, 1)}</b>
-              <span>kg</span>
-              {delta !== null && (
-                <span className="mono" style={{ color: delta <= 0 ? 'var(--green)' : 'var(--orange)' }}>
-                  {delta > 0 ? '+' : delta < 0 ? '−' : '±'}
-                  {Math.abs(delta).toFixed(1)}
-                </span>
-              )}
-            </div>
-            <Sparkline values={tail.map((l) => l.weightKg)} color="green" label="최근 체중 추이" />
-          </div>
-          <div className={s.metric}>
-            <span className="muted" style={{ fontSize: 11.5 }}>
-              수면 평균
-            </span>
-            <div className={s.metricValue}>
-              <b>{num(sleepAvg, 1)}</b>
-              <span>시간</span>
-              <span
-                className="mono"
-                style={{ color: sleepAvg !== null && sleepAvg < SLEEP_GOAL ? 'var(--orange)' : 'var(--green)' }}
-              >
-                목표 {SLEEP_GOAL}
-              </span>
-            </div>
-            <Sparkline values={tail.map((l) => l.sleepHours)} color="purple" label="최근 수면 추이" />
-          </div>
-        </div>
-      </QueryState>
-    </Card>
-  )
-}
 
 // ================= 탭 본문 =================
 
@@ -337,7 +159,7 @@ export function BodyTab({ onAdd, onEdit }: { onAdd: () => void; onEdit: (l: Heal
             <tbody>
               {items.map((l) => (
                 <tr key={l.id} className="hover-row">
-                  <td className="mono">{l.recordedAt}</td>
+                  <td className="mono">{l.recordedAt.slice(0, 16).replace('T', ' ')}</td>
                   <td className="num mono">{num(l.weightKg, 1)}</td>
                   <td
                     className="num mono"
@@ -347,7 +169,11 @@ export function BodyTab({ onAdd, onEdit }: { onAdd: () => void; onEdit: (l: Heal
                   </td>
                   <td className={`${s.hideMobile} muted`}>{l.notes}</td>
                   <td style={{ textAlign: 'right' }}>
-                    <RowActions label={`${l.recordedAt} 기록`} onEdit={() => onEdit(l)} onDelete={() => setDel(l)} />
+                    <RowActions
+                      label={`${l.recordedAt.slice(0, 16).replace('T', ' ')} 기록`}
+                      onEdit={() => onEdit(l)}
+                      onDelete={() => setDel(l)}
+                    />
                   </td>
                 </tr>
               ))}
@@ -358,117 +184,12 @@ export function BodyTab({ onAdd, onEdit }: { onAdd: () => void; onEdit: (l: Heal
       <ConfirmDialog
         open={!!del}
         title="기록 삭제"
-        message={del && `${del.recordedAt} 기록을 지울까요?`}
+        message={del && `${del.recordedAt.slice(0, 16).replace('T', ' ')} 기록을 지울까요?`}
         busy={remove.isPending}
         onClose={() => setDel(null)}
         onConfirm={() => del && remove.mutate(del.id, { onSuccess: () => setDel(null) })}
       />
     </section>
-  )
-}
-
-export function StatsTab() {
-  const meal = useMealStats()
-  const body = useBodyStats()
-  const mealRows = meal.data?.content ?? []
-  const bodyRows: HealthLogWeeklyStat[] = body.data?.content ?? []
-  return (
-    <>
-      <section className={s.listCard}>
-        <div className={s.listHead}>
-          <h2>식단 주간 통계</h2>
-          <Link to="/settings" style={{ fontSize: 12 }}>
-            다시 계산
-          </Link>
-        </div>
-        <div className={mealRows.length ? undefined : s.pad}>
-          <QueryState
-            loading={meal.isLoading}
-            error={meal.error}
-            onRetry={() => void meal.refetch()}
-            empty={mealRows.length === 0}
-          >
-            <Table>
-              <thead>
-                <tr>
-                  <th scope="col">주 시작</th>
-                  <th scope="col" className="num">
-                    기록 일수
-                  </th>
-                  <th scope="col" className="num">
-                    평균 kcal
-                  </th>
-                  <th scope="col" className="num">
-                    탄
-                  </th>
-                  <th scope="col" className="num">
-                    단
-                  </th>
-                  <th scope="col" className="num">
-                    지
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {mealRows.map((w) => (
-                  <tr key={w.id}>
-                    <td className="mono">{w.weekStart}</td>
-                    <td className="num mono">{w.dayCount}/7</td>
-                    <td className="num mono">{num(w.avgCalories)}</td>
-                    <td className="num mono">{num(w.avgCarbsG)}</td>
-                    <td className="num mono">{num(w.avgProteinG)}</td>
-                    <td className="num mono">{num(w.avgFatG)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </QueryState>
-        </div>
-      </section>
-      <section className={s.listCard}>
-        <div className={s.listHead}>
-          <h2>체중 · 수면 주간 통계</h2>
-          <Link to="/settings" style={{ fontSize: 12 }}>
-            다시 계산
-          </Link>
-        </div>
-        <div className={bodyRows.length ? undefined : s.pad}>
-          <QueryState
-            loading={body.isLoading}
-            error={body.error}
-            onRetry={() => void body.refetch()}
-            empty={bodyRows.length === 0}
-          >
-            <Table>
-              <thead>
-                <tr>
-                  <th scope="col">주 시작</th>
-                  <th scope="col" className="num">
-                    기록 수
-                  </th>
-                  <th scope="col" className="num">
-                    평균 체중
-                  </th>
-                  <th scope="col" className="num">
-                    평균 수면
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {bodyRows.map((w) => (
-                  <tr key={w.id}>
-                    <td className="mono">{w.weekStart}</td>
-                    <td className="num mono">{w.logCount}</td>
-                    <td className="num mono">{num(w.avgWeightKg, 1)}</td>
-                    <td className="num mono">{num(w.avgSleepHours, 1)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </QueryState>
-        </div>
-      </section>
-    </>
   )
 }
 
@@ -555,7 +276,8 @@ export function WorkoutModal({ today, log, onClose }: { today: LocalDate; log?: 
 
 export function BodyModal({ today, log, onClose }: { today: LocalDate; log?: HealthLog; onClose: () => void }) {
   const [d, setD] = useState({
-    recordedAt: log?.recordedAt ?? today,
+    recordedAt: log?.recordedAt.slice(0, 10) ?? today,
+    time: log ? log.recordedAt.slice(11, 16) : toLocalDateTime(new Date()).slice(11, 16),
     weightKg: log?.weightKg != null ? String(log.weightKg) : '',
     sleepHours: log?.sleepHours != null ? String(log.sleepHours) : '',
     notes: log?.notes ?? '',
@@ -568,6 +290,7 @@ export function BodyModal({ today, log, onClose }: { today: LocalDate; log?: Hea
     e.preventDefault()
     const errs = {
       recordedAt: required(d.recordedAt, '날짜'),
+      time: required(d.time, '시각'),
       weightKg: numRange(d.weightKg, 1, 500),
       sleepHours: numRange(d.sleepHours, 0, 24),
       notes: maxLen(d.notes, 500),
@@ -576,7 +299,7 @@ export function BodyModal({ today, log, onClose }: { today: LocalDate; log?: Hea
     setErrors(errs)
     if (hasErrors(errs)) return
     const body = {
-      recordedAt: d.recordedAt,
+      recordedAt: `${d.recordedAt}T${d.time}:00`,
       weightKg: optNum(d.weightKg),
       sleepHours: optNum(d.sleepHours),
       notes: optStr(d.notes),
@@ -601,8 +324,11 @@ export function BodyModal({ today, log, onClose }: { today: LocalDate; log?: Hea
       }
     >
       <form id="body-form" onSubmit={submit} noValidate className={s.formGrid}>
-        <Field label="날짜" required error={errors.recordedAt} className={s.full}>
+        <Field label="날짜" required error={errors.recordedAt}>
           <Input type="date" mono value={d.recordedAt} onChange={set('recordedAt')} />
+        </Field>
+        <Field label="시각" required error={errors.time}>
+          <Input type="time" mono value={d.time} onChange={set('time')} />
         </Field>
         <Field label="체중 (kg)" error={errors.weightKg ?? errors.both}>
           <Input mono inputMode="decimal" value={d.weightKg} onChange={set('weightKg')} />

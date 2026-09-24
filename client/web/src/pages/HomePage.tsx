@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { mealRecords, useDailySummary, workoutLogs } from '../api/health'
+import { mealRecords, useDietGoal, workoutLogs } from '../api/health'
 import { memos } from '../api/memo'
 import { BIG_PAGE, useList, useListsByParent } from '../api/resource'
 import { studyProgresses, studyTopics } from '../api/study'
@@ -38,7 +38,8 @@ import { useToday } from '../hooks/useToday'
 import { datePart, formatHeaderDate, formatMinutes, shiftDate, weekDays, weekStartOf } from '../lib/date'
 import { initials, num, pct, splitTags } from '../lib/format'
 import { totalIn } from '../lib/heatmap'
-import { withinDates, withinDateTimes } from '../lib/select/range'
+import { dayTotals, dietRows, goalState, mealsOn, ruleText } from '../lib/select/diet'
+import { withinDates } from '../lib/select/range'
 import { eventsOn, eventTimeLabel } from '../lib/select/schedule'
 import { useStore } from '../lib/storage'
 import s from './home/Home.module.css'
@@ -144,9 +145,10 @@ function useWeekStudy() {
 function Kpis() {
   const today = useToday()
   const goals = useStore(goalsStore)
-  const summary = useDailySummary(today)
+  const goal = useDietGoal()
+  const recs = useList(mealRecords, { size: YEAR_PAGE, sort: 'consumedAt,desc' })
+  const t = dayTotals(recs.data?.content ?? [], today)
   const study = useWeekStudy()
-  const t = summary.data?.totals
   const workouts = useList(workoutLogs, { size: BIG_PAGE, sort: 'performedAt,desc' })
   const from = weekStartOf(today)
   const weekWorkouts = withinDates(workouts.data?.content ?? [], (w) => w.performedAt, from, shiftDate(from, 6))
@@ -156,17 +158,17 @@ function Kpis() {
     <section aria-label="오늘 요약" className={s.kpis}>
       <KpiTile
         label="오늘 섭취"
-        value={dash(summary.isLoading, num(t?.calories ?? 0))}
-        unit={`/ ${num(goals.calories)} kcal`}
-        progress={pct(t?.calories ?? 0, goals.calories)}
+        value={dash(recs.isLoading, num(t.kcal))}
+        unit={goal.data?.calories ? `/ ${num(goal.data.calories)} kcal` : 'kcal'}
+        progress={goal.data?.calories ? pct(t.kcal, goal.data.calories) : undefined}
         color="blue"
-        over={(t?.calories ?? 0) > goals.calories}
+        over={goalState(t.kcal, goal.data?.calories, goal.data?.caloriesRule ?? 'AT_MOST') === 'over'}
       />
       <KpiTile
         label="단백질"
-        value={dash(summary.isLoading, num(t?.proteinG ?? 0))}
-        unit={`/ ${num(goals.proteinG)} g`}
-        progress={pct(t?.proteinG ?? 0, goals.proteinG)}
+        value={dash(recs.isLoading, num(t.proteinG))}
+        unit={goal.data?.proteinG ? `/ ${num(goal.data.proteinG)} g` : 'g'}
+        progress={goal.data?.proteinG ? pct(t.proteinG, goal.data.proteinG) : undefined}
         color="green"
       />
       <KpiTile
@@ -390,109 +392,52 @@ function HabitsCard() {
 
 function DietCard() {
   const today = useToday()
-  const goals = useStore(goalsStore)
-  const summary = useDailySummary(today)
+  const goal = useDietGoal()
   const recs = useList(mealRecords, { size: YEAR_PAGE, sort: 'consumedAt,desc' })
-  const todays = withinDateTimes(recs.data?.content ?? [], (r) => r.consumedAt, today, today)
-  const t = summary.data?.totals
-  const macros: {
-    label: string
-    val: string
-    limit: string
-    value: number
-    goal: number
-    color: BarColor
-    over: boolean
-  }[] = t
-    ? [
-        {
-          label: '칼로리',
-          val: num(t.calories),
-          limit: `목표 ${num(goals.calories)}`,
-          value: t.calories,
-          goal: goals.calories,
-          color: 'blue',
-          over: t.calories > goals.calories,
-        },
-        {
-          label: '단백질',
-          val: `${num(t.proteinG)}g`,
-          limit: `${num(goals.proteinG)} 이상`,
-          value: t.proteinG,
-          goal: goals.proteinG,
-          color: 'green',
-          over: false,
-        },
-        {
-          label: '탄수',
-          val: `${num(t.carbsG)}g`,
-          limit: `${num(goals.carbsG)} 이하`,
-          value: t.carbsG,
-          goal: goals.carbsG,
-          color: 'yellow',
-          over: t.carbsG > goals.carbsG,
-        },
-        {
-          label: '지방',
-          val: `${num(t.fatG)}g`,
-          limit: `${num(goals.fatG)} 이하`,
-          value: t.fatG,
-          goal: goals.fatG,
-          color: 'orange',
-          over: t.fatG > goals.fatG,
-        },
-        {
-          label: '나트륨',
-          val: num(t.sodiumMg),
-          limit: `${num(goals.sodiumMg)}mg 대`,
-          value: t.sodiumMg,
-          goal: goals.sodiumMg,
-          color: 'red',
-          over: t.sodiumMg > goals.sodiumMg,
-        },
-      ]
-    : []
+  const all = recs.data?.content ?? []
+  const meals = mealsOn(all, today)
+  const rows = dietRows(goal.data, dayTotals(all, today))
+  const hasGoal = rows.some((r) => r.goal !== null)
   return (
-    <Card className={s.span2}>
+    <Card>
       <SectionHeader
         title="오늘 식단"
-        meta={
-          <span className={s.desktopOnly}>
-            목표 {num(goals.calories)} kcal · 단백질 {num(goals.proteinG)}g
-          </span>
-        }
-        actions={<Link to="/health">건강</Link>}
+        meta={!hasGoal && <span className={s.desktopOnly}>식단 목표는 건강 화면에서 정해요</span>}
+        actions={<Link to="/health?tab=meal">건강</Link>}
       />
-      <QueryState loading={summary.isLoading} error={summary.error} onRetry={() => void summary.refetch()} lines={3}>
+      <QueryState loading={recs.isLoading} error={recs.error} onRetry={() => void recs.refetch()} lines={3}>
         <div className={s.macros}>
-          {macros.map((m) => (
-            <div key={m.label} className={s.macro}>
-              <div className={s.macroHead}>
-                <span>{m.label}</span>
-                <span>{m.val}</span>
+          {rows.map((r) => {
+            const st = goalState(r.value, r.goal, r.rule)
+            return (
+              <div key={r.key} className={s.macro}>
+                <div className={s.macroHead}>
+                  <span>{r.label}</span>
+                  <span>
+                    {num(r.value, r.key === 'calories' ? 0 : 1)}
+                    {r.unit === 'g' ? 'g' : ''}
+                  </span>
+                </div>
+                {r.goal !== null ? (
+                  <ProgressBar value={pct(r.value, r.goal)} color={r.color} over={st === 'over'} label={r.label} />
+                ) : (
+                  <div className={s.noGoalTrack} />
+                )}
+                <span className={s.limit}>{ruleText(r.goal, r.rule, r.unit)}</span>
               </div>
-              <ProgressBar
-                value={pct(m.value, m.goal)}
-                color={m.color}
-                over={m.over && m.color !== 'red'}
-                label={m.label}
-              />
-              <span className={s.limit}>{m.limit}</span>
-            </div>
-          ))}
+            )
+          })}
         </div>
         <div className={s.meals}>
           {MEAL_TYPES.map((type) => {
-            const sum = summary.data?.meals.find((m) => m.mealType === type)
-            const names = todays.filter((r) => r.mealType === type).flatMap((r) => r.items.map((i) => i.name))
-            const has = (sum?.itemCount ?? 0) > 0
+            const m = meals[type]
             return (
-              <Link key={type} to="/health" className={s.meal}>
+              <Link key={type} to="/health?tab=meal" className={s.meal}>
                 <div className={s.mealHead}>
                   <span>{MEAL_TYPE_KO[type]}</span>
-                  <span>{has ? num(sum!.totals.calories) : '—'}</span>
+                  <span>{m ? num(m.kcal) : '—'}</span>
                 </div>
-                <span className={cx(s.sub, 'ellipsis')}>{names.length ? names.join(', ') : '기록 없음'}</span>
+                <span className={cx(s.sub, 'ellipsis')}>{m ? m.title || '제목 없음' : '기록 없음'}</span>
               </Link>
             )
           })}

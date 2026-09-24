@@ -152,12 +152,27 @@ export interface WorkoutLogRequest {
 export type WorkoutLog = Required<WorkoutLogRequest> & Timestamps
 
 export interface HealthLogRequest {
-  recordedAt: LocalDate
+  recordedAt: LocalDateTime // 날짜+시각 (이슈 #137)
   weightKg?: number | null
   sleepHours?: number | null // 0–24
   notes?: string | null
 }
 export type HealthLog = Required<HealthLogRequest> & Timestamps
+
+export type GoalRule = 'AT_MOST' | 'AT_LEAST'
+
+/** 식단 목표. 값이 null이면 그 항목은 목표 없음 (사용자가 건강 화면에서 정함) */
+export interface DietGoalRequest {
+  carbsG: number | null
+  carbsRule: GoalRule
+  fatG: number | null
+  fatRule: GoalRule
+  proteinG: number | null
+  proteinRule: GoalRule
+  calories: number | null
+  caloriesRule: GoalRule
+}
+export type DietGoal = DietGoalRequest & Timestamps
 
 // ---- Schedule ----
 export interface EventRequest {

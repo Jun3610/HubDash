@@ -279,11 +279,6 @@ function NotificationSection() {
 // ---- 목표 · 학기 다짐 (서버에 없어서 이 브라우저에 저장) ----
 
 const GOAL_FIELDS: { key: keyof Goals; label: string; unit: string }[] = [
-  { key: 'calories', label: '칼로리', unit: 'kcal' },
-  { key: 'proteinG', label: '단백질 이상', unit: 'g' },
-  { key: 'carbsG', label: '탄수 이하', unit: 'g' },
-  { key: 'fatG', label: '지방 이하', unit: 'g' },
-  { key: 'sodiumMg', label: '나트륨', unit: 'mg' },
   { key: 'studyWeekMinutes', label: '주간 공부', unit: '분' },
 ]
 
@@ -301,7 +296,7 @@ function GoalsSection() {
   }
 
   return (
-    <Section title="목표 · 학기 다짐" path="이 브라우저에 저장">
+    <Section title="공부 목표 · 학기 다짐" path="이 브라우저에 저장">
       <div className={s.body}>
         <div className={s.goals}>
           {GOAL_FIELDS.map((g) => (
@@ -320,7 +315,7 @@ function GoalsSection() {
           ))}
         </div>
         <div className={s.actions} style={{ justifyContent: 'space-between' }}>
-          <span className={s.note}>홈과 건강 화면의 목표 대비 막대에 쓰여요.</span>
+          <span className={s.note}>식단 목표는 건강 화면의 '식단 목표'에서 정해요.</span>
           <Button size="sm" variant="ghost" onClick={() => goalsStore.set(DEFAULT_GOALS)}>
             기본값으로
           </Button>

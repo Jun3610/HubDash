@@ -229,3 +229,134 @@ export function Sparkline({
     </svg>
   )
 }
+
+export interface StackDatum {
+  key: string
+  parts: { value: number; color: BarColor; label: string }[]
+  title?: string
+}
+
+/** 누적 세로 막대 (날짜별 탄수·지방·단백질 칼로리 등). goal이 있으면 점선 */
+export function StackedBarChart({
+  data,
+  height = 140,
+  goal,
+  goalLabel,
+  axis,
+  label,
+}: {
+  data: StackDatum[]
+  height?: number
+  goal?: number | null
+  goalLabel?: string
+  axis?: [ReactNode, ReactNode]
+  label: string
+}) {
+  const totals = data.map((d) => d.parts.reduce((a, p) => a + p.value, 0))
+  const top = Math.max(goal ? goal * 1.2 : 0, ...totals, 1)
+  return (
+    <div>
+      <div className={s.bars} style={{ height, gap: 4 }} role="img" aria-label={label}>
+        {goal ? (
+          <>
+            <div className={s.goalLine} style={{ bottom: `${(goal / top) * 100}%` }} />
+            <span className={s.goalLabel} style={{ bottom: `${(goal / top) * 100}%` }}>
+              {goalLabel ?? goal.toLocaleString()}
+            </span>
+          </>
+        ) : null}
+        {data.map((d, i) => (
+          <div key={d.key} className={s.barCol} title={d.title}>
+            <div className={s.stack} style={{ height: `${(totals[i] / top) * 100}%` }}>
+              {d.parts.map((p) =>
+                p.value > 0 ? <div key={p.label} style={{ flexGrow: p.value, background: barVar(p.color) }} /> : null,
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      {axis && (
+        <div className={s.barAxis}>
+          <span>{axis[0]}</span>
+          <span>{axis[1]}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** 선 그래프 (체중 추이 등). 값이 없는 칸은 건너뛰고, 최솟값·최댓값을 왼쪽에 표시 */
+export function LineChart({
+  points,
+  height = 120,
+  color = 'green',
+  label,
+  unit = '',
+  digits = 1,
+  axis,
+}: {
+  points: { key: string; value: number | null; title?: string }[]
+  height?: number
+  color?: BarColor
+  label: string
+  unit?: string
+  digits?: number
+  axis?: [ReactNode, ReactNode]
+}) {
+  const vals = points.map((p) => p.value).filter((v): v is number => v !== null)
+  if (vals.length === 0) {
+    return <div className={s.lineEmpty}>{label} — 기록이 없어요</div>
+  }
+  const min = Math.min(...vals)
+  const max = Math.max(...vals)
+  const pad = (max - min || 1) * 0.15
+  const lo = min - pad
+  const hi = max + pad
+  const w = 100
+  const n = Math.max(points.length - 1, 1)
+  const xy = points
+    .map((p, i) => (p.value === null ? null : { x: (i / n) * w, y: ((hi - p.value) / (hi - lo)) * 100, p }))
+    .filter((v): v is { x: number; y: number; p: (typeof points)[number] } => v !== null)
+  return (
+    <div className={s.line}>
+      <div className={s.lineScale} aria-hidden="true">
+        <span>
+          {max.toFixed(digits)}
+          {unit}
+        </span>
+        <span>
+          {min.toFixed(digits)}
+          {unit}
+        </span>
+      </div>
+      <div style={{ flexGrow: 1, minWidth: 0 }}>
+        <div className={s.linePlot} style={{ height }} role="img" aria-label={label}>
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" width="100%" height="100%">
+            <polyline
+              points={xy.map((c) => `${c.x},${c.y}`).join(' ')}
+              fill="none"
+              stroke={barVar(color)}
+              strokeWidth={2}
+              vectorEffect="non-scaling-stroke"
+              strokeLinejoin="round"
+            />
+          </svg>
+          {xy.map((c) => (
+            <span
+              key={c.p.key}
+              className={s.lineDot}
+              style={{ left: `${c.x}%`, top: `${c.y}%`, background: barVar(color) }}
+              title={c.p.title ?? `${c.p.value}${unit}`}
+            />
+          ))}
+        </div>
+        {axis && (
+          <div className={s.barAxis}>
+            <span>{axis[0]}</span>
+            <span>{axis[1]}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
