@@ -254,7 +254,7 @@ function CourseDashboard({
         </span>
       </Card>
 
-      <Card>
+      <Card className={s.memoCard}>
         <SectionHeader
           title="과목 메모"
           meta={
@@ -274,6 +274,7 @@ function CourseDashboard({
           value={course.memo ?? ''}
           onChange={setMemo}
           placeholder="시험 범위, 과제 방식 같은 걸 적어 두세요 — # 제목, - 목록, [] 할 일"
+          className={s.memoEditor}
         />
         <span className={s.memoCount} data-over={memo.length > MEMO_MAX}>
           {memo.length.toLocaleString()} / {MEMO_MAX.toLocaleString()}
