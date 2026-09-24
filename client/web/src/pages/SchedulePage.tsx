@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Search, Trash2, X } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useCreate, useRemove, useUpdate } from '../api/resource'
@@ -43,6 +43,7 @@ import {
   GRID_START_HOUR,
   monthGrid,
   placeDay,
+  searchEvents,
   timeRange,
   upcoming,
 } from '../lib/select/schedule'
@@ -65,6 +66,7 @@ export default function SchedulePage() {
   const [selectedId, setSelectedId] = useUrlState('event', '')
   const [params, setParams] = useSearchParams()
   const [dialog, setDialog] = useState<{ event?: ScheduleEvent; date?: LocalDate } | null>(null)
+  const [q, setQ] = useState('')
   const list = useAllEvents()
   const all = list.data?.content ?? []
   const selected = all.find((e) => String(e.id) === selectedId) ?? null
@@ -95,6 +97,21 @@ export default function SchedulePage() {
       setAnchor(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`)
     }
   }
+  // 검색 결과를 누르면 그 날짜로 가서 선택 (주소를 한 번에 바꾼다)
+  const jumpTo = (e: ScheduleEvent) => {
+    setParams(
+      (p) => {
+        const n = new URLSearchParams(p)
+        n.set('date', datePart(e.startAt))
+        n.set('event', String(e.id))
+        if (n.get('view') === 'list') n.delete('view')
+        return n
+      },
+      { replace: true },
+    )
+    setQ('')
+  }
+  const found = searchEvents(all, q)
   const days = weekDays(anchor)
   const rangeLabel =
     view === 'week'
@@ -144,6 +161,27 @@ export default function SchedulePage() {
           </div>
         }
       >
+        <label className={s.search}>
+          <Search size={14} />
+          <input
+            type="text"
+            placeholder="일정 검색 · 제목 · 장소 · 메모"
+            aria-label="일정 검색"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' && q) {
+                e.stopPropagation()
+                setQ('')
+              } else if (e.key === 'Enter' && found[0]) jumpTo(found[0])
+            }}
+          />
+          {q && (
+            <IconButton label="검색어 지우기" size="sm" onClick={() => setQ('')}>
+              <X size={13} />
+            </IconButton>
+          )}
+        </label>
         <Button variant="primary" icon={<Plus size={14} />} onClick={() => setDialog({ date: anchor })}>
           일정 추가
         </Button>
@@ -155,7 +193,8 @@ export default function SchedulePage() {
           className={s.cal}
         >
           <QueryState loading={list.isLoading} error={list.error} onRetry={() => void list.refetch()} lines={8}>
-            {view === 'week' && (
+            {q.trim() && <SearchResults query={q} events={found} onPick={jumpTo} />}
+            {!q.trim() && view === 'week' && (
               <WeekView
                 days={days}
                 today={today}
@@ -165,7 +204,7 @@ export default function SchedulePage() {
                 onSelect={(e) => setSelectedId(String(e.id))}
               />
             )}
-            {view === 'month' && (
+            {!q.trim() && view === 'month' && (
               <MonthView
                 anchor={anchor}
                 today={today}
@@ -178,7 +217,7 @@ export default function SchedulePage() {
                 }}
               />
             )}
-            {view === 'list' && (
+            {!q.trim() && view === 'list' && (
               <ListView
                 anchor={anchor}
                 today={today}
@@ -444,6 +483,52 @@ function ListView({
           </div>
         </div>
       ))}
+    </div>
+  )
+}
+
+// ---- 검색 결과 (이슈 #160) ----
+
+function SearchResults({
+  query,
+  events,
+  onPick,
+}: {
+  query: string
+  events: ScheduleEvent[]
+  onPick: (e: ScheduleEvent) => void
+}) {
+  return (
+    <div className={s.box}>
+      <div className={s.boxHead}>
+        <h2>"{query.trim()}" 검색</h2>
+        <span className="muted" style={{ marginLeft: 'auto', fontSize: 12 }}>
+          {events.length}건 · 누르면 그 날짜로
+        </span>
+      </div>
+      {events.length === 0 ? (
+        <div style={{ padding: 14 }}>
+          <EmptyState compact title="찾는 일정이 없어요" />
+        </div>
+      ) : (
+        <ul className={s.results}>
+          {events.slice(0, 100).map((e) => {
+            const d = datePart(e.startAt)
+            return (
+              <li key={e.id}>
+                <button type="button" className={s.result} onClick={() => onPick(e)}>
+                  <span className="mono muted">
+                    {d.replaceAll('-', '.')} {weekdayKo(d)}
+                  </span>
+                  <span className="mono muted">{e.allDay ? '종일' : timeRange(e)}</span>
+                  <span className={s.resultTitle}>{e.title}</span>
+                  {e.location && <span className="muted ellipsis">{e.location}</span>}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
     </div>
   )
 }

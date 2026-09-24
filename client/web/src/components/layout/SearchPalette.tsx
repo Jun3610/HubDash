@@ -1,22 +1,25 @@
-import { FileText, Link2, Search } from 'lucide-react'
+import { CalendarDays, FileText, Link2, Search } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { memos } from '../../api/memo'
 import { BIG_PAGE, useList } from '../../api/resource'
+import { useAllEvents } from '../../hooks/useEvents'
 import { hostOf, useAllHubLinks } from '../../hooks/useHub'
+import { datePart } from '../../lib/date'
+import { searchEvents, timeRange } from '../../lib/select/schedule'
 import { browserUrl } from '../../lib/url'
 import s from './Search.module.css'
 
 interface Hit {
   key: string
-  group: '메모' | '허브 링크'
+  group: '메모' | '일정' | '허브 링크'
   title: string
   meta: string
   run: () => void
 }
 
-/** 전역 검색: 메모 제목, 허브 링크 */
+/** 전역 검색: 메모 제목, 일정(#160), 허브 링크 */
 export function SearchPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
   // 열 때마다 새로 마운트해 검색어·선택을 초기화한다
   return open ? <Palette onClose={onClose} /> : null
@@ -29,6 +32,7 @@ function Palette({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate()
   const memoList = useList(memos, { size: BIG_PAGE, sort: 'updatedAt,desc' })
   const hub = useAllHubLinks()
+  const eventList = useAllEvents()
 
   useEffect(() => inputRef.current?.focus(), [])
 
@@ -50,6 +54,17 @@ function Palette({ onClose }: { onClose: () => void }) {
           run: go(`/memo?id=${m.id}`),
         })
     }
+    // 일정은 검색어가 있을 때만 (300건이 넘어서)
+    for (const e of searchEvents(eventList.data?.content ?? [], needle)) {
+      const d = datePart(e.startAt)
+      out.push({
+        key: `e${e.id}`,
+        group: '일정',
+        title: e.title,
+        meta: `${d.slice(2).replaceAll('-', '.')} ${e.allDay ? '종일' : timeRange(e)}`,
+        run: go(`/schedule?date=${d}&event=${e.id}`),
+      })
+    }
     for (const l of hub.links) {
       if (match(l.title) || (needle && match(l.url)))
         out.push({
@@ -65,9 +80,10 @@ function Palette({ onClose }: { onClose: () => void }) {
     }
     // 그룹별 최대 8개
     const limited: Hit[] = []
-    for (const g of ['메모', '허브 링크'] as const) limited.push(...out.filter((h) => h.group === g).slice(0, 8))
+    for (const g of ['메모', '일정', '허브 링크'] as const)
+      limited.push(...out.filter((h) => h.group === g).slice(0, 8))
     return limited
-  }, [q, memoList.data, hub.links, navigate, onClose])
+  }, [q, memoList.data, eventList.data, hub.links, navigate, onClose])
 
   const onKey = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') onClose()
@@ -82,7 +98,7 @@ function Palette({ onClose }: { onClose: () => void }) {
     }
   }
 
-  const ICON = { 메모: FileText, '허브 링크': Link2 }
+  const ICON = { 메모: FileText, 일정: CalendarDays, '허브 링크': Link2 }
   let lastGroup = ''
 
   return createPortal(
@@ -93,7 +109,7 @@ function Palette({ onClose }: { onClose: () => void }) {
           <input
             ref={inputRef}
             className={s.input}
-            placeholder="메모, 허브 링크 검색"
+            placeholder="메모, 일정, 허브 링크 검색"
             value={q}
             onChange={(e) => {
               setQ(e.target.value)

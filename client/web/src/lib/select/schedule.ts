@@ -113,3 +113,15 @@ export function upcoming(events: ScheduleEvent[], now: string, days = 7): Schedu
     (e) => e.startAt,
   )
 }
+
+/** 일정 검색: 제목·장소·메모에 들어 있으면 (대소문자 무시), 최근 시작 순 (이슈 #160) */
+export function searchEvents(events: ScheduleEvent[], query: string): ScheduleEvent[] {
+  const needle = query.trim().toLowerCase()
+  if (!needle) return []
+  const hit = (s: string | null) => (s ?? '').toLowerCase().includes(needle)
+  return sortBy(
+    events.filter((e) => hit(e.title) || hit(e.location) || hit(e.description)),
+    (e) => e.startAt,
+    'desc',
+  )
+}
