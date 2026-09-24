@@ -40,9 +40,14 @@ export function AppLayout() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return
-      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
       const el = e.target as HTMLElement
       if (el.closest('input, textarea, select, [contenteditable="true"]')) return
+      // ⌘←/→는 브라우저 뒤로/앞으로 — 기본 화면에서는 아무 동작 없게 (식단 창은 따로 주 이동에 씀, 이슈 #215)
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault()
+        return
+      }
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
       if (document.querySelector('[role="dialog"]')) return
       const items = orderedNav(navOrder)
       const cur = items.findIndex((n) => (n.to === '/' ? pathname === '/' : pathname.startsWith(n.to)))

@@ -143,7 +143,43 @@ export function DaySummary({
           {MACROS.map((m) => `${m.label} ${share[m.key]}%`).join(' · ')}
         </span>
       </div>
-      <div className={s.macros}>
+      {column && (
+        // 식단 창 오른쪽: 한 줄짜리 탄단지 (이슈 #215). 색은 탄단지 색만, 넘으면 값만 빨강
+        <ul className={s.compactMacros}>
+          {rows.map((r) => {
+            const st = goalState(r.value, r.goal, r.rule)
+            const color = r.key === 'calories' ? 'blue' : r.color
+            return (
+              <li key={r.key}>
+                <div className={s.compactHead}>
+                  <i style={{ background: barVar(color) }} />
+                  <span className={s.compactLabel}>{r.label}</span>
+                  <span className={s.compactValue} data-over={st === 'over'}>
+                    {num(r.value, r.key === 'calories' ? 0 : 1)}
+                    {r.goal !== null && (
+                      <small>
+                        {' '}
+                        / {r.rule === 'AT_MOST' ? '≤' : '≥'}
+                        {num(r.goal)}
+                      </small>
+                    )}
+                    <small> {r.unit}</small>
+                  </span>
+                </div>
+                <div className={s.compactTrack}>
+                  <span
+                    style={{
+                      width: `${r.goal ? Math.min(100, pct(r.value, r.goal)) : 0}%`,
+                      background: barVar(st === 'over' ? 'red' : color),
+                    }}
+                  />
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      <div className={s.macros} hidden={column}>
         {rows.map((r) => {
           const st = goalState(r.value, r.goal, r.rule)
           return (

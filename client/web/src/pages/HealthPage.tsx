@@ -78,13 +78,15 @@ export default function HealthPage() {
     if (peek !== 'meal') return
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
-      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return
+      if (e.altKey || e.shiftKey) return
       const el = e.target as HTMLElement
       if (el.closest('input, textarea, select, [contenteditable="true"]')) return
       if (document.querySelectorAll('[role="dialog"]').length > 1) return
       e.preventDefault()
       const { date: d, setDate: go } = dateRef.current
-      go(shiftDate(d, e.key === 'ArrowLeft' ? -7 : 7)) // 한 번에 일주일 (이슈 #205)
+      // ←/→ 하루씩, ⌘←/→ 일주일씩 (이슈 #215)
+      const step = e.metaKey || e.ctrlKey ? 7 : 1
+      go(shiftDate(d, e.key === 'ArrowLeft' ? -step : step))
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)

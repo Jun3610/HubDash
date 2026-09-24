@@ -568,3 +568,56 @@
     gap: 3px;
   }
 }
+
+/* 식단 창 오른쪽 한 줄짜리 탄단지 (이슈 #215) */
+.compactMacros {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.compactHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13.5px;
+}
+.compactHead i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  align-self: center;
+}
+.compactLabel {
+  color: var(--text-body);
+}
+.compactValue {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+.compactValue small {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.compactValue[data-over='true'] {
+  color: var(--red);
+}
+.compactTrack {
+  margin-top: 5px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--track);
+  overflow: hidden;
+}
+.compactTrack span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+}
+.summaryColumn [hidden] {
+  display: none !important;
+}
