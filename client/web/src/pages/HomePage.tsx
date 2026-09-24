@@ -51,7 +51,7 @@ export default function HomePage() {
   const range = useYearRange()
   return (
     <>
-      <PageHeader title="Home" hideOnMobile>
+      <PageHeader hideOnMobile>
         <span className="mono muted" style={{ fontSize: 12 }}>
           {formatHeaderDate(today)}
         </span>
