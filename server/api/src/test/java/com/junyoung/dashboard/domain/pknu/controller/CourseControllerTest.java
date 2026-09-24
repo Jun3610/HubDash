@@ -44,8 +44,8 @@ class CourseControllerTest {
 
     @Test
     void createsCourse() throws Exception {
-        CourseRequest request = new CourseRequest(1L, "자료구조", "김교수", 3, null);
-        CourseResponse response = new CourseResponse(1L, 1L, "자료구조", "김교수", 3, null, LocalDateTime.now(), LocalDateTime.now());
+        CourseRequest request = new CourseRequest(1L, "자료구조", "김교수", 3, null, null, null);
+        CourseResponse response = new CourseResponse(1L, 1L, "자료구조", "김교수", 3, null, null, null, LocalDateTime.now(), LocalDateTime.now());
         when(courseService.create(request)).thenReturn(response);
 
         mockMvc.perform(post("/api/pknu/courses")
@@ -57,7 +57,7 @@ class CourseControllerTest {
 
     @Test
     void rejectsCreditOutOfRange() throws Exception {
-        CourseRequest invalid = new CourseRequest(1L, "자료구조", "김교수", 7, null);
+        CourseRequest invalid = new CourseRequest(1L, "자료구조", "김교수", 7, null, null, null);
 
         mockMvc.perform(post("/api/pknu/courses")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -69,11 +69,39 @@ class CourseControllerTest {
     @Test
     void listsCoursesBySemesterId() throws Exception {
         when(courseService.findBySemesterId(eq(1L), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(
-                new CourseResponse(1L, 1L, "자료구조", "김교수", 3, null, LocalDateTime.now(), LocalDateTime.now())
+                new CourseResponse(1L, 1L, "자료구조", "김교수", 3, null, null, null, LocalDateTime.now(), LocalDateTime.now())
         )));
 
         mockMvc.perform(get("/api/pknu/courses").param("semesterId", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content[0].name").value("자료구조"));
+    }
+
+    @Test
+    void rejectsGradeOutsideFourPointFiveScale() throws Exception {
+        for (String grade : new String[]{"A", "E", "a+", "A++", "P"}) {
+            CourseRequest invalid = new CourseRequest(1L, "자료구조", null, 3, null, grade, null);
+
+            mockMvc.perform(post("/api/pknu/courses")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(invalid)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.errorCode").value("INVALID_REQUEST"));
+        }
+    }
+
+    @Test
+    void acceptsEveryGradeOnScale() throws Exception {
+        for (String grade : new String[]{"A+", "A0", "B+", "B0", "C+", "C0", "D+", "D0", "F"}) {
+            CourseRequest request = new CourseRequest(1L, "자료구조", null, 3, null, grade, "메모");
+            when(courseService.create(request)).thenReturn(new CourseResponse(1L, 1L, "자료구조", null, 3, null, grade, "메모",
+                    LocalDateTime.now(), LocalDateTime.now()));
+
+            mockMvc.perform(post("/api/pknu/courses")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.data.grade").value(grade));
+        }
     }
 }

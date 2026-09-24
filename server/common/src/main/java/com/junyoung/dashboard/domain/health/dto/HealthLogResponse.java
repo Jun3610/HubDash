@@ -2,12 +2,11 @@ package com.junyoung.dashboard.domain.health.dto;
 
 import com.junyoung.dashboard.domain.health.entity.HealthLog;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record HealthLogResponse(
         Long id,
-        LocalDate recordedAt,
+        LocalDateTime recordedAt,
         Double weightKg,
         Double sleepHours,
         String notes,

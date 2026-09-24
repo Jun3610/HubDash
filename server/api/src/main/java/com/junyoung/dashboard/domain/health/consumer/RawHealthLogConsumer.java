@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 
 // 검증 실패는 "일시적 장애"가 아니라 "비즈니스 실패"다 — 예외를 던져 Kafka가 무한 재시도/재배달하게 만들지 않고,
@@ -46,9 +47,9 @@ public class RawHealthLogConsumer {
             return;
         }
 
-        LocalDate recordedAt;
+        LocalDateTime recordedAt;
         try {
-            recordedAt = LocalDate.parse(raw.getRecordedAtRaw());
+            recordedAt = parseRecordedAt(raw.getRecordedAtRaw());
         } catch (DateTimeParseException e) {
             raw.markFailed("recordedAtRaw 파싱 실패: " + raw.getRecordedAtRaw());
             return;
@@ -77,5 +78,11 @@ public class RawHealthLogConsumer {
 
         healthLogRepository.save(new HealthLog(recordedAt, weightKg, sleepHours, raw.getNotes()));
         raw.markProcessed();
+    }
+
+    /** "2026-09-24"(자정으로) 또는 "2026-09-24T07:30"처럼 시각이 있는 값을 모두 받는다 */
+    static LocalDateTime parseRecordedAt(String raw) {
+        String value = raw.trim();
+        return value.contains("T") ? LocalDateTime.parse(value) : LocalDate.parse(value).atStartOfDay();
     }
 }

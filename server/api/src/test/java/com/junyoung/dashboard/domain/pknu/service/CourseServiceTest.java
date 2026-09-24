@@ -43,7 +43,7 @@ class CourseServiceTest {
     @Test
     void createsCourseUnderExistingSemester() {
         Semester semester = new Semester("2026-1학기", LocalDate.of(2026, 3, 1), LocalDate.of(2026, 6, 30));
-        CourseRequest request = new CourseRequest(1L, "자료구조", "김교수", 3, "https://app.notion.com/p/abc");
+        CourseRequest request = new CourseRequest(1L, "자료구조", "김교수", 3, "https://app.notion.com/p/abc", null, null);
         when(semesterRepository.findById(1L)).thenReturn(Optional.of(semester));
         when(courseRepository.save(any(Course.class)))
                 .thenReturn(new Course(semester, "자료구조", "김교수", 3));
@@ -61,7 +61,7 @@ class CourseServiceTest {
 
     @Test
     void throwsWhenSemesterMissingOnCreate() {
-        CourseRequest request = new CourseRequest(1L, "자료구조", "김교수", 3, null);
+        CourseRequest request = new CourseRequest(1L, "자료구조", "김교수", 3, null, null, null);
         when(semesterRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> courseService.create(request))
@@ -75,7 +75,7 @@ class CourseServiceTest {
         Course course = new Course(oldSemester, "자료구조", "김교수", 3);
         ReflectionTestUtils.setField(newSemester, "id", 2L);
         course.changeNotionUrl("https://app.notion.com/p/old");
-        CourseRequest request = new CourseRequest(2L, "운영체제", "이교수", 4, "https://app.notion.com/p/new");
+        CourseRequest request = new CourseRequest(2L, "운영체제", "이교수", 4, "https://app.notion.com/p/new", null, null);
         when(courseRepository.findById(10L)).thenReturn(Optional.of(course));
         when(semesterRepository.findById(2L)).thenReturn(Optional.of(newSemester));
 
@@ -92,11 +92,29 @@ class CourseServiceTest {
     void throwsWhenNewSemesterMissingOnUpdate() {
         Semester oldSemester = new Semester("2025-2학기", LocalDate.of(2025, 9, 1), LocalDate.of(2025, 12, 20));
         Course course = new Course(oldSemester, "자료구조", "김교수", 3);
-        CourseRequest request = new CourseRequest(2L, "운영체제", "이교수", 4, null);
+        CourseRequest request = new CourseRequest(2L, "운영체제", "이교수", 4, null, null, null);
         when(courseRepository.findById(10L)).thenReturn(Optional.of(course));
         when(semesterRepository.findById(2L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> courseService.update(10L, request))
                 .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    void savesGradeAndMemoOnUpdateAndClearsThemWhenOmitted() {
+        Semester semester = new Semester("2026-1학기", LocalDate.of(2026, 3, 1), LocalDate.of(2026, 6, 30));
+        ReflectionTestUtils.setField(semester, "id", 1L);
+        Course course = new Course(semester, "경영과학", null, 3);
+        when(courseRepository.findById(10L)).thenReturn(Optional.of(course));
+        when(semesterRepository.findById(1L)).thenReturn(Optional.of(semester));
+
+        courseService.update(10L, new CourseRequest(1L, "경영과학", null, 3, null, "A+", "기말 범위 6~10장"));
+        assertThat(course.getGrade()).isEqualTo("A+");
+        assertThat(course.getMemo()).isEqualTo("기말 범위 6~10장");
+
+        // PUT은 전체 교체 — 빠진 필드는 null (클라이언트가 항상 보내야 하는 이유)
+        courseService.update(10L, new CourseRequest(1L, "경영과학", null, 3, null, null, null));
+        assertThat(course.getGrade()).isNull();
+        assertThat(course.getMemo()).isNull();
     }
 }

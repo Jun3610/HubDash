@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,9 +37,9 @@ class HealthLogServiceTest {
 
     @Test
     void createsHealthLogUsingRequestFields() {
-        HealthLogRequest request = new HealthLogRequest(LocalDate.of(2026, 9, 1), 70.5, 7.5, null);
+        HealthLogRequest request = new HealthLogRequest(LocalDateTime.of(2026, 9, 1, 7, 30), 70.5, 7.5, null);
         when(healthLogRepository.save(any(HealthLog.class)))
-                .thenReturn(new HealthLog(LocalDate.of(2026, 9, 1), 70.5, 7.5, null));
+                .thenReturn(new HealthLog(LocalDateTime.of(2026, 9, 1, 7, 30), 70.5, 7.5, null));
 
         HealthLogResponse response = healthLogService.create(request);
 
@@ -61,14 +62,14 @@ class HealthLogServiceTest {
 
     @Test
     void updatesEveryFieldWithoutTransposingParameters() {
-        HealthLog existing = new HealthLog(LocalDate.of(2026, 1, 1), 68.0, 6.0, "기존 메모");
+        HealthLog existing = new HealthLog(LocalDateTime.of(2026, 1, 1, 7, 30), 68.0, 6.0, "기존 메모");
         when(healthLogRepository.findById(1L)).thenReturn(Optional.of(existing));
 
-        HealthLogRequest request = new HealthLogRequest(LocalDate.of(2026, 2, 2), 71.0, 8.0, "새 메모");
+        HealthLogRequest request = new HealthLogRequest(LocalDateTime.of(2026, 2, 2, 7, 30), 71.0, 8.0, "새 메모");
 
         HealthLogResponse response = healthLogService.update(1L, request);
 
-        assertThat(response.recordedAt()).isEqualTo(LocalDate.of(2026, 2, 2));
+        assertThat(response.recordedAt()).isEqualTo(LocalDateTime.of(2026, 2, 2, 7, 30));
         assertThat(response.weightKg()).isEqualTo(71.0);
         assertThat(response.sleepHours()).isEqualTo(8.0);
         assertThat(response.notes()).isEqualTo("새 메모");

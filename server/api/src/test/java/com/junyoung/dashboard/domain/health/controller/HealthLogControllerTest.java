@@ -44,8 +44,8 @@ class HealthLogControllerTest {
 
     @Test
     void createsHealthLog() throws Exception {
-        HealthLogRequest request = new HealthLogRequest(LocalDate.of(2026, 9, 1), 70.5, 7.5, null);
-        HealthLogResponse response = new HealthLogResponse(1L, LocalDate.of(2026, 9, 1), 70.5, 7.5, null,
+        HealthLogRequest request = new HealthLogRequest(LocalDateTime.of(2026, 9, 1, 7, 30), 70.5, 7.5, null);
+        HealthLogResponse response = new HealthLogResponse(1L, LocalDateTime.of(2026, 9, 1, 7, 30), 70.5, 7.5, null,
                 LocalDateTime.now(), LocalDateTime.now());
         when(healthLogService.create(request)).thenReturn(response);
 
@@ -58,7 +58,7 @@ class HealthLogControllerTest {
 
     @Test
     void rejectsSleepHoursOutOfRange() throws Exception {
-        HealthLogRequest invalid = new HealthLogRequest(LocalDate.of(2026, 9, 1), 70.5, 25.0, null);
+        HealthLogRequest invalid = new HealthLogRequest(LocalDateTime.of(2026, 9, 1, 7, 30), 70.5, 25.0, null);
 
         mockMvc.perform(post("/api/health/logs")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -70,7 +70,7 @@ class HealthLogControllerTest {
     @Test
     void listsHealthLogs() throws Exception {
         when(healthLogService.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(
-                new HealthLogResponse(1L, LocalDate.of(2026, 9, 1), 70.5, 7.5, null,
+                new HealthLogResponse(1L, LocalDateTime.of(2026, 9, 1, 7, 30), 70.5, 7.5, null,
                         LocalDateTime.now(), LocalDateTime.now())
         )));
 

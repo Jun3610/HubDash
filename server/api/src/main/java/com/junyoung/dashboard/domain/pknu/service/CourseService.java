@@ -29,6 +29,7 @@ public class CourseService {
         Semester semester = getSemesterOrThrow(request.semesterId());
         Course course = new Course(semester, request.name(), request.professor(), request.credit());
         course.changeNotionUrl(request.notionUrl());
+        course.changeGradeAndMemo(request.grade(), request.memo());
         Course saved = courseRepository.save(course);
         return CourseResponse.from(saved);
     }
@@ -48,6 +49,7 @@ public class CourseService {
         Semester semester = getSemesterOrThrow(request.semesterId());
         course.update(semester, request.name(), request.professor(), request.credit());
         course.changeNotionUrl(request.notionUrl());
+        course.changeGradeAndMemo(request.grade(), request.memo());
         return CourseResponse.from(course);
     }
 
