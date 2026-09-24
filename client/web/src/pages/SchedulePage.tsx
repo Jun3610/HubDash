@@ -127,7 +127,11 @@ export default function SchedulePage() {
             <Segmented<View>
               label="보기"
               value={view as View}
-              onChange={setView}
+              onChange={(v) => {
+                // 검색 결과가 보기를 가리고 있으면 보기를 바꿀 때 검색을 끝낸다 (이슈 #183)
+                setQ('')
+                setView(v)
+              }}
               items={[
                 { key: 'month', label: 'M', title: '월' },
                 { key: 'week', label: 'W', title: '주' },
