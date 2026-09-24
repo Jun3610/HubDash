@@ -206,17 +206,7 @@
   background: var(--divider);
 }
 .body {
-  width: 100%;
   min-height: 420px;
-  resize: vertical;
-  background: transparent;
-  border: 0;
-  outline: none;
-  color: var(--text-body);
-  font-family: var(--font-mono);
-  font-size: 13.5px;
-  line-height: 1.7;
-  padding: 0;
 }
 .counter {
   font-family: var(--font-mono);

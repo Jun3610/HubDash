@@ -13,13 +13,11 @@ import {
   Peek,
   QueryState,
   SectionHeader,
-  Segmented,
   Tag,
-  Textarea,
+  MarkdownEditor,
   toneFor,
   useToast,
 } from '../components/ui'
-import { Markdown } from '../components/ui/Markdown'
 import { NotionLink } from '../components/ui/NotionLink'
 import { courseCategoryStore } from '../config/prefs'
 import { useAllCourses } from '../hooks/usePknu'
@@ -128,8 +126,6 @@ function CourseDashboard({
   const update = useUpdate(courses)
   const toast = useToast()
   const [memo, setMemo] = useState(course.memo ?? '')
-  // 메모가 있으면 마크다운 미리보기로 시작 (이슈 #148)
-  const [mode, setMode] = useState<'edit' | 'preview'>(course.memo ? 'preview' : 'edit')
   const dirty = memo !== (course.memo ?? '')
 
   const save = (patch: { grade?: Grade | null; memo?: string | null }, okText: string) =>
@@ -246,47 +242,26 @@ function CourseDashboard({
           title="과목 메모"
           meta={dirty ? '저장 안 됨' : course.memo ? '저장됨' : undefined}
           actions={
-            <>
-              <Segmented
-                label="메모 모드"
-                value={mode}
-                onChange={setMode}
-                items={[
-                  { key: 'edit', label: '편집' },
-                  { key: 'preview', label: '미리보기' },
-                ]}
-              />
-              <Button
-                size="sm"
-                variant="primary"
-                icon={<Save size={13} />}
-                disabled={!dirty || update.isPending || memo.length > MEMO_MAX}
-                onClick={saveMemo}
-              >
-                저장
-              </Button>
-            </>
+            <Button
+              size="sm"
+              variant="primary"
+              icon={<Save size={13} />}
+              disabled={!dirty || update.isPending || memo.length > MEMO_MAX}
+              onClick={saveMemo}
+            >
+              저장
+            </Button>
           }
         />
-        {mode === 'edit' ? (
-          <>
-            <Textarea
-              aria-label="과목 메모 (마크다운)"
-              rows={10}
-              placeholder={'마크다운으로 적어요 (⌘S로 저장)\n\n# 시험 범위\n- 3장 ~ 7장\n**과제는 매주 금요일**'}
-              value={memo}
-              onChange={(e) => setMemo(e.target.value)}
-              style={{ minHeight: 200, fontFamily: 'var(--font-mono)', fontSize: 13 }}
-            />
-            <span className={s.memoCount} data-over={memo.length > MEMO_MAX}>
-              {memo.length.toLocaleString()} / {MEMO_MAX.toLocaleString()}
-            </span>
-          </>
-        ) : memo.trim() ? (
-          <Markdown source={memo} />
-        ) : (
-          <EmptyState compact title="메모가 없어요 — 편집에서 적어 보세요" />
-        )}
+        <MarkdownEditor
+          label="과목 메모"
+          value={course.memo ?? ''}
+          onChange={setMemo}
+          placeholder="시험 범위, 과제 방식 같은 걸 적어 두세요 — # 제목, - 목록, [] 할 일 (⌘S로 저장)"
+        />
+        <span className={s.memoCount} data-over={memo.length > MEMO_MAX}>
+          {memo.length.toLocaleString()} / {MEMO_MAX.toLocaleString()}
+        </span>
         <FormError error={update.error} />
       </Card>
     </>
