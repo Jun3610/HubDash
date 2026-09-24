@@ -476,3 +476,15 @@
     grid-template-columns: 90px minmax(0, 1fr);
   }
 }
+
+/* List 맨 위 전체 개수 (이슈 #181) */
+.listTotal {
+  padding: 8px 14px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.listTotal b {
+  font-family: var(--font-mono);
+  color: var(--text);
+  font-weight: 600;
+}

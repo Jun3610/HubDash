@@ -224,6 +224,7 @@ export default function SchedulePage() {
               <ListView
                 today={today}
                 events={all}
+                total={list.data?.totalElements ?? all.length}
                 selectedId={selected?.id}
                 onSelect={(e) => setSelectedId(String(e.id))}
               />
@@ -440,11 +441,14 @@ function MonthView({
 function ListView({
   today,
   events: list,
+  total,
   selectedId,
   onSelect,
 }: {
   today: LocalDate
   events: ScheduleEvent[]
+  /** DB에 있는 일정 전체 개수 (서버 totalElements, 이슈 #181) */
+  total: number
   selectedId?: number
   onSelect: (e: ScheduleEvent) => void
 }) {
@@ -459,6 +463,9 @@ function ListView({
   if (rows.length === 0) return <EmptyState title="일정이 없어요" />
   return (
     <div>
+      <div className={s.listTotal}>
+        총 <b>{total.toLocaleString()}</b>개 일정 · {rows.length.toLocaleString()}일
+      </div>
       {rows.map(({ d, on }) => (
         <div key={d} className={s.listDay}>
           <span className={s.listDate} data-today={d === today}>
