@@ -11,7 +11,8 @@ export function PageHeader({
   sub,
   titleTo,
 }: {
-  title: string
+  /** 없으면 'HubDash'만 (홈, 이슈 #177) */
+  title?: string
   /** 가운데 칸을 눌렀을 때 갈 곳 (기본: 지금 화면의 첫 화면) */
   titleTo?: string
   /** 브레드크럼 세 번째 칸 (예: 메모 제목) */
@@ -30,9 +31,9 @@ export function PageHeader({
         <Link to="/" className={s.crumbLink}>
           HubDash
         </Link>
-        <span>/</span>
-        {sub ? (
+        {!title ? null : sub ? (
           <>
+            <span>/</span>
             <Link to={titleTo ?? base} className={`${s.crumbMid} ${s.crumbLink}`}>
               {title}
             </Link>
@@ -42,9 +43,12 @@ export function PageHeader({
             </span>
           </>
         ) : (
-          <Link to={titleTo ?? base} className={s.crumbLink}>
-            {title}
-          </Link>
+          <>
+            <span>/</span>
+            <Link to={titleTo ?? base} className={s.crumbLink}>
+              {title}
+            </Link>
+          </>
         )}
       </div>
       {tabs && <div className={s.headerTabs}>{tabs}</div>}

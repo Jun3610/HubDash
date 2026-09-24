@@ -38,7 +38,6 @@ import {
 import {
   allDayOn,
   eventsOn,
-  eventTimeLabel,
   GRID_END_HOUR,
   GRID_START_HOUR,
   monthGrid,
@@ -48,6 +47,7 @@ import {
   upcoming,
 } from '../lib/select/schedule'
 import { hasErrors, maxLen, optStr, required, type Errors } from '../lib/validate'
+import { sortBy } from '../lib/select/range'
 import s from './schedule/Schedule.module.css'
 
 type View = 'month' | 'week' | 'list'
@@ -129,35 +129,38 @@ export default function SchedulePage() {
               value={view as View}
               onChange={setView}
               items={[
-                { key: 'month', label: '월' },
-                { key: 'week', label: '주' },
-                { key: 'list', label: '목록' },
+                { key: 'month', label: 'M', title: '월' },
+                { key: 'week', label: 'W', title: '주' },
+                { key: 'list', label: 'List', title: '전체 일정 (최신순)' },
               ]}
             />
-            <div className={miscStyles.dateNav}>
-              <button
-                type="button"
-                className={miscStyles.navBtn}
-                aria-label={view === 'week' ? '이전 주' : '이전 달'}
-                onClick={() => move(-1)}
-              >
-                <ChevronLeft size={14} />
-              </button>
-              <button type="button" className={miscStyles.todayBtn} onClick={() => setAnchor(today)}>
-                오늘
-              </button>
-              <button
-                type="button"
-                className={miscStyles.navBtn}
-                aria-label={view === 'week' ? '다음 주' : '다음 달'}
-                onClick={() => move(1)}
-              >
-                <ChevronRight size={14} />
-              </button>
-              <span className={miscStyles.dateLabel} aria-live="polite">
-                {rangeLabel}
-              </span>
-            </div>
+            {/* List는 전체 일정이라 날짜 이동이 필요 없다 (이슈 #177) */}
+            {view !== 'list' && (
+              <div className={miscStyles.dateNav}>
+                <button
+                  type="button"
+                  className={miscStyles.navBtn}
+                  aria-label={view === 'week' ? '이전 주' : '이전 달'}
+                  onClick={() => move(-1)}
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <button type="button" className={miscStyles.todayBtn} onClick={() => setAnchor(today)}>
+                  Today
+                </button>
+                <button
+                  type="button"
+                  className={miscStyles.navBtn}
+                  aria-label={view === 'week' ? '다음 주' : '다음 달'}
+                  onClick={() => move(1)}
+                >
+                  <ChevronRight size={14} />
+                </button>
+                <span className={miscStyles.dateLabel} aria-live="polite">
+                  {rangeLabel}
+                </span>
+              </div>
+            )}
           </div>
         }
       >
@@ -165,7 +168,7 @@ export default function SchedulePage() {
           <Search size={14} />
           <input
             type="text"
-            placeholder="일정 검색 · 제목 · 장소 · 메모"
+            placeholder="Search"
             aria-label="일정 검색"
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -183,7 +186,7 @@ export default function SchedulePage() {
           )}
         </label>
         <Button variant="primary" icon={<Plus size={14} />} onClick={() => setDialog({ date: anchor })}>
-          일정 추가
+          Add Schedule
         </Button>
       </PageHeader>
 
@@ -219,7 +222,6 @@ export default function SchedulePage() {
             )}
             {!q.trim() && view === 'list' && (
               <ListView
-                anchor={anchor}
                 today={today}
                 events={all}
                 selectedId={selected?.id}
@@ -239,15 +241,15 @@ export default function SchedulePage() {
           ) : (
             <div className={s.box} style={{ padding: 14 }}>
               <span className="muted" style={{ fontSize: 12.5 }}>
-                일정을 누르면 여기에 자세히 보여요.
+                Click a schedule to see the details here.
               </span>
             </div>
           )}
           <section className={s.box} aria-label="다가오는 일정">
             <div className={s.boxHead}>
-              <h2>다가오는 일정</h2>
+              <h2>Coming Schedule</h2>
               <span className="muted" style={{ marginLeft: 'auto', fontSize: 12 }}>
-                7일
+                7 days
               </span>
             </div>
             <UpcomingList
@@ -434,28 +436,33 @@ function MonthView({
 
 // ---- 목록 보기 (그 달) ----
 
+/** List: 그동안의 일정 전부, 최신(시작일이 늦은 날)이 맨 위. 하루 안에서는 종일 → 시각 순 (이슈 #177) */
 function ListView({
-  anchor,
   today,
   events: list,
   selectedId,
   onSelect,
 }: {
-  anchor: LocalDate
   today: LocalDate
   events: ScheduleEvent[]
   selectedId?: number
   onSelect: (e: ScheduleEvent) => void
 }) {
-  const month = anchor.slice(0, 7)
-  const days = monthGrid(anchor).filter((d) => d.startsWith(month))
-  const rows = days.map((d) => ({ d, on: eventsOn(list, d) })).filter((r) => r.on.length > 0)
-  if (rows.length === 0) return <EmptyState title="이 달에는 일정이 없어요" />
+  const byDay = new Map<LocalDate, ScheduleEvent[]>()
+  for (const e of list) {
+    const d = datePart(e.startAt)
+    byDay.set(d, [...(byDay.get(d) ?? []), e])
+  }
+  const rows = [...byDay.entries()]
+    .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+    .map(([d, on]) => ({ d, on: sortBy(on, (e) => (e.allDay ? '0' : '1') + e.startAt) }))
+  if (rows.length === 0) return <EmptyState title="일정이 없어요" />
   return (
     <div>
       {rows.map(({ d, on }) => (
         <div key={d} className={s.listDay}>
           <span className={s.listDate} data-today={d === today}>
+            {d.slice(0, 4) !== today.slice(0, 4) && `${d.slice(2, 4)}.`}
             {formatShortDate(d)} {weekdayKo(d)}
           </span>
           <div>
@@ -468,11 +475,7 @@ function ListView({
                 onClick={() => onSelect(e)}
               >
                 <span className="mono muted" style={{ fontSize: 12 }}>
-                  {e.allDay
-                    ? '종일'
-                    : e.endAt
-                      ? `${eventTimeLabel(e, d)}–${formatTime(e.endAt)}`
-                      : eventTimeLabel(e, d)}
+                  {e.allDay ? '종일' : timeRange(e)}
                 </span>
                 <span className="ellipsis" style={{ color: 'var(--text-strong)' }}>
                   {e.title}
