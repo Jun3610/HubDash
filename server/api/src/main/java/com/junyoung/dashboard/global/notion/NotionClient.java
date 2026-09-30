@@ -119,7 +119,7 @@ public class NotionClient {
             Map<?, ?> p = (Map<?, ?>) v;
             String type = String.valueOf(p.get("type"));
             switch (type) {
-                case "title" -> title = plain((List<?>) p.get("title"));
+                case "title" -> title = plainText((List<?>) p.get("title"));
                 case "status", "select" -> {
                     Map<?, ?> s = (Map<?, ?>) p.get(type);
                     if (s != null && status == null) {
@@ -139,7 +139,8 @@ public class NotionClient {
         return new NotionPage(String.valueOf(row.get("id")), title.strip(), status, date);
     }
 
-    private static String plain(List<?> rich) {
+    /** 노션 rich text 배열의 글자만 이어 붙인다 */
+    public static String plainText(List<?> rich) {
         StringBuilder sb = new StringBuilder();
         if (rich != null) {
             for (Object r : rich) {
