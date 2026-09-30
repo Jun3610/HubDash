@@ -107,8 +107,11 @@ public class ScheduleSyncService {
         LocalDateTime started = now();
         try {
             List<ExternalEvent> fetched = source.fetch();
-            // 노션에서 이관한 기존 일정의 출처 채우기(#230)는 노션 첫 동기화(성공 기록이 없을 때) 한 번만
-            boolean backfill = source.source() == EventSource.NOTION && !runs.existsBySourceAndOkTrue(source.name());
+            // 직접 만든 일정과의 짝짓기(백필):
+            // - 노션(#230): 이관 일정 321건의 출처 채우기 — 노션 첫 동기화(성공 기록이 없을 때) 한 번만
+            // - iCloud(#234): iCloud가 일정 원본이라 노션 일정을 옮겨 둔 캘린더도 켠다 — 캘린더를 나중에 더 켜도 중복되지 않게 매번
+            boolean backfill = source.source() == EventSource.ICLOUD
+                    || source.source() == EventSource.NOTION && !runs.existsBySourceAndOkTrue(source.name());
             EventImporter.Counts c = importer.apply(source.source(), fetched, backfill);
             return record(source.name(), started, new SyncSourceResult(source.name(), true, c.added(), c.updated(), c.deleted(), null));
         } catch (RuntimeException e) {

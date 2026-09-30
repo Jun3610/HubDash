@@ -42,7 +42,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // 노션/iCloud는 가짜로 두고, 저장 → 암호화 → 응답 마스킹까지 실제 경로로 확인한다 (이슈 #227)
 @SpringBootTest(properties = {
         "app.credential-key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-        "app.notion.token="
+        "app.notion.token=",
+        "app.icloud.duplicate-calendars=ParkJunYoung_Schedule"
 })
 @AutoConfigureMockMvc
 @ActiveProfiles("test")

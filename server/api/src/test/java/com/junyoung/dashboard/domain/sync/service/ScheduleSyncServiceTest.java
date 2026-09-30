@@ -53,7 +53,7 @@ class ScheduleSyncServiceTest {
         when(notionSource.fetch()).thenThrow(new NotionException("노션 DB를 읽을 수 없어요 — 노션에서 이 DB를 HubDash 통합에 연결해 주세요"));
         List<ExternalEvent> icloud = List.of(new ExternalEvent("u", "t", null, null, null, false));
         when(icloudSource.fetch()).thenReturn(icloud);
-        when(importer.apply(EventSource.ICLOUD, icloud, false)).thenReturn(new EventImporter.Counts(1, 0, 0, 0));
+        when(importer.apply(EventSource.ICLOUD, icloud, true)).thenReturn(new EventImporter.Counts(1, 0, 0, 0));
 
         SyncResponse response = service.syncAll();
 
@@ -92,15 +92,18 @@ class ScheduleSyncServiceTest {
         verify(importer).apply(EventSource.NOTION, List.of(), false);
     }
 
+    // iCloud가 일정 원본(#234) — 노션 일정을 옮겨 둔 캘린더를 나중에 켜도 중복되지 않게 매번 짝짓는다
     @Test
-    void icloudNeverBackfills() {
+    void icloudBackfillsOnEverySync() {
         when(icloudSource.configured()).thenReturn(true);
         when(icloudSource.fetch()).thenReturn(List.of());
         when(importer.apply(any(), any(), anyBoolean())).thenReturn(new EventImporter.Counts(0, 0, 0, 0));
+        when(runs.existsBySourceAndOkTrue("ICLOUD")).thenReturn(true);
 
         service.syncAll();
+        service.syncAll();
 
-        verify(importer).apply(eq(EventSource.ICLOUD), any(), eq(false));
+        verify(importer, times(2)).apply(eq(EventSource.ICLOUD), any(), eq(true));
     }
 
     @Test
