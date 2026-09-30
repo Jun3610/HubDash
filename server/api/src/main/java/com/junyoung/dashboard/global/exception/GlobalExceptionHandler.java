@@ -71,6 +71,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("NOTION_ERROR", ex.getMessage()));
     }
 
+    /** 연동 설정·검증 오류 (이슈 #227) — 상태 코드와 코드는 예외가 정한다 */
+    @ExceptionHandler(IntegrationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIntegration(IntegrationException ex) {
+        return ResponseEntity.status(ex.getStatus())
+                .body(ApiResponse.error(ex.getCode(), ex.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleUnexpected(Exception ex) {
         log.error("Unexpected exception", ex);

@@ -74,6 +74,8 @@ services:
       API_KEY: ${API_KEY:-dev-local-key}
       # 'Notion 불러오기' 토큰 — 레포 루트 .env에 NOTION_TOKEN=... (커밋 안 함, 이슈 #163)
       NOTION_TOKEN: ${NOTION_TOKEN:-}
+      # 연동 계정 정보(노션 토큰, Apple 앱 암호) 암호화 키 — `openssl rand -base64 32`로 만들어 .env에 (이슈 #227)
+      CREDENTIAL_KEY: ${CREDENTIAL_KEY:-}
     ports:
       - "127.0.0.1:8080:8080"
 
