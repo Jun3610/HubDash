@@ -2,6 +2,7 @@ package com.junyoung.dashboard.domain.schedule.controller;
 
 import com.junyoung.dashboard.domain.schedule.dto.EventRequest;
 import com.junyoung.dashboard.domain.schedule.dto.EventResponse;
+import com.junyoung.dashboard.domain.schedule.entity.EventSource;
 import com.junyoung.dashboard.domain.schedule.service.EventService;
 import com.junyoung.dashboard.global.exception.GlobalExceptionHandler;
 import org.junit.jupiter.api.Test;
@@ -46,7 +47,7 @@ class EventControllerTest {
         EventRequest request = new EventRequest("발표 준비", LocalDateTime.of(2026, 9, 16, 10, 0),
                 LocalDateTime.of(2026, 9, 16, 11, 0), "회의실 A", null, false);
         EventResponse response = new EventResponse(1L, "발표 준비", LocalDateTime.of(2026, 9, 16, 10, 0),
-                LocalDateTime.of(2026, 9, 16, 11, 0), "회의실 A", null, false,
+                LocalDateTime.of(2026, 9, 16, 11, 0), "회의실 A", null, false, EventSource.MANUAL,
                 LocalDateTime.now(), LocalDateTime.now());
         when(eventService.create(request)).thenReturn(response);
 
@@ -63,7 +64,7 @@ class EventControllerTest {
         EventRequest request = new EventRequest("운동", LocalDateTime.of(2026, 9, 16, 19, 0),
                 null, null, null, false);
         EventResponse response = new EventResponse(2L, "운동", LocalDateTime.of(2026, 9, 16, 19, 0),
-                null, null, null, false, LocalDateTime.now(), LocalDateTime.now());
+                null, null, null, false, EventSource.MANUAL, LocalDateTime.now(), LocalDateTime.now());
         when(eventService.create(request)).thenReturn(response);
 
         mockMvc.perform(post("/api/schedule/events")
@@ -101,7 +102,7 @@ class EventControllerTest {
     void listsEvents() throws Exception {
         when(eventService.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(
                 new EventResponse(1L, "발표 준비", LocalDateTime.of(2026, 9, 16, 10, 0),
-                        LocalDateTime.of(2026, 9, 16, 11, 0), "회의실 A", null, false,
+                        LocalDateTime.of(2026, 9, 16, 11, 0), "회의실 A", null, false, EventSource.MANUAL,
                         LocalDateTime.now(), LocalDateTime.now())
         )));
 
