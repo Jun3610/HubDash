@@ -105,6 +105,30 @@ class CalDavClientTest {
     }
 
     @Test
+    void reportAsksForTimeRangeAndReturnsCalendarData() {
+        server.expect(requestTo("https://p43-caldav.test/123456/calendars/home/"))
+                .andExpect(method(HttpMethod.valueOf("REPORT")))
+                .andExpect(header("Depth", "1"))
+                .andExpect(org.springframework.test.web.client.match.MockRestRequestMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("start=\"20250930T000000Z\" end=\"20270930T000000Z\"")))
+                .andRespond(withStatus(HttpStatus.MULTI_STATUS).contentType(MediaType.APPLICATION_XML).body(multistatus("""
+                        <d:response><d:href>/123456/calendars/home/a.ics</d:href><d:propstat><d:prop>
+                          <c:calendar-data>BEGIN:VCALENDAR
+                        BEGIN:VEVENT
+                        UID:A
+                        SUMMARY:장보기
+                        END:VEVENT
+                        END:VCALENDAR</c:calendar-data>
+                        </d:prop></d:propstat></d:response>""")));
+
+        java.util.List<String> ics = client.events(LOGIN, "https://p43-caldav.test/123456/calendars/home/",
+                java.time.Instant.parse("2025-09-30T00:00:00Z"), java.time.Instant.parse("2027-09-30T00:00:00Z"));
+
+        assertThat(ics).singleElement().asString().contains("UID:A").contains("장보기");
+        server.verify();
+    }
+
+    @Test
     void loginToStringHidesPassword() {
         assertThat(LOGIN.toString()).doesNotContain("abcd");
     }

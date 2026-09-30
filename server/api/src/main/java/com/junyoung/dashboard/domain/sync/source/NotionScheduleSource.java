@@ -4,6 +4,7 @@ import com.junyoung.dashboard.domain.integration.service.CredentialStore;
 import com.junyoung.dashboard.domain.schedule.entity.EventSource;
 import com.junyoung.dashboard.global.notion.NotionClient;
 import com.junyoung.dashboard.global.notion.NotionIds;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -21,6 +22,7 @@ import java.util.Map;
  * 끝이 없거나 시작과 같으면 end_at은 비운다. Status는 가져오지 않는다.
  */
 @Component
+@Order(1)
 public class NotionScheduleSource implements SyncSource {
 
     static final ZoneId KST = ZoneId.of("Asia/Seoul");
