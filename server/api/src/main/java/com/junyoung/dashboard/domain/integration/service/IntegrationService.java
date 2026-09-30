@@ -52,7 +52,7 @@ public class IntegrationService {
     @Autowired
     public IntegrationService(IntegrationCredentialRepository repository, CredentialStore store, CredentialCipher cipher,
                               NotionClient notion, CalDavClient caldav,
-                              @Value("${app.icloud.duplicate-calendars:ParkJunYoung_Schedule}") String duplicateCalendars) {
+                              @Value("${app.icloud.duplicate-calendars:}") String duplicateCalendars) {
         this(repository, store, cipher, notion, caldav, duplicateCalendars, Clock.systemDefaultZone());
     }
 
