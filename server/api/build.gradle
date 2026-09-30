@@ -12,6 +12,8 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql'
     implementation 'org.springframework.boot:spring-boot-starter-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
+    // iCloud 캘린더(iCalendar) 파싱과 반복 일정(RRULE) 펼치기 (이슈 #229)
+    implementation 'org.mnode.ical4j:ical4j:4.1.1'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.postgresql:postgresql'
